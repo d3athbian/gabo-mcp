@@ -21,15 +21,23 @@
 .env
 .env.local
 .env.*.local
+!.env.example
 
 # IDE
 .vscode
 .idea
 *.swp
 *.swo
+*.sublime-workspace
+*.sublime-project
 
 # OS
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
 
 # Temporary files
@@ -39,6 +47,20 @@ Thumbs.db
 # Coverage
 /coverage
 .nyc_output
+.c8rc
+
+# Cache
+/cache
+/cache/embeddings
+*.cache
 
 # System
 /System Volume Information
+
+# Vercel
+.vercel
+.next
+
+# macOS
+.AppleDouble
+.AppleDB
