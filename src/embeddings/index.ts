@@ -3,8 +3,8 @@
  * To be fully implemented in Phase 4 with vector search
  */
 
-import { config } from '../config';
-import { EmbeddingResponse } from '../types';
+import { config } from '../config.ts';
+import type { EmbeddingResponse } from '../types.ts';
 
 /**
  * Generate embedding for a text using Ollama (or OpenAI in future)

@@ -5,7 +5,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
  * Actual tests to be implemented in Phase 3
  */
 
-vi.mock('../db/client', () => ({
+vi.mock('../db/client.ts', () => ({
   supabase: {
     from: vi.fn(() => ({
       select: vi.fn().mockReturnThis(),

@@ -3,8 +3,8 @@
  * Placeholder for Phase 3 implementation
  */
 
-import { config } from './config';
-import { testConnection } from './db/client';
+import { config } from './config.ts';
+import { testConnection } from './db/client.ts';
 
 const version = '0.1.0';
 

@@ -1,7 +1,5 @@
-import dotenv from 'dotenv';
-
-// Load environment variables
-dotenv.config();
+// Environment variables are loaded natively by Node 24 via --env-file flag
+// No dotenv dependency needed!
 
 const requiredVars = [
   'NODE_ENV',

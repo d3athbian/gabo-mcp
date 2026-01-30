@@ -1,5 +1,5 @@
-import { supabase } from './client';
-import { KnowledgeEntry, CreateKnowledgeInput, SearchKnowledgeInput, SearchResult } from '../types';
+import { supabase } from './client.ts';
+import type { KnowledgeEntry, CreateKnowledgeInput, SearchKnowledgeInput, SearchResult } from '../types.ts';
 
 /**
  * Store a new knowledge entry in the database

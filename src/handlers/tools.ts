@@ -2,8 +2,8 @@
  * MCP Tool handlers for knowledge management
  */
 
-import { storeKnowledge, searchKnowledge, getKnowledge, listKnowledge } from '../db/queries';
-import { CreateKnowledgeInput, SearchKnowledgeInput, MCPToolResult, KnowledgeType } from '../types';
+import { storeKnowledge, searchKnowledge, getKnowledge, listKnowledge } from '../db/queries.ts';
+import type { CreateKnowledgeInput, SearchKnowledgeInput, MCPToolResult, KnowledgeType } from '../types.ts';
 
 const VALID_TYPES: KnowledgeType[] = [
   'UI_REASONING',

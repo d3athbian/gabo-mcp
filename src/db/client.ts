@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { config } from '../config';
+import { config } from '../config.ts';
 
 const supabaseUrl = config.database.supabaseUrl;
 const supabaseKey = config.database.supabaseServiceRoleKey || config.database.supabaseAnonKey;
