@@ -101,7 +101,7 @@ export type EntityId = string;
 // db/client.type.ts
 export type DatabaseSchema = {
   knowledge_entries: DatabaseRow & {
-    user_id: EntityId;  // ← Reutilizado
+    user_id: EntityId; // ← Reutilizado
   };
 };
 ```
@@ -113,7 +113,7 @@ export type DatabaseSchema = {
 export type ApiResponse<T> = SuccessResponse<T> | ErrorResponse;
 
 // handlers/tools.type.ts
-export type ToolResult = ApiResponse<ToolResultData>;  // ← Reutilizado
+export type ToolResult = ApiResponse<ToolResultData>; // ← Reutilizado
 ```
 
 ### Ejemplo 3: PaginationParams
@@ -126,10 +126,11 @@ export type PaginationParams = {
 };
 
 // handlers/tools.type.ts
-export type ListKnowledgeInput = PaginationParams;  // ← Reutilizado
+export type ListKnowledgeInput = PaginationParams; // ← Reutilizado
 
 // types.ts
-export type SearchKnowledgeInput = PaginationParams & {  // ← Reutilizado
+export type SearchKnowledgeInput = PaginationParams & {
+  // ← Reutilizado
   query: string;
   type?: KnowledgeType;
 };
@@ -140,18 +141,21 @@ export type SearchKnowledgeInput = PaginationParams & {  // ← Reutilizado
 ### Paso 1: Evaluar la Genericidad
 
 **¿El tipo es genérico y reutilizable?**
+
 - **SÍ** → Agregarlo a `base.type.ts`
 - **NO** → Agregarlo al archivo `.type.ts` específico del módulo
 
 ### Paso 2: Extender de Tipos Base
 
 **¿Extiendo de un tipo base?**
+
 - **SÍ** → Importar desde `base.type.ts`
 - **NO** → Definir directamente
 
 ### Paso 3: Exportar en types.ts
 
 **¿Debo exportarlo en types.ts?**
+
 - **SÍ** → Asegurate de importarlo de la fuente correcta
 - **NO** → Mantenerlo privado al módulo
 
@@ -185,7 +189,7 @@ export type PaginationParams = { limit?: number; offset?: number };
 
 ```typescript
 export type EntityId = string;
-export type EntityTimestamp = string;  // ISO 8601
+export type EntityTimestamp = string; // ISO 8601
 ```
 
 ### Logging
@@ -209,8 +213,14 @@ export type QueryError = { message: string; code?: string };
 
 ```
 src/
-├── base.type.ts          ← Tipos primitivos y patrones
+├── base.type.ts          ← Tipos primitivos y patrones (FUENTE DE VERDAD)
 ├── types.ts              ← Tipos de dominio
+├── index.ts              ← Entry point del servidor MCP
+├── index.type.ts         ← Tipos específicos del servidor
+├── utils/                ← Funciones reutilizables y utilidades
+│   ├── logger.ts         ← Logger con timestamps para stderr
+│   ├── id.ts             ← Generadores de IDs únicos
+│   └── seed.ts           ← Datos de ejemplo para demos
 ├── config/
 │   ├── config.ts
 │   └── config.type.ts
@@ -222,16 +232,32 @@ src/
 ├── handlers/
 │   ├── tools.ts
 │   └── tools.type.ts
-├── embeddings/
-│   ├── index.ts
-│   └── index.type.ts
-├── index.ts
-└── index.type.ts
+└── embeddings/
+    ├── index.ts
+    └── index.type.ts
 ```
+
+## Utilidades (utils/)
+
+Las funciones de utilidad deben seguir estos principios:
+
+- **Single Responsibility**: Cada archivo tiene una responsabilidad única
+- **Nombres Claros**: El nombre del archivo describe exactamente qué hace
+- **Sin efectos secundarios**: Las funciones son puras cuando es posible
+- **Testeables**: Funciones pequeñas y aisladas que se pueden probar independientemente
+
+### Archivos de Utils
+
+| Archivo     | Responsabilidad                                 |
+| ----------- | ----------------------------------------------- |
+| `logger.ts` | Logging estructurado con timestamps a stderr    |
+| `id.ts`     | Generación de IDs únicos para storage in-memory |
+| `seed.ts`   | Datos de ejemplo para desarrollo y demos        |
 
 ## Mantenimiento
 
 Consulta [guidelines.md](./guidelines.md) para:
+
 - Pasos detallados para agregar tipos
 - Flujo de decisión (¿genérico o específico?)
 - Ejemplos prácticos

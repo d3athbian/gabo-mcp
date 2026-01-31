@@ -1,7 +1,7 @@
 // Environment variables are loaded natively by Node 24 via --env-file flag
 // No dotenv dependency needed!
 
-import type { Config } from './config.type.ts';
+import type { Config } from './config.type';
 
 const requiredVars = [
   'NODE_ENV',
