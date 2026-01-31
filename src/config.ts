@@ -3,9 +3,12 @@
 
 const requiredVars = [
   'NODE_ENV',
-  'SUPABASE_URL',
-  'EMBED_MODEL',
 ];
+
+// Only require SUPABASE_URL if not in mock/offline mode
+if (process.env.USE_MOCK_DB !== 'true') {
+  requiredVars.push('SUPABASE_URL');
+}
 
 const missingVars = requiredVars.filter(v => !process.env[v]);
 
@@ -17,10 +20,13 @@ export const config = {
   nodeEnv: (process.env.NODE_ENV || 'development') as 'development' | 'production' | 'test',
   logLevel: (process.env.LOG_LEVEL || 'info') as 'debug' | 'info' | 'warn' | 'error',
   
+  // Mock/offline mode for local testing without Supabase
+  useMockDb: process.env.USE_MOCK_DB === 'true',
+  
   database: {
     url: process.env.DATABASE_URL || process.env.SUPABASE_URL,
-    supabaseUrl: process.env.SUPABASE_URL!,
-    supabaseAnonKey: process.env.SUPABASE_ANON_KEY,
+    supabaseUrl: process.env.SUPABASE_URL || 'http://localhost:54321',
+    supabaseAnonKey: process.env.SUPABASE_ANON_KEY || 'mock-key',
     supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
   },
   
@@ -52,6 +58,6 @@ export const config = {
 } as const;
 
 // Validate critical config
-if (config.nodeEnv === 'production' && !config.database.supabaseServiceRoleKey) {
+if (config.nodeEnv === 'production' && !config.useMockDb && !config.database.supabaseServiceRoleKey) {
   throw new Error('SUPABASE_SERVICE_ROLE_KEY is required in production');
 }
