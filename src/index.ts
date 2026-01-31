@@ -12,12 +12,13 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import * as fs from 'fs';
+import type { Logger } from './index.type.ts';
 
 // Detect if running under MCP Inspector
 const isInspector = process.env.MCP_INSPECTOR === 'true' || process.argv.some(arg => arg.includes('inspector'));
 
 // Minimal logging to stderr (stdout is reserved for MCP protocol)
-const log = {
+const log: Logger = {
   info: (msg: string) => {
     const timestamp = new Date().toISOString();
     process.stderr.write(`[${timestamp}] ℹ️  ${msg}\n`);
@@ -34,7 +35,7 @@ const log = {
 };
 
 // In-memory storage for demo
-interface StoredEntry {
+type StoredEntry = {
   id: string;
   type: string;
   title: string;
@@ -42,7 +43,7 @@ interface StoredEntry {
   tags: string[];
   source?: string;
   created_at: string;
-}
+};
 
 const storage = new Map<string, StoredEntry>();
 
@@ -141,7 +142,7 @@ const TOOLS: Tool[] = [
         },
       },
       required: ['type', 'title', 'content'],
-    } as any,
+    } as Record<string, unknown> & { type: 'object' },
   },
   {
     name: 'search_knowledge',
@@ -157,7 +158,7 @@ const TOOLS: Tool[] = [
         },
       },
       required: ['query'],
-    } as any,
+    } as Record<string, unknown> & { type: 'object' },
   },
   {
     name: 'list_knowledge',
@@ -170,7 +171,7 @@ const TOOLS: Tool[] = [
           default: 10,
         },
       },
-    } as any,
+    } as Record<string, unknown> & { type: 'object' },
   },
   {
     name: 'get_knowledge',
@@ -183,7 +184,7 @@ const TOOLS: Tool[] = [
         },
       },
       required: ['id'],
-    } as any,
+    } as Record<string, unknown> & { type: 'object' },
   },
 ];
 
@@ -194,7 +195,14 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 });
 
 // Handle CallTool
-server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
+type CallToolRequest = {
+  params: {
+    name: string;
+    arguments?: Record<string, unknown>;
+  };
+};
+
+server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest) => {
   const { params } = request;
   const { name, arguments: args = {} } = params;
   
@@ -204,7 +212,11 @@ server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
   try {
     switch (name) {
       case 'store_knowledge': {
-        const { type, title, content, tags = [], source } = args as Record<string, any>;
+        const type = String(args.type);
+        const title = String(args.title);
+        const content = String(args.content);
+        const tags = Array.isArray(args.tags) ? args.tags : [];
+        const source = args.source ? String(args.source) : undefined;
         
         // Validate input
         if (!title || !content) {
@@ -246,7 +258,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
       }
 
       case 'search_knowledge': {
-        const { query, type } = args as Record<string, any>;
+        const query = String(args.query);
+        const type = args.type ? String(args.type) : undefined;
 
         if (!query) {
           throw new Error('query is required');
@@ -284,7 +297,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
       }
 
       case 'list_knowledge': {
-        const { limit = 10 } = args as Record<string, any>;
+        const limit = typeof args.limit === 'number' ? args.limit : 10;
 
         const entries = Array.from(storage.values())
           .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
@@ -311,7 +324,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
       }
 
       case 'get_knowledge': {
-        const { id } = args as Record<string, any>;
+        const id = String(args.id);
 
         if (!id) {
           throw new Error('id is required');
@@ -406,14 +419,23 @@ async function main() {
   };
 
   // Interceptar la salida (Lo que tu server envía al IDE)
-  const originalStdoutWrite = process.stdout.write;
-  (process.stdout.write as any) = function(chunk: any, ...args: any[]) {
+  const originalStdoutWrite = process.stdout.write.bind(process.stdout);
+  process.stdout.write = function(chunk: string | Uint8Array, encodingOrCallback?: BufferEncoding | ((error?: Error | null) => void), maybeCallback?: (error?: Error | null) => void): boolean {
     try {
-      trace('📤 OUT (Server -> Client)', chunk.toString());
+      trace('📤 OUT (Server -> Client)', typeof chunk === 'string' ? chunk : chunk.toString());
     } catch (e) {
       // ignorar errores en logging
     }
-    return originalStdoutWrite.apply(process.stdout, [chunk, ...args]);
+    
+    if (typeof encodingOrCallback === 'function') {
+      return originalStdoutWrite(chunk, encodingOrCallback);
+    }
+    
+    if (typeof maybeCallback === 'function') {
+      return originalStdoutWrite(chunk, encodingOrCallback as BufferEncoding | undefined, maybeCallback);
+    }
+    
+    return originalStdoutWrite(chunk, encodingOrCallback as BufferEncoding | undefined);
   };
 
   // Interceptar la entrada (Lo que el IDE le pide a tu server)

@@ -1,6 +1,9 @@
 /**
  * Core types for Knowledge MCP Server
+ * Extends base.type.ts for common patterns
  */
+
+import type { EntityId, EntityTimestamp, Embedding, KnowledgeWithMeta, PaginationParams } from './base.type.ts';
 
 export type KnowledgeType = 
   | 'UI_REASONING'
@@ -14,56 +17,45 @@ export type KnowledgeType =
 
 export type VisibilityType = 'private' | 'archived';
 
-export interface KnowledgeEntry {
-  id: string;
-  user_id: string;
+export type KnowledgeEntry = KnowledgeWithMeta & {
   type: KnowledgeType;
-  title: string;
-  content: string;
-  embedding?: number[];
-  tags: string[];
-  source?: string;
   visibility: VisibilityType;
-  created_at: string;
-  updated_at: string;
-}
+};
 
-export interface CreateKnowledgeInput {
+export type CreateKnowledgeInput = {
   type: KnowledgeType;
   title: string;
   content: string;
   tags?: string[];
   source?: string;
-}
+};
 
-export interface SearchKnowledgeInput {
+export type SearchKnowledgeInput = PaginationParams & {
   query: string;
   type?: KnowledgeType;
-  limit?: number;
-  offset?: number;
   similarityThreshold?: number;
-}
+};
 
-export interface SearchResult {
-  id: string;
+export type SearchResult = {
+  id: EntityId;
   title: string;
   content: string;
   type: KnowledgeType;
-  created_at: string;
+  created_at: EntityTimestamp;
   relevance_score?: number;
   embedding_score?: number;
-}
+};
 
-export interface EmbeddingResponse {
-  embedding: number[];
+export type EmbeddingResponse = {
+  embedding: Embedding;
   model: string;
   usage?: {
     prompt_tokens?: number;
   };
-}
+};
 
-export interface MCPToolResult {
+export type MCPToolResult = {
   success: boolean;
   data?: unknown;
   error?: string;
-}
+};

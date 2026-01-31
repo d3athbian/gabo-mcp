@@ -1,6 +1,8 @@
 // Environment variables are loaded natively by Node 24 via --env-file flag
 // No dotenv dependency needed!
 
+import type { Config } from './config.type.ts';
+
 const requiredVars = [
   'NODE_ENV',
 ];
@@ -16,7 +18,7 @@ if (missingVars.length > 0) {
   throw new Error(`Missing required environment variables: ${missingVars.join(', ')}`);
 }
 
-export const config = {
+export const config: Config = {
   nodeEnv: (process.env.NODE_ENV || 'development') as 'development' | 'production' | 'test',
   logLevel: (process.env.LOG_LEVEL || 'info') as 'debug' | 'info' | 'warn' | 'error',
   
@@ -55,7 +57,7 @@ export const config = {
   
   debug: process.env.DEBUG === 'true',
   prettyLogs: process.env.PRETTY_LOGS === 'true',
-} as const;
+};
 
 // Validate critical config
 if (config.nodeEnv === 'production' && !config.useMockDb && !config.database.supabaseServiceRoleKey) {
