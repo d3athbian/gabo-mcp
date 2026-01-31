@@ -3,7 +3,7 @@
  * To be fully implemented in Phase 4 with vector search
  */
 
-import { config } from '../config.ts';
+import { config } from '../config/config.ts';
 import type { EmbeddingResponse } from '../types.ts';
 
 /**

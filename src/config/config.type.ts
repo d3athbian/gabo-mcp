@@ -3,7 +3,7 @@
  * Extends base.type.ts for common patterns
  */
 
-import type { NodeEnvironment, LogLevel } from './base.type.ts';
+import type { NodeEnvironment, LogLevel } from '../base.type.ts';
 
 export type EmbeddingProvider = 'ollama' | 'openai';
 
