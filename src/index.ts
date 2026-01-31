@@ -1,7 +1,7 @@
 /**
  * MCP Server Implementation with stdio transport
  * Run locally: npm run dev:local
- * Connect via MCP Inspector for web UI: npx @modelcontextprotocol/inspector npm run dev:local
+ * Connect via MCP Inspector for web UI: npx @modelcontextprotocol/inspector tsx src/index.ts
  */
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
@@ -11,24 +11,25 @@ import {
   type Tool,
 } from '@modelcontextprotocol/sdk/types.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import * as fs from 'fs';
 
 // Detect if running under MCP Inspector
 const isInspector = process.env.MCP_INSPECTOR === 'true' || process.argv.some(arg => arg.includes('inspector'));
 
 // Minimal logging to stderr (stdout is reserved for MCP protocol)
 const log = {
-  info: (msg: string, data?: unknown) => {
+  info: (msg: string) => {
     const timestamp = new Date().toISOString();
-    console.error(`[${timestamp}] ℹ️  ${msg}`, data ? JSON.stringify(data) : '');
+    process.stderr.write(`[${timestamp}] ℹ️  ${msg}\n`);
   },
-  warn: (msg: string, data?: unknown) => {
+  warn: (msg: string) => {
     const timestamp = new Date().toISOString();
-    console.error(`[${timestamp}] ⚠️  ${msg}`, data ? JSON.stringify(data) : '');
+    process.stderr.write(`[${timestamp}] ⚠️  ${msg}\n`);
   },
   error: (msg: string, error?: unknown) => {
     const timestamp = new Date().toISOString();
     const errorMsg = error instanceof Error ? error.message : String(error);
-    console.error(`[${timestamp}] ❌ ${msg}`, errorMsg);
+    process.stderr.write(`[${timestamp}] ❌ ${msg} - ${errorMsg}\n`);
   },
 };
 
@@ -197,23 +198,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
   const { params } = request;
   const { name, arguments: args = {} } = params;
   
-  log.info(`🔧 Tool called: ${name}`, args);
+  log.info(`🔧 Tool called: ${name}`);
+  log.info(`📋 Arguments: ${JSON.stringify(args)}`);
 
   try {
     switch (name) {
       case 'store_knowledge': {
         const { type, title, content, tags = [], source } = args as Record<string, any>;
-        
-        // Log detallado para debugging
-        console.log('\n' + '═'.repeat(60));
-        console.log('📝 STORE_KNOWLEDGE - Datos recibidos:');
-        console.log('═'.repeat(60));
-        console.log('🔹 Type:', type);
-        console.log('🔹 Title:', title);
-        console.log('🔹 Content:', content);
-        console.log('🔹 Tags:', tags);
-        console.log('🔹 Source:', source);
-        console.log('═'.repeat(60) + '\n');
         
         // Validate input
         if (!title || !content) {
@@ -232,10 +223,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
         };
 
         storage.set(id, entry);
-        
-        console.log('✅ Entrada guardada exitosamente!');
-        console.log('📊 ID generado:', id);
-        console.log('💾 Storage actual:', Array.from(storage.entries()).length, 'entradas\n');
         
         log.info(`✅ Knowledge stored with ID: ${id}`);
 
@@ -407,6 +394,37 @@ server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
 
 // Start server
 async function main() {
+  // Crear archivo de log para tracing de MCP (ruta absoluta fija)
+  const logPath = '/tmp/gabo-mcp-traffic.log';
+  const logFile = fs.createWriteStream(logPath, { flags: 'w' });
+  
+  log.info(`📝 MCP Traffic Logs: ${logPath}`);
+  
+  const trace = (direction: string, data: string) => {
+    const timestamp = new Date().toISOString();
+    logFile.write(`[${timestamp}] ${direction}:\n${data}\n${'─'.repeat(70)}\n`);
+  };
+
+  // Interceptar la salida (Lo que tu server envía al IDE)
+  const originalStdoutWrite = process.stdout.write;
+  (process.stdout.write as any) = function(chunk: any, ...args: any[]) {
+    try {
+      trace('📤 OUT (Server -> Client)', chunk.toString());
+    } catch (e) {
+      // ignorar errores en logging
+    }
+    return originalStdoutWrite.apply(process.stdout, [chunk, ...args]);
+  };
+
+  // Interceptar la entrada (Lo que el IDE le pide a tu server)
+  process.stdin.on('data', (chunk) => {
+    try {
+      trace('📥 IN (Client -> Server)', chunk.toString());
+    } catch (e) {
+      // ignorar errores en logging
+    }
+  });
+
   log.info('');
   log.info('═'.repeat(60));
   log.info('🚀 Knowledge MCP Server (Local)');
@@ -423,16 +441,19 @@ async function main() {
     log.info(`  ${i + 1}. ${tool.name} - ${tool.description}`);
   });
   log.info('');
+  log.info('📝 MCP Traffic Logs: mcp_traffic.log');
+  log.info('');
 
   try {
     // Seed sample data
     seedData();
     log.info('');
 
-    // Create transport and connect
+    // Create transport
     const transport = new StdioServerTransport();
     log.info('🔗 Connecting via stdio...');
     
+    // Conectar el servidor
     await server.connect(transport);
     
     log.info('✅ Server connected and ready!');

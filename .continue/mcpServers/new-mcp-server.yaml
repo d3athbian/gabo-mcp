@@ -3,10 +3,9 @@ version: 0.0.1
 schema: v1
 mcpServers:
   - name: gabo-mcp-local
-    command: node
+    command: npx
     args:
-      - --import=tsx/esm
-      - src/index.ts
-    cwd: /Users/gabo/Documents/GitHub/gabo-mcp
+      - tsx
+      - /Users/gabo/Documents/GitHub/gabo-mcp/src/index.ts
     env:
       NODE_ENV: development
