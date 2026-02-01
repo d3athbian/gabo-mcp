@@ -1,21 +1,12 @@
 /**
  * Type definitions for embeddings module
- * Extends base.type.ts for common patterns
+ * EmbeddingResponse is now in schemas/index.schema.ts
+ * Other types remain as they are low-level patterns
  */
 
-import type { Embedding, EmbeddingBatch } from '../base.type.ts';
+export type EmbeddingResult = number[];
 
-export type EmbeddingResult = Embedding;
-
-export type BatchEmbeddingsResult = EmbeddingBatch;
-
-export type EmbeddingResponse = {
-  embedding: Embedding;
-  model: string;
-  usage?: {
-    prompt_tokens?: number;
-  };
-};
+export type BatchEmbeddingsResult = number[][];
 
 export type OllamaEmbeddingRequest = {
   model: string;
@@ -23,7 +14,7 @@ export type OllamaEmbeddingRequest = {
 };
 
 export type OllamaEmbeddingResponse = {
-  embedding: Embedding;
+  embedding: number[];
 };
 
 export type SemanticSearchResult = string[];

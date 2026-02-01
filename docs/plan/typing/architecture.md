@@ -2,251 +2,182 @@
 
 ## Descripción General
 
-Este proyecto utiliza un sistema de tipado jerárquico con un archivo base que actúa como **"fuente de verdad"** para evitar duplicación y mantener consistencia en todo el código.
+Este proyecto utiliza **esquemas Zod como fuente de verdad** para todas las definiciones de tipos. Los tipos TypeScript se generan automáticamente usando `z.infer<typeof Schema>`, garantizando que la validación en runtime y el tipado estático estén siempre sincronizados.
 
-## Estructura de Tipos
+## Jerarquía de Tipos
 
-### 1. `base.type.ts` (FUENTE DE VERDAD)
+### 1. `base.type.ts` - Tipos Base Genéricos (Sin Zod)
 
-Contiene tipos primitivos, patrones comunes y abstracciones genéricas reutilizables:
+Tipos primitivos y patrones abstractos reutilizables. **No necesitan validación Zod** porque son abstracciones de bajo nivel:
 
-- **Primitivos**: `NodeEnvironment`, `LogLevel`, `EntityId`, `EntityTimestamp`, etc.
+- **Primitivos**: `NodeEnvironment`, `LogLevel`, `EntityId`, `EntityTimestamp`
 - **Patrones**: `BaseEntity`, `PaginationParams`, `FilterParams`
 - **Respuestas**: `ApiResponse<T>`, `SuccessResponse<T>`, `ErrorResponse`
-- **Callbacks**: `LogFn`, `LogErrorFn`, `WriteCallback`, `ErrorCallback`
-- **Estructuras**: `ContentBlock`, `LoggerInterface`, `DatabaseRow`
+- **Logging**: `LogFn`, `LogErrorFn`, `LoggerInterface`
+- **Estructuras**: `ContentBlock`, `ResponseContent`, `DatabaseRow`
+- **Database**: `DatabaseRow`, `QueryError`
 
-### 2. Archivos Específicos que Extienden de `base.type.ts`
+### 2. `schemas/index.schema.ts` - FUENTE DE VERDAD
 
-Cada módulo tiene su propio archivo `.type.ts` que importa y reutiliza tipos de base:
+**Este es el archivo principal donde se definen todos los esquemas Zod.**
+
+Cada esquema Zod define:
+
+- Validación en runtime
+- Tipado estático via `z.infer<typeof Schema>`
+- Documentación implícita de la estructura
+
+```typescript
+// schemas/index.schema.ts
+export const StoredEntrySchema = z.object({
+  id: z.string(),
+  type: z.string(),
+  title: z.string(),
+  content: z.string(),
+  tags: z.array(z.string()),
+  source: z.string().optional(),
+  created_at: z.string(),
+});
+
+// El tipo se genera automáticamente
+export type StoredEntry = z.infer<typeof StoredEntrySchema>;
+```
+
+### 3. `types.ts` y `index.type.ts` - Re-exportaciones
+
+Estos archivos simplemente re-exportan los tipos generados:
+
+```typescript
+// types.ts
+export type { StoredEntry, KnowledgeType, ... } from "./schemas/index.schema.js";
+```
+
+## Estructura de Archivos
 
 ```
 src/
+├── base.type.ts              ← Tipos primitivos y patrones genéricos (sin validación Zod)
+├── types.ts                  ← Re-exporta tipos desde schemas
+├── index.type.ts             ← Re-exporta tipos específicos del servidor
+├── index.ts                  ← Entry point del servidor MCP
+├── schemas/                  ← FUENTE DE VERDAD (esquemas Zod)
+│   └── index.schema.ts       ← Todos los esquemas y tipos inferidos
+├── utils/                    ← Funciones reutilizables
+│   ├── logger.ts             ← Logging estructurado
+│   ├── id.ts                 ← Generación de IDs únicos
+│   └── seed.ts               ← Datos de ejemplo
 ├── config/
-│   └── config.type.ts       → DatabaseConfig, EmbeddingsConfig, Config
-├── index.type.ts            → StoredEntry, Logger, MCPToolResponse
-├── handlers/
-│   └── tools.type.ts        → ToolResult, SearchKnowledgeInput
+│   ├── config.ts
+│   └── config.type.ts        ← Tipos de configuración (tipos puros)
 ├── db/
-│   ├── client.type.ts       → DatabaseSchema, SupabaseClientType
-│   └── queries.type.ts      → QueryResult<T>, KnowledgeEntryRow
+│   ├── client.ts
+│   ├── client.type.ts        ← Tipos de Supabase (tipos puros)
+│   ├── queries.ts
+│   └── queries.type.ts       ← Tipos de queries (tipos puros)
 └── embeddings/
-    └── index.type.ts        → EmbeddingResult, BatchEmbeddingsResult
+    ├── index.ts
+    └── index.type.ts         ← Tipos de embeddings (tipos puros)
 ```
-
-### 3. `types.ts` (TIPOS DE DOMINIO)
-
-Tipos específicos del negocio que también extienden de `base.type.ts`:
-
-- `KnowledgeType` - Enum de tipos de conocimiento
-- `KnowledgeEntry` - Entity principal
-- `CreateKnowledgeInput`, `SearchKnowledgeInput` - Inputs
-- `SearchResult`, `EmbeddingResponse` - Respuestas
 
 ## Principios de Diseño
 
-### ✅ DRY (Don't Repeat Yourself)
-
-- Tipos comunes se definen **UNA SOLA VEZ** en `base.type.ts`
-- Los demás archivos los importan y reutilizan
-- ❌ NO hay duplicación de `EntityId`, `EntityTimestamp`, `ApiResponse`, etc.
-
 ### ✅ Single Source of Truth
 
-- `base.type.ts` es la autoridad para tipos primitivos y patrones
-- Cambios centralizados afectan a todo el proyecto
-- ❌ No hay conflictos entre versiones diferentes del mismo tipo
+- **Los esquemas Zod son la fuente de verdad**
+- Los tipos se generan con `z.infer`, no se escriben manualmente
+- Cambios en un esquema se reflejan automáticamente en todos los tipos
+
+### ✅ DRY (Don't Repeat Yourself)
+
+- Una sola definición para validación y tipado
+- No hay duplicación entre tipos y validación
+- Los archivos `.type.ts` solo re-exportan, no redefinen
+
+### ✅ Sincronización Runtime/Compile-time
+
+- El esquema Zod valida datos en runtime
+- El tipo inferido garantiza type-safety en compile-time
+- Siempre están sincronizados
 
 ### ✅ Type Safety Total
 
 - Cero uso de `any`
 - Cero uso de `interface` (solo `type`)
-- Todo está explícitamente tipado
-
-### ✅ Organización Modular
-
-- Cada archivo tiene su propio `.type.ts`
-- Los tipos están organizados por dominio/responsabilidad
-- Fácil de mantener y expandir
-
-## Mapa de Dependencias de Tipos
-
-```
-                          base.type.ts
-                      (FUENTE DE VERDAD)
-                               ↑
-                ┌──────────────┼──────────────┐
-                │              │              │
-           config/         index.ts      handlers/
-           ├─ Config       ├─ Logger      ├─ ToolResult
-           └─ Embeddings   └─ Storage     └─ SearchInput
-
-                          base.type.ts
-                               ↑
-                ┌──────────────┼──────────────┐
-                │              │              │
-            db/            queries/      embeddings/
-            ├─ Schema       ├─ Result      ├─ Result
-            └─ Client       └─ Row         └─ Batch
-```
-
-## Ejemplos de Reutilización
-
-### Ejemplo 1: EntityId
-
-```typescript
-// base.type.ts
-export type EntityId = string;
-
-// db/client.type.ts
-export type DatabaseSchema = {
-  knowledge_entries: DatabaseRow & {
-    user_id: EntityId; // ← Reutilizado
-  };
-};
-```
-
-### Ejemplo 2: ApiResponse (Patrón Genérico)
-
-```typescript
-// base.type.ts
-export type ApiResponse<T> = SuccessResponse<T> | ErrorResponse;
-
-// handlers/tools.type.ts
-export type ToolResult = ApiResponse<ToolResultData>; // ← Reutilizado
-```
-
-### Ejemplo 3: PaginationParams
-
-```typescript
-// base.type.ts
-export type PaginationParams = {
-  limit?: number;
-  offset?: number;
-};
-
-// handlers/tools.type.ts
-export type ListKnowledgeInput = PaginationParams; // ← Reutilizado
-
-// types.ts
-export type SearchKnowledgeInput = PaginationParams & {
-  // ← Reutilizado
-  query: string;
-  type?: KnowledgeType;
-};
-```
+- Todo está explícitamente tipado desde esquemas
 
 ## Cómo Agregar Nuevos Tipos
 
-### Paso 1: Evaluar la Genericidad
-
-**¿El tipo es genérico y reutilizable?**
-
-- **SÍ** → Agregarlo a `base.type.ts`
-- **NO** → Agregarlo al archivo `.type.ts` específico del módulo
-
-### Paso 2: Extender de Tipos Base
-
-**¿Extiendo de un tipo base?**
-
-- **SÍ** → Importar desde `base.type.ts`
-- **NO** → Definir directamente
-
-### Paso 3: Exportar en types.ts
-
-**¿Debo exportarlo en types.ts?**
-
-- **SÍ** → Asegurate de importarlo de la fuente correcta
-- **NO** → Mantenerlo privado al módulo
-
-## Checklist de Calidad
-
-- ✅ No hay duplicación de tipos entre archivos
-- ✅ Todos los tipos base están en `base.type.ts`
-- ✅ Cada módulo tiene su propio archivo `.type.ts`
-- ✅ Cero uso de `any`
-- ✅ Cero uso de `interface`
-- ✅ Todos los imports apuntan a la fuente correcta
-- ✅ TypeScript compila sin errores
-- ✅ Los tipos son enforzados en tiempo de compilación
-
-## Patrones Centralizados
-
-### Respuestas Genéricas
+### Paso 1: Definir el Esquema Zod
 
 ```typescript
-export type ApiResponse<T> = SuccessResponse<T> | ErrorResponse;
-export type ListResponse<T> = { success: boolean; data: T[]; count: number };
+// schemas/index.schema.ts
+export const NewEntitySchema = z.object({
+  id: z.string(),
+  name: z.string().min(1),
+  value: z.number().positive(),
+  tags: z.array(z.string()).optional(),
+});
+
+// El tipo se genera automáticamente
+export type NewEntity = z.infer<typeof NewEntitySchema>;
 ```
 
-### Paginación
+### Paso 2: Re-exportar si es necesario
 
 ```typescript
-export type PaginationParams = { limit?: number; offset?: number };
+// types.ts
+export type { NewEntity } from "./schemas/index.schema.js";
 ```
 
-### Identificadores y Timestamps
+### Paso 3: Usar en el código
 
 ```typescript
-export type EntityId = string;
-export type EntityTimestamp = string; // ISO 8601
+import { NewEntitySchema } from "./schemas/index.schema.js";
+import type { NewEntity } from "./types.ts";
+
+// Validación en runtime
+const validated = NewEntitySchema.parse(data);
+
+// Tipado estático
+const entity: NewEntity = { ... };
 ```
 
-### Logging
+## Patrones de Esquemas
+
+### Schema con Validación
 
 ```typescript
-export type LoggerInterface = {
-  info: LogFn;
-  warn: LogFn;
-  error: LogErrorFn;
-};
+export const UserSchema = z.object({
+  email: z.string().email("Invalid email format"),
+  password: z.string().min(8, "Min 8 characters"),
+  age: z.number().min(18).optional(),
+});
+
+export type User = z.infer<typeof UserSchema>;
 ```
 
-### Base de Datos
+### Schema con Enums
 
 ```typescript
-export type DatabaseRow = { id: EntityId; created_at: EntityTimestamp };
-export type QueryError = { message: string; code?: string };
+export const StatusSchema = z.enum(["pending", "active", "archived"]);
+
+export type Status = z.infer<typeof StatusSchema>;
 ```
 
-## Estructura de Carpetas Recomendada
+### Schema Compuesto
 
-```
-src/
-├── base.type.ts          ← Tipos primitivos y patrones (FUENTE DE VERDAD)
-├── types.ts              ← Tipos de dominio
-├── index.ts              ← Entry point del servidor MCP
-├── index.type.ts         ← Tipos específicos del servidor
-├── utils/                ← Funciones reutilizables y utilidades
-│   ├── logger.ts         ← Logger con timestamps para stderr
-│   ├── id.ts             ← Generadores de IDs únicos
-│   └── seed.ts           ← Datos de ejemplo para demos
-├── config/
-│   ├── config.ts
-│   └── config.type.ts
-├── db/
-│   ├── client.ts
-│   ├── client.type.ts
-│   ├── queries.ts
-│   └── queries.type.ts
-├── handlers/
-│   ├── tools.ts
-│   └── tools.type.ts
-└── embeddings/
-    ├── index.ts
-    └── index.type.ts
+```typescript
+export const CreatePostInputSchema = z.object({
+  title: z.string().min(1).max(200),
+  content: z.string().min(10),
+  status: StatusSchema.default("pending"),
+  tags: z.array(z.string()).optional(),
+});
+
+export type CreatePostInput = z.infer<typeof CreatePostInputSchema>;
 ```
 
 ## Utilidades (utils/)
-
-Las funciones de utilidad deben seguir estos principios:
-
-- **Single Responsibility**: Cada archivo tiene una responsabilidad única
-- **Nombres Claros**: El nombre del archivo describe exactamente qué hace
-- **Sin efectos secundarios**: Las funciones son puras cuando es posible
-- **Testeables**: Funciones pequeñas y aisladas que se pueden probar independientemente
-
-### Archivos de Utils
 
 | Archivo     | Responsabilidad                                 |
 | ----------- | ----------------------------------------------- |
@@ -254,12 +185,20 @@ Las funciones de utilidad deben seguir estos principios:
 | `id.ts`     | Generación de IDs únicos para storage in-memory |
 | `seed.ts`   | Datos de ejemplo para desarrollo y demos        |
 
-## Mantenimiento
+## Checklist de Calidad
 
-Consulta [guidelines.md](./guidelines.md) para:
+- ✅ Todos los tipos provienen de esquemas Zod
+- ✅ Los esquemas incluyen validación (no son solo types vacíos)
+- ✅ Los archivos `.type.ts` solo re-exportan, no redefinen
+- ✅ Cero uso de `any`
+- ✅ Cero uso de `interface`
+- ✅ TypeScript compila sin errores
+- ✅ La validación runtime coincide con los tipos
 
-- Pasos detallados para agregar tipos
-- Flujo de decisión (¿genérico o específico?)
-- Ejemplos prácticos
-- Antipatrones a evitar
-- Preguntas frecuentes
+## Beneficios de Esta Arquitectura
+
+1. **Consistencia**: Un solo lugar para definir estructuras
+2. **Documentación**: Los esquemas documentan la forma de los datos
+3. **Validación**: Verificación automática en runtime
+4. **Tipado**: Type-safety garantizado
+5. **Mantenimiento**: Cambios centralizados

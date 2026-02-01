@@ -7,11 +7,22 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import * as fs from "fs";
-import { z } from "zod";
 import { logger } from "./utils/logger.js";
-import type { StoredEntry } from "./index.type.js";
+import type { StoredEntry } from "./schemas/index.schema.js";
 import { getSampleEntries } from "./utils/seed.js";
 import { generateId } from "./utils/id.js";
+import {
+  StoreKnowledgeSchema,
+  SearchKnowledgeSchema,
+  ListKnowledgeSchema,
+  GetKnowledgeSchema,
+} from "./schemas/index.schema.js";
+import type {
+  StoreKnowledgeArgs,
+  SearchKnowledgeArgs,
+  ListKnowledgeArgs,
+  GetKnowledgeArgs,
+} from "./schemas/index.schema.js";
 
 const isInspector =
   process.env.MCP_INSPECTOR === "true" ||
@@ -23,46 +34,6 @@ const server = new McpServer({
   name: "gabo-mcp-local",
   version: "0.1.0",
 });
-
-const KnowledgeTypeSchema = z.enum([
-  "UI_REASONING",
-  "ARCH_DECISION",
-  "PROMPT",
-  "ERROR_CORRECTION",
-  "CODE_SNIPPET",
-  "DESIGN_DECISION",
-  "TECHNICAL_INSIGHT",
-  "REACT_PATTERN",
-]);
-
-const StoreKnowledgeSchema = z.object({
-  type: KnowledgeTypeSchema,
-  title: z.string(),
-  content: z.string(),
-  tags: z.array(z.string()).optional(),
-  source: z.string().optional(),
-});
-
-type StoreKnowledgeArgs = z.infer<typeof StoreKnowledgeSchema>;
-
-const SearchKnowledgeSchema = z.object({
-  query: z.string(),
-  type: KnowledgeTypeSchema.optional(),
-});
-
-type SearchKnowledgeArgs = z.infer<typeof SearchKnowledgeSchema>;
-
-const ListKnowledgeSchema = z.object({
-  limit: z.number().default(10),
-});
-
-type ListKnowledgeArgs = z.infer<typeof ListKnowledgeSchema>;
-
-const GetKnowledgeSchema = z.object({
-  id: z.string(),
-});
-
-type GetKnowledgeArgs = z.infer<typeof GetKnowledgeSchema>;
 
 server.registerTool(
   "store_knowledge",
