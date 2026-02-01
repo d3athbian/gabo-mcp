@@ -9,3 +9,4 @@ mcpServers:
       - /Users/gabo/Documents/GitHub/gabo-mcp/src/index.ts
     env:
       NODE_ENV: development
+      MCP_API_KEY: gabo_ml3aofxu_0532aaa0

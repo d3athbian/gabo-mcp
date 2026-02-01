@@ -64,3 +64,6 @@ Thumbs.db
 # macOS
 .AppleDouble
 .AppleDB
+
+# continue
+.continue
