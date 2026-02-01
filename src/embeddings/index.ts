@@ -5,7 +5,6 @@
 
 import { config } from "../config/config.js";
 import type { EmbeddingResponse } from "../types.js";
-import { logger } from "../utils/logger.js";
 
 /**
  * Generate embedding for a text using Ollama (or OpenAI in future)

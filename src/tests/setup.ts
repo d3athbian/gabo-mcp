@@ -7,7 +7,7 @@ import {
   beforeAll,
   afterAll,
 } from "vitest";
-import { MongoClient, Db } from "mongodb";
+
 import { connectToDatabase, closeDatabase } from "../db/client.js";
 
 /**
