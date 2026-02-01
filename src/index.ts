@@ -10,8 +10,8 @@ import * as fs from "fs";
 import { logger } from "./utils/logger.js";
 import { connectToDatabase, closeDatabase } from "./db/client.js";
 import { registerAllTools } from "./tools/index.js";
+import { ensureApiKeyExists } from "./middleware/auth.js";
 
-// Set process title for easy identification and cleanup
 process.title = "gabo-mcp-server";
 logger.info(
   `🔖 Process started with title: ${process.title} (PID: ${process.pid})`,
@@ -28,12 +28,7 @@ const server = new McpServer({
   version: "0.1.0",
 });
 
-// Register all tools from modular structure
 registerAllTools(server, DEV_USER_ID);
-
-// ============================================================================
-// SERVER INITIALIZATION
-// ============================================================================
 
 async function main() {
   const logPath = "/tmp/gabo-mcp-traffic.log";
@@ -41,11 +36,20 @@ async function main() {
 
   logger.info(`📝 MCP Traffic Logs: ${logPath}`);
 
-  // Connect to MongoDB Atlas
   try {
     logger.info("🔗 Connecting to MongoDB Atlas...");
     await connectToDatabase();
     logger.info("✅ MongoDB connection established");
+
+    const newKey = await ensureApiKeyExists();
+    if (newKey) {
+      logger.info("");
+      logger.info("🔑 FIRST TIME SETUP - API KEY GENERATED");
+      logger.info("   Key: " + newKey);
+      logger.info("   Add to your Continue.dev config:");
+      logger.info(`   MCP_API_KEY=${newKey}`);
+      logger.info("");
+    }
   } catch (error) {
     logger.error("❌ Failed to connect to MongoDB", error);
     process.exit(1);
@@ -108,12 +112,8 @@ async function main() {
   logger.info("");
   logger.info("Available Tools:");
   logger.info("  🔐 Authentication:");
-  logger.info(
-    "    1. create_first_api_key - Bootstrap authentication (run first!)",
-  );
-  logger.info("    2. create_api_key - Create key for new device");
-  logger.info("    3. list_api_keys - List all keys");
-  logger.info("    4. revoke_api_key - Revoke a key");
+  logger.info("    • API key is auto-generated on first run");
+  logger.info("    • Check logs for the key or query MongoDB directly");
   logger.info("");
   logger.info("  📚 Knowledge Management:");
   logger.info("    5. store_knowledge - Store a new knowledge entry");

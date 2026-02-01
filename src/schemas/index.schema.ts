@@ -195,45 +195,17 @@ export type ToolResponseData = z.infer<typeof ToolResponseDataSchema>;
 
 export const ApiKeySchema = z.object({
   id: z.string(),
-  key_hash: z.string(),
+  key: z.string(),
   key_preview: z.string(),
   name: z.string(),
   created_at: z.string(),
   last_used: z.string().optional(),
   is_active: z.boolean(),
   created_by: z.string(),
-  is_global: z.boolean().optional(),
 });
 
 export type ApiKey = z.infer<typeof ApiKeySchema>;
 
-export const CreateFirstApiKeySchema = z.object({
-  name: z.string().min(1, "Name is required"),
-});
-
-export type CreateFirstApiKeyArgs = z.infer<typeof CreateFirstApiKeySchema>;
-
-export const CreateApiKeySchema = z.object({
-  api_key: z.string().min(1, "API key is required"),
-  name: z.string().min(1, "Name is required"),
-});
-
-export type CreateApiKeyArgs = z.infer<typeof CreateApiKeySchema>;
-
-export const ListApiKeysSchema = z.object({
-  api_key: z.string().min(1, "API key is required"),
-});
-
-export type ListApiKeysArgs = z.infer<typeof ListApiKeysSchema>;
-
-export const RevokeApiKeySchema = z.object({
-  api_key: z.string().min(1, "API key is required"),
-  key_id: z.string().min(1, "Key ID is required"),
-});
-
-export type RevokeApiKeyArgs = z.infer<typeof RevokeApiKeySchema>;
-
-// Schema base que todas las tools autenticadas deben extender
 export const AuthenticatedToolSchema = z.object({
   api_key: z.string().min(1, "API key is required"),
 });
