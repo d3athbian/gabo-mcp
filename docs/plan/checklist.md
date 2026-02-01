@@ -9,17 +9,17 @@
 
 ## Resumen de Progreso
 
-| Phase | Nombre            | Estado             | Notas                                                |
-| ----- | ----------------- | ------------------ | ---------------------------------------------------- |
-| 0     | Foundations       | ✅ Completado      | Documentación, tipos Zod, estructura                 |
-| 1     | **MongoDB Atlas** | ✅ **Completado**  | Cluster, índices, conexión, seguridad                |
-| 2     | Schema Design     | ✅ Completado      | Esquemas definidos en código                         |
-| 3     | MCP Server Core   | ✅ **Completado**  | 6 tools modulares con arquitectura limpia            |
-| 3.5   | **API Key Auth**  | 🔄 **En Progreso** | Sistema de autenticación con revocación remota       |
-| 4     | Vector Search     | 🔄 En Progreso     | Auto-embeddings en store, semantic_search tool listo |
-| 5     | Human Interaction | ⏳ Pendiente       | CLI tool, preview mode                               |
-| 6     | IDE Integration   | ⏳ Pendiente       | Continue.dev                                         |
-| 7     | Agent Evolution   | ⏳ Pendiente       | Dynamic prompts                                      |
+| Phase | Nombre            | Estado            | Notas                                                |
+| ----- | ----------------- | ----------------- | ---------------------------------------------------- |
+| 0     | Foundations       | ✅ Completado     | Documentación, tipos Zod, estructura                 |
+| 1     | **MongoDB Atlas** | ✅ **Completado** | Cluster, índices, conexión, seguridad                |
+| 2     | Schema Design     | ✅ Completado     | Esquemas definidos en código                         |
+| 3     | MCP Server Core   | ✅ **Completado** | 6 tools modulares con arquitectura limpia            |
+| 3.5   | **API Key Auth**  | ✅ **Completado** | 4 admin tools, middleware auth, docs completos       |
+| 4     | Vector Search     | 🔄 En Progreso    | Auto-embeddings en store, semantic_search tool listo |
+| 5     | Human Interaction | ⏳ Pendiente      | CLI tool, preview mode                               |
+| 6     | IDE Integration   | ⏳ Pendiente      | Continue.dev                                         |
+| 7     | Agent Evolution   | ⏳ Pendiente      | Dynamic prompts                                      |
 
 ---
 
@@ -162,57 +162,57 @@
 - [x] Server conecta a MongoDB Atlas
 - [ ] Response time <200ms
 
-### 3.5 API Key Authentication ⏳
+### 3.5 API Key Authentication ✅
 
 **Objetivo:** Sistema de autenticación con API keys para control de acceso y revocación remota.
 
-#### 3.5.1 Database Schema
+#### 3.5.1 Database Schema ✅
 
-- [ ] Crear colección `api_keys` en MongoDB
-- [ ] Definir schema Zod para ApiKey
-- [ ] Crear índice en `key_hash` (búsqueda rápida)
-- [ ] Agregar campo `is_active` para revocación
+- [x] Crear colección `api_keys` en MongoDB
+- [x] Definir schema Zod para ApiKey
+- [x] Crear índice en `key_hash` (búsqueda rápida)
+- [x] Agregar campo `is_active` para revocación
 
-#### 3.5.2 API Key Utilities
+#### 3.5.2 API Key Utilities ✅
 
-- [ ] Crear `src/utils/api-key.ts`
-- [ ] Implementar `hashApiKey()` con bcrypt
-- [ ] Implementar `verifyApiKey()` para validación
-- [ ] Implementar `generateApiKey()` para crear nuevos
+- [x] Crear `src/utils/api-key.ts`
+- [x] Implementar `hashApiKey()` con bcrypt
+- [x] Implementar `verifyApiKey()` para validación
+- [x] Implementar `generateApiKey()` para crear nuevos
 
-#### 3.5.3 Admin Tools
+#### 3.5.3 Admin Tools ✅
 
-- [ ] `create_first_api_key` - Bootstrap (sin auth, solo si BD vacía)
-- [ ] `create_api_key` - Crear nuevo key (requiere auth)
-- [ ] `list_api_keys` - Listar activos (requiere auth)
-- [ ] `revoke_api_key` - Invalidar key (requiere auth)
+- [x] `create_first_api_key` - Bootstrap (sin auth, solo si BD vacía)
+- [x] `create_api_key` - Crear nuevo key (requiere auth)
+- [x] `list_api_keys` - Listar activos (requiere auth)
+- [x] `revoke_api_key` - Invalidar key (requiere auth)
 
 #### 3.5.4 Auth Middleware
 
-- [ ] Crear `src/middleware/auth.ts`
-- [ ] Implementar `validateApiKey()` function
-- [ ] Actualizar todas las tools existentes para requerir `api_key`
-- [ ] Agregar rate limiting por key (5 intentos/minuto)
+- [x] Crear `src/middleware/auth.ts`
+- [x] Implementar `validateApiKey()` function
+- [x] Actualizar todas las tools existentes para requerir `api_key`
+- [x] Agregar rate limiting por key (5 intentos/minuto)
 
 #### 3.5.5 Configuration
 
-- [ ] Actualizar Continue.dev config para enviar `MCP_API_KEY`
-- [ ] Actualizar `.env.example` con `MCP_API_KEY`
-- [ ] Documentar flujo de setup en README
+- [x] Actualizar Continue.dev config para enviar `MCP_API_KEY`
+- [x] Actualizar `.env.example` con `MCP_API_KEY`
+- [x] Documentar flujo de setup en README
 
 #### 3.5.6 Security
 
-- [ ] Hashing con bcrypt (salt rounds 10)
-- [ ] No exponer keys en logs
-- [ ] Actualizar `last_used` en cada operación
-- [ ] Validar `is_active` antes de cada operación
+- [x] Hashing con bcrypt (salt rounds 10)
+- [x] No exponer keys en logs
+- [x] Actualizar `last_used` en cada operación
+- [x] Validar `is_active` antes de cada operación
 
 #### 3.5.7 Testing
 
-- [ ] Tests para `create_first_api_key` (bootstrap)
-- [ ] Tests para validación de keys
-- [ ] Tests para revocación
-- [ ] Tests de rate limiting
+- [x] Tests para `create_first_api_key` (bootstrap)
+- [x] Tests para validación de keys
+- [x] Tests para revocación
+- [x] Tests de rate limiting
 
 ---
 

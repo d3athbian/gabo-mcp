@@ -6,16 +6,22 @@
 import { logger } from "../utils/logger.js";
 import { handleToolError, successResponse } from "../utils/tool-handler.js";
 import { isVectorSearchAvailable } from "../db/vector-search.js";
+import { withAuth } from "../middleware/auth.js";
 import { z } from "zod";
 import type { ToolDefinition } from "./index.type.js";
 
-const CheckVectorSearchSchema = z.object({});
+// Extended schema with api_key
+const CheckVectorSearchSchemaWithAuth = z.object({
+  api_key: z.string().min(1, "API key is required"),
+});
 
-type CheckVectorSearchArgs = z.infer<typeof CheckVectorSearchSchema>;
+type CheckVectorSearchArgsWithAuth = z.infer<
+  typeof CheckVectorSearchSchemaWithAuth
+>;
 
 const handler = async (
-  _args: CheckVectorSearchArgs,
-  _userId: string,
+  _args: Omit<CheckVectorSearchArgsWithAuth, "api_key">,
+  _auth: { keyId: string; name: string },
 ): Promise<ReturnType<typeof successResponse>> => {
   const isAvailable = await isVectorSearchAvailable();
 
@@ -47,17 +53,19 @@ const handler = async (
   }
 };
 
-export const checkVectorSearchTool: ToolDefinition<CheckVectorSearchArgs> = {
-  name: "check_vector_search",
-  title: "Check Vector Search",
-  description:
-    "Verify if Atlas Vector Search index is configured. Run this to check if semantic_search will work.",
-  inputSchema: CheckVectorSearchSchema,
-  handler: async (args, userId) => {
-    try {
-      return await handler(args, userId);
-    } catch (error) {
-      return handleToolError(error, "Check vector search");
-    }
-  },
-};
+export const checkVectorSearchTool: ToolDefinition<CheckVectorSearchArgsWithAuth> =
+  {
+    name: "check_vector_search",
+    title: "Check Vector Search",
+    description:
+      "Verify if Atlas Vector Search index is configured. Run this to check if semantic_search will work. Requires API key authentication.",
+    inputSchema: CheckVectorSearchSchemaWithAuth,
+    handler: async (args, _userId) => {
+      try {
+        const authHandler = withAuth<CheckVectorSearchArgsWithAuth>(handler);
+        return await authHandler(args as CheckVectorSearchArgsWithAuth);
+      } catch (error) {
+        return handleToolError(error, "Check vector search");
+      }
+    },
+  };

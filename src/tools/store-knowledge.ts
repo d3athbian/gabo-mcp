@@ -11,13 +11,34 @@ import {
 } from "../utils/tool-handler.js";
 import { storeKnowledge } from "../db/queries.js";
 import { generateEmbedding } from "../embeddings/index.js";
-import { StoreKnowledgeSchema } from "../schemas/index.schema.js";
-import type { StoreKnowledgeArgs } from "../schemas/index.schema.js";
+import { withAuth } from "../middleware/auth.js";
+import { z } from "zod";
 import type { ToolDefinition } from "./index.type.js";
 
+// Extended schema with api_key
+const StoreKnowledgeSchemaWithAuth = z.object({
+  api_key: z.string().min(1, "API key is required"),
+  type: z.enum([
+    "UI_REASONING",
+    "ARCH_DECISION",
+    "PROMPT",
+    "ERROR_CORRECTION",
+    "CODE_SNIPPET",
+    "DESIGN_DECISION",
+    "TECHNICAL_INSIGHT",
+    "REACT_PATTERN",
+  ]),
+  title: z.string().min(1, "Title is required"),
+  content: z.string().min(1, "Content is required"),
+  tags: z.array(z.string()).optional(),
+  source: z.string().optional(),
+});
+
+type StoreKnowledgeArgsWithAuth = z.infer<typeof StoreKnowledgeSchemaWithAuth>;
+
 const handler = async (
-  args: StoreKnowledgeArgs,
-  userId: string,
+  args: Omit<StoreKnowledgeArgsWithAuth, "api_key">,
+  auth: { keyId: string; name: string },
 ): Promise<ReturnType<typeof successResponse>> => {
   const { type, title, content, tags, source } = args;
 
@@ -29,7 +50,8 @@ const handler = async (
   const embeddingText = `${title} ${content}`;
   const embedding = await generateEmbedding(embeddingText);
 
-  const entry = await storeKnowledge(userId, {
+  // Use the authenticated key ID as the user ID
+  const entry = await storeKnowledge(auth.keyId, {
     type,
     title,
     content,
@@ -38,7 +60,7 @@ const handler = async (
     embedding: embedding.length > 0 ? embedding : undefined,
   });
 
-  logger.info(`✅ Knowledge stored with ID: ${entry.id}`);
+  logger.info(`✅ Knowledge stored with ID: ${entry.id} by ${auth.name}`);
   if (embedding.length > 0) {
     logger.info(`   🧠 Generated embedding (${embedding.length} dims)`);
   }
@@ -50,15 +72,16 @@ const handler = async (
   });
 };
 
-export const storeKnowledgeTool: ToolDefinition<StoreKnowledgeArgs> = {
+export const storeKnowledgeTool: ToolDefinition<StoreKnowledgeArgsWithAuth> = {
   name: "store_knowledge",
   title: "Store Knowledge Entry",
   description:
-    "Store a new knowledge entry with automatic embedding generation",
-  inputSchema: StoreKnowledgeSchema,
-  handler: async (args, userId) => {
+    "Store a new knowledge entry with automatic embedding generation. Requires API key authentication.",
+  inputSchema: StoreKnowledgeSchemaWithAuth,
+  handler: async (args, _userId) => {
     try {
-      return await handler(args, userId);
+      const authHandler = withAuth<StoreKnowledgeArgsWithAuth>(handler);
+      return await authHandler(args as StoreKnowledgeArgsWithAuth);
     } catch (error) {
       return handleToolError(error, "Store knowledge");
     }

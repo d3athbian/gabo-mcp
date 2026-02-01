@@ -3,15 +3,12 @@
  * Extends base.type.ts for common patterns
  */
 
-import type { NodeEnvironment, LogLevel } from '../base.type.ts';
+import type { NodeEnvironment, LogLevel } from "../base.type.ts";
 
-export type EmbeddingProvider = 'ollama' | 'openai';
+export type EmbeddingProvider = "ollama" | "openai";
 
 export type DatabaseConfig = {
-  url: string | undefined;
-  supabaseUrl: string;
-  supabaseAnonKey: string;
-  supabaseServiceRoleKey: string | undefined;
+  url: string;
 };
 
 export type EmbeddingsConfig = {
@@ -40,7 +37,6 @@ export type FeaturesConfig = {
 export type Config = {
   readonly nodeEnv: NodeEnvironment;
   readonly logLevel: LogLevel;
-  readonly useMockDb: boolean;
   readonly database: DatabaseConfig;
   readonly embeddings: EmbeddingsConfig;
   readonly mcp: MCPConfig;

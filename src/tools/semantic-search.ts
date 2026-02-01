@@ -16,13 +16,34 @@ import {
   isVectorSearchAvailable,
 } from "../db/vector-search.js";
 import { generateEmbedding } from "../embeddings/index.js";
-import { SemanticSearchSchema } from "../schemas/index.schema.js";
-import type { SemanticSearchArgs } from "../schemas/index.schema.js";
+import { withAuth } from "../middleware/auth.js";
+import { z } from "zod";
 import type { ToolDefinition } from "./index.type.js";
 
+// Extended schema with api_key
+const SemanticSearchSchemaWithAuth = z.object({
+  api_key: z.string().min(1, "API key is required"),
+  query: z.string().min(1, "Query is required"),
+  type: z
+    .enum([
+      "UI_REASONING",
+      "ARCH_DECISION",
+      "PROMPT",
+      "ERROR_CORRECTION",
+      "CODE_SNIPPET",
+      "DESIGN_DECISION",
+      "TECHNICAL_INSIGHT",
+      "REACT_PATTERN",
+    ])
+    .optional(),
+  limit: z.number().positive().int().default(10),
+});
+
+type SemanticSearchArgsWithAuth = z.infer<typeof SemanticSearchSchemaWithAuth>;
+
 const handler = async (
-  args: SemanticSearchArgs,
-  userId: string,
+  args: Omit<SemanticSearchArgsWithAuth, "api_key">,
+  auth: { keyId: string; name: string },
 ): Promise<ReturnType<typeof successResponse>> => {
   const { query, type, limit } = args;
 
@@ -48,7 +69,7 @@ const handler = async (
   if (vectorAvailable) {
     // Use hybrid search for best results (combines vector + text)
     results = await searchKnowledgeHybrid(
-      userId,
+      auth.keyId,
       query,
       queryVector,
       limit,
@@ -62,7 +83,12 @@ const handler = async (
   } else {
     // Fallback to pure vector search (will fail gracefully if no index)
     try {
-      results = await searchKnowledgeVector(userId, queryVector, limit, type);
+      results = await searchKnowledgeVector(
+        auth.keyId,
+        queryVector,
+        limit,
+        type,
+      );
       searchType = "semantic";
       logger.info(
         `🔍 Semantic search for "${query}": found ${results.length} results`,
@@ -87,15 +113,16 @@ const handler = async (
   });
 };
 
-export const semanticSearchTool: ToolDefinition<SemanticSearchArgs> = {
+export const semanticSearchTool: ToolDefinition<SemanticSearchArgsWithAuth> = {
   name: "semantic_search",
   title: "Semantic Search",
   description:
-    "AI-powered semantic search using vector similarity. Automatically uses hybrid search (vector + text) when available for best results.",
-  inputSchema: SemanticSearchSchema,
-  handler: async (args, userId) => {
+    "AI-powered semantic search using vector similarity. Automatically uses hybrid search (vector + text) when available for best results. Requires API key authentication.",
+  inputSchema: SemanticSearchSchemaWithAuth,
+  handler: async (args, _userId) => {
     try {
-      return await handler(args, userId);
+      const authHandler = withAuth<SemanticSearchArgsWithAuth>(handler);
+      return await authHandler(args as SemanticSearchArgsWithAuth);
     } catch (error) {
       return handleToolError(error, "Semantic search");
     }

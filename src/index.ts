@@ -11,6 +11,12 @@ import { logger } from "./utils/logger.js";
 import { connectToDatabase, closeDatabase } from "./db/client.js";
 import { registerAllTools } from "./tools/index.js";
 
+// Set process title for easy identification and cleanup
+process.title = "gabo-mcp-server";
+logger.info(
+  `🔖 Process started with title: ${process.title} (PID: ${process.pid})`,
+);
+
 const isInspector =
   process.env.MCP_INSPECTOR === "true" ||
   process.argv.some((arg) => arg.includes("inspector"));
@@ -101,12 +107,23 @@ async function main() {
   logger.info("  • Embeddings: Ollama (nomic-embed-text)");
   logger.info("");
   logger.info("Available Tools:");
-  logger.info("  1. store_knowledge - Store a new knowledge entry");
-  logger.info("  2. search_knowledge - Search knowledge entries (text)");
-  logger.info("  3. semantic_search - Search knowledge entries (AI/hybrid)");
-  logger.info("  4. list_knowledge - List all knowledge entries");
-  logger.info("  5. get_knowledge - Get a specific knowledge entry");
-  logger.info("  6. check_vector_search - Verify vector search configuration");
+  logger.info("  🔐 Authentication:");
+  logger.info(
+    "    1. create_first_api_key - Bootstrap authentication (run first!)",
+  );
+  logger.info("    2. create_api_key - Create key for new device");
+  logger.info("    3. list_api_keys - List all keys");
+  logger.info("    4. revoke_api_key - Revoke a key");
+  logger.info("");
+  logger.info("  📚 Knowledge Management:");
+  logger.info("    5. store_knowledge - Store a new knowledge entry");
+  logger.info("    6. search_knowledge - Search knowledge entries (text)");
+  logger.info("    7. semantic_search - Search knowledge entries (AI/hybrid)");
+  logger.info("    8. list_knowledge - List all knowledge entries");
+  logger.info("    9. get_knowledge - Get a specific knowledge entry");
+  logger.info(
+    "   10. check_vector_search - Verify vector search configuration",
+  );
   logger.info("");
   logger.info("📝 MCP Traffic Logs: mcp_traffic.log");
   logger.info("");

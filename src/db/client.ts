@@ -112,6 +112,10 @@ export function getKnowledgeAuditLogCollection() {
   return getDatabase().collection("knowledge_audit_log");
 }
 
+export function getApiKeysCollection() {
+  return getDatabase().collection("api_keys");
+}
+
 /**
  * Setup database indexes
  * Creates necessary indexes for optimal query performance
@@ -151,6 +155,14 @@ export async function setupIndexes(): Promise<void> {
       },
     );
     logger.info("   ✓ Text index: title + content");
+
+    // API Keys indexes
+    const apiKeysCollection = getApiKeysCollection();
+    await apiKeysCollection.createIndex({ key_hash: 1 }, { unique: true });
+    logger.info("   ✓ Index: api_keys.key_hash (unique)");
+
+    await apiKeysCollection.createIndex({ is_active: 1, created_at: -1 });
+    logger.info("   ✓ Index: api_keys.is_active + created_at");
 
     logger.info("✅ All indexes created successfully");
 

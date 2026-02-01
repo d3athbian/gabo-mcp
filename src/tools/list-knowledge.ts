@@ -6,17 +6,25 @@
 import { logger } from "../utils/logger.js";
 import { handleToolError, successResponse } from "../utils/tool-handler.js";
 import { listKnowledge } from "../db/queries.js";
-import { ListKnowledgeSchema } from "../schemas/index.schema.js";
-import type { ListKnowledgeArgs } from "../schemas/index.schema.js";
+import { withAuth } from "../middleware/auth.js";
+import { z } from "zod";
 import type { ToolDefinition } from "./index.type.js";
 
+// Extended schema with api_key
+const ListKnowledgeSchemaWithAuth = z.object({
+  api_key: z.string().min(1, "API key is required"),
+  limit: z.number().positive().int().default(10),
+});
+
+type ListKnowledgeArgsWithAuth = z.infer<typeof ListKnowledgeSchemaWithAuth>;
+
 const handler = async (
-  args: ListKnowledgeArgs,
-  userId: string,
+  args: Omit<ListKnowledgeArgsWithAuth, "api_key">,
+  auth: { keyId: string; name: string },
 ): Promise<ReturnType<typeof successResponse>> => {
   const { limit } = args;
   const { data: entries, count } = await listKnowledge(
-    userId,
+    auth.keyId,
     undefined,
     limit,
   );
@@ -29,14 +37,15 @@ const handler = async (
   });
 };
 
-export const listKnowledgeTool: ToolDefinition<ListKnowledgeArgs> = {
+export const listKnowledgeTool: ToolDefinition<ListKnowledgeArgsWithAuth> = {
   name: "list_knowledge",
   title: "List Knowledge Entries",
-  description: "List all knowledge entries",
-  inputSchema: ListKnowledgeSchema,
-  handler: async (args, userId) => {
+  description: "List all knowledge entries. Requires API key authentication.",
+  inputSchema: ListKnowledgeSchemaWithAuth,
+  handler: async (args, _userId) => {
     try {
-      return await handler(args, userId);
+      const authHandler = withAuth<ListKnowledgeArgsWithAuth>(handler);
+      return await authHandler(args as ListKnowledgeArgsWithAuth);
     } catch (error) {
       return handleToolError(error, "List knowledge");
     }
