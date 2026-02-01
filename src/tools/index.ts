@@ -9,6 +9,7 @@ import { searchKnowledgeTool } from "./search-knowledge.js";
 import { listKnowledgeTool } from "./list-knowledge.js";
 import { getKnowledgeTool } from "./get-knowledge.js";
 import { semanticSearchTool } from "./semantic-search.js";
+import { checkVectorSearchTool } from "./check-vector-search.js";
 
 // Export all tool definitions
 export {
@@ -17,6 +18,7 @@ export {
   listKnowledgeTool,
   getKnowledgeTool,
   semanticSearchTool,
+  checkVectorSearchTool,
 };
 
 // Export types
@@ -41,6 +43,7 @@ export function registerAllTools(server: McpServer, userId: string): void {
     listKnowledgeTool,
     getKnowledgeTool,
     semanticSearchTool,
+    checkVectorSearchTool,
   ];
 
   for (const tool of tools) {

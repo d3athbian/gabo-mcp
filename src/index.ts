@@ -103,9 +103,10 @@ async function main() {
   logger.info("Available Tools:");
   logger.info("  1. store_knowledge - Store a new knowledge entry");
   logger.info("  2. search_knowledge - Search knowledge entries (text)");
-  logger.info("  3. semantic_search - Search knowledge entries (AI/vector)");
+  logger.info("  3. semantic_search - Search knowledge entries (AI/hybrid)");
   logger.info("  4. list_knowledge - List all knowledge entries");
   logger.info("  5. get_knowledge - Get a specific knowledge entry");
+  logger.info("  6. check_vector_search - Verify vector search configuration");
   logger.info("");
   logger.info("📝 MCP Traffic Logs: mcp_traffic.log");
   logger.info("");
