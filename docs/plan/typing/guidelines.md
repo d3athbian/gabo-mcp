@@ -52,11 +52,11 @@ base.type.ts     ¿Tiene una dependencia clara
 /// Extends base.type.ts for common patterns
 
 // 2. Imports de base.type.ts (solo lo que uses)
-import type { EntityId, ApiResponse, PaginationParams } from '../base.type.ts';
+import type { EntityId, ApiResponse, PaginationParams } from "../base.type.ts";
 
 // 3. Tipos específicos
 export type SpecificInput = {
-  id: EntityId;  // Usa tipos de base
+  id: EntityId; // Usa tipos de base
   name: string;
 };
 
@@ -83,7 +83,7 @@ export type MyResponse = ApiResponse<MyData>;
 ```typescript
 // Use EntityId para identificadores genéricos
 export type User = {
-  id: EntityId;  // ✅ Correcto
+  id: EntityId; // ✅ Correcto
   // id: string;  ❌ Malo - sin tipo específico
 };
 ```
@@ -93,7 +93,7 @@ export type User = {
 ```typescript
 // Use EntityTimestamp para fechas ISO 8601
 export type User = {
-  created_at: EntityTimestamp;  // ✅ Correcto
+  created_at: EntityTimestamp; // ✅ Correcto
   // created_at: string;         ❌ Malo - sin semántica
 };
 ```
@@ -103,7 +103,7 @@ export type User = {
 ```typescript
 // Use PaginationParams para limit/offset
 export type SearchInput = PaginationParams & {
-  query: string;  // Extiende con & si necesitas campos adicionales
+  query: string; // Extiende con & si necesitas campos adicionales
 };
 ```
 
@@ -136,17 +136,17 @@ export type VectorBatch = EmbeddingBatch;
 **Archivo**: `src/analytics/analytics.type.ts`
 
 ```typescript
-import type { 
-  EntityId, 
-  EntityTimestamp, 
-  ApiResponse, 
-  PaginationParams 
-} from '../base.type.ts';
+import type {
+  EntityId,
+  EntityTimestamp,
+  ApiResponse,
+  PaginationParams,
+} from "../base.type.ts";
 
 export type AnalyticsEvent = {
   id: EntityId;
   user_id: EntityId;
-  event_type: 'view' | 'click' | 'search';
+  event_type: "view" | "click" | "search";
   created_at: EntityTimestamp;
 };
 
@@ -159,6 +159,7 @@ export type AnalyticsResult = ApiResponse<AnalyticsEvent[]>;
 ```
 
 **Análisis**:
+
 - ✅ Reutiliza `EntityId` (de base)
 - ✅ Reutiliza `EntityTimestamp` (de base)
 - ✅ Extiende `PaginationParams` (de base)
@@ -170,9 +171,9 @@ export type AnalyticsResult = ApiResponse<AnalyticsEvent[]>;
 **Archivo**: `src/handlers/export.type.ts`
 
 ```typescript
-import type { EntityId, ApiResponse } from '../base.type.ts';
+import type { EntityId, ApiResponse } from "../base.type.ts";
 
-export type ExportFormat = 'json' | 'csv' | 'pdf';
+export type ExportFormat = "json" | "csv" | "pdf";
 
 export type ExportInput = {
   user_id: EntityId;
@@ -187,6 +188,7 @@ export type ExportResult = ApiResponse<{
 ```
 
 **Análisis**:
+
 - ✅ Reutiliza `EntityId`
 - ✅ Usa `ApiResponse` para envolvente
 - ✅ Tipos específicos del módulo en `export.type.ts`
@@ -197,6 +199,7 @@ export type ExportResult = ApiResponse<{
 Antes de hacer commit, verifica:
 
 **CHECKLIST:**
+
 - [ ] `npm run build` compila sin errores
 - [ ] No hay uso de `any`
 - [ ] No hay uso de `interface`
@@ -224,6 +227,58 @@ Antes de hacer commit, verifica:
 4. Documenta el nuevo patrón si es repetible
 5. Commit con mensaje: `feat: add [module-name] with full typing`
 
+### Si agregaste una nueva MCP Tool:
+
+1. **Crea el archivo de tool**: `tools/[tool-name].ts`
+
+   ```typescript
+   import {
+     handleToolError,
+     successResponse,
+     validationError,
+   } from "../utils/tool-handler.js";
+   import type { ToolDefinition } from "./index.type.js";
+
+   const handler = async (args, userId) => {
+     // Lógica aquí
+     return successResponse({ data });
+   };
+
+   export const myTool: ToolDefinition<MyArgs> = {
+     name: "my_tool",
+     title: "My Tool",
+     description: "...",
+     inputSchema: MySchema,
+     handler: async (args, userId) => {
+       try {
+         return await handler(args, userId);
+       } catch (error) {
+         return handleToolError(error, "My tool");
+       }
+     },
+   };
+   ```
+
+2. **Registra en el índice**: `tools/index.ts`
+
+   ```typescript
+   import { myTool } from "./[tool-name].js";
+
+   const tools = [
+     // ... tools existentes
+     myTool, // ← Agregar aquí
+   ];
+   ```
+
+3. **Agrega el schema si es necesario**: `schemas/index.schema.ts`
+
+   ```typescript
+   export const MyToolSchema = z.object({ ... });
+   export type MyToolArgs = z.infer<typeof MyToolSchema>;
+   ```
+
+4. **Commit**: `feat: add [tool-name] tool with error handling`
+
 ## Antipatrones a Evitar
 
 ### ❌ Duplicar tipos primitivos
@@ -233,7 +288,7 @@ Antes de hacer commit, verifica:
 export type UserId = string;
 
 // BUENO
-import type { EntityId } from '../base.type.ts';
+import type { EntityId } from "../base.type.ts";
 // Use EntityId instead of UserId
 ```
 
@@ -244,7 +299,7 @@ import type { EntityId } from '../base.type.ts';
 type MyResponse = { ok: boolean; data?: T; error?: string };
 
 // BUENO
-import type { ApiResponse } from '../base.type.ts';
+import type { ApiResponse } from "../base.type.ts";
 export type MyResponse = ApiResponse<T>;
 ```
 
@@ -255,7 +310,9 @@ export type MyResponse = ApiResponse<T>;
 function process(data: any) {}
 
 // BUENO
-type ProcessData = { /* ... */ };
+type ProcessData = {
+  /* ... */
+};
 function process(data: ProcessData) {}
 ```
 
@@ -266,7 +323,7 @@ function process(data: ProcessData) {}
 created_at: string;
 
 // BUENO
-import type { EntityTimestamp } from '../base.type.ts';
+import type { EntityTimestamp } from "../base.type.ts";
 created_at: EntityTimestamp;
 ```
 
@@ -274,29 +331,82 @@ created_at: EntityTimestamp;
 
 ```typescript
 // MALO
-interface User { /* ... */ }
+interface User {
+  /* ... */
+}
 
 // BUENO
-type User = { /* ... */ };
+type User = {
+  /* ... */
+};
 ```
 
 ### ❌ No reutilizar `DatabaseRow` para tablas BD
 
 ```typescript
 // MALO
-type UserRow = { 
-  id: string; 
-  created_at: string; 
-  /* ... */ 
+type UserRow = {
+  id: string;
+  created_at: string;
+  /* ... */
 };
 
 // BUENO
-import type { DatabaseRow } from '../base.type.ts';
+import type { DatabaseRow } from "../base.type.ts";
 type UserRow = DatabaseRow & {
   email: string;
   /* ... */
 };
 ```
+
+### ❌ Manejo de errores repetitivo en tools
+
+```typescript
+// MALO - Código repetido en cada catch
+} catch (error) {
+  logger.error("Failed to store knowledge", error);
+  return {
+    content: [{
+      type: "text",
+      text: JSON.stringify({
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+      }, null, 2),
+    }],
+    isError: true,
+  };
+}
+
+// BUENO - Usar utilidad estandarizada
+import { handleToolError } from '../utils/tool-handler.js';
+
+} catch (error) {
+  return handleToolError(error, "Store knowledge");
+}
+```
+
+### ❌ Tools en un solo archivo monolítico
+
+````typescript
+// MALO - Todo en index.ts (400+ líneas)
+// index.ts
+server.registerTool("store_knowledge", ...);
+server.registerTool("search_knowledge", ...);
+server.registerTool("list_knowledge", ...);
+// ... 5 tools más
+
+// BUENO - Modularizado en tools/
+// index.ts
+import { registerAllTools } from './tools/index.js';
+registerAllTools(server, userId);
+
+// tools/store-knowledge.ts
+export const storeKnowledgeTool: ToolDefinition<StoreKnowledgeArgs> = { ... };
+
+// tools/index.ts
+export function registerAllTools(server: McpServer, userId: string): void {
+  // Registro centralizado
+}
 
 ## Migrando Código Existente
 
@@ -317,11 +427,12 @@ Si encuentras código antiguo que no sigue estos patrones:
 ```typescript
 export type UserId = string;
 export type Timestamp = string;
-```
+````
 
 **DESPUÉS** (en `module.type.ts`):
+
 ```typescript
-import type { EntityId, EntityTimestamp } from '../base.type.ts';
+import type { EntityId, EntityTimestamp } from "../base.type.ts";
 // UserId y Timestamp se reemplazan con imports
 ```
 
@@ -329,7 +440,8 @@ import type { EntityId, EntityTimestamp } from '../base.type.ts';
 
 ### P: ¿Dónde va un tipo que es usado por 2 módulos?
 
-**R**: 
+**R**:
+
 - Si es genérico (p.ej., `PaginationParams`) → `base.type.ts`
 - Si es específico del dominio → `types.ts`
 

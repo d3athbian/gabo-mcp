@@ -62,15 +62,24 @@ src/
 ├── base.type.ts              ← Tipos primitivos y patrones genéricos
 ├── types.ts                  ← Re-exporta tipos desde schemas
 ├── index.type.ts             ← Re-exporta tipos específicos del servidor
-├── index.ts                  ← Entry point del servidor MCP
+├── index.ts                  ← Entry point del servidor MCP (mínimo, delega a tools/)
 ├── schemas/                  ← FUENTE DE VERDAD (esquemas Zod)
 │   └── index.schema.ts       ← Todos los esquemas y tipos inferidos
 ├── db/                       ← MongoDB Atlas Integration
 │   ├── client.ts             ← MongoDB client connection
 │   ├── queries.ts            ← Database operations
 │   └── vector-search.ts      ← Vector search utilities
+├── tools/                    ← MCP Tools (modularizado)
+│   ├── index.ts              ← Registro centralizado de tools
+│   ├── index.type.ts         ← Tipos para tools
+│   ├── store-knowledge.ts    ← Tool: almacenar conocimiento
+│   ├── search-knowledge.ts   ← Tool: búsqueda por texto
+│   ├── semantic-search.ts    ← Tool: búsqueda semántica (vector)
+│   ├── list-knowledge.ts     ← Tool: listar entradas
+│   └── get-knowledge.ts      ← Tool: obtener entrada
 ├── utils/                    ← Funciones reutilizables
 │   ├── logger.ts             ← Logging estructurado
+│   ├── tool-handler.ts       ← Manejo de errores estandarizado para tools
 │   ├── id.ts                 ← Generación de IDs únicos
 │   └── seed.ts               ← Datos de ejemplo
 └── embeddings/
@@ -294,13 +303,118 @@ export const CreatePostInputSchema = z.object({
 export type CreatePostInput = z.infer<typeof CreatePostInputSchema>;
 ```
 
+## MCP Tools Architecture (tools/)
+
+### Principio de Responsabilidad Única
+
+Cada tool está aislada en su propio archivo con una estructura consistente:
+
+```
+tools/
+├── [tool-name].ts          ← Implementación específica de la tool
+├── index.ts                ← Registro centralizado
+└── index.type.ts           ← Tipos compartidos
+```
+
+### Patrón de Implementación de Tools
+
+```typescript
+// tools/store-knowledge.ts
+import { storeKnowledge } from "../db/queries.js";
+import { StoreKnowledgeSchema } from "../schemas/index.schema.js";
+import type { StoreKnowledgeArgs } from "../schemas/index.schema.js";
+import type { ToolDefinition } from "./index.type.js";
+import {
+  handleToolError,
+  validationError,
+  successResponse,
+} from "../utils/tool-handler.js";
+
+const handler = async (args: StoreKnowledgeArgs, userId: string) => {
+  // Validación
+  if (!args.title) return validationError("title is required");
+
+  // Lógica de negocio
+  const entry = await storeKnowledge(userId, args);
+
+  // Respuesta estandarizada
+  return successResponse({ id: entry.id, entry });
+};
+
+export const storeKnowledgeTool: ToolDefinition<StoreKnowledgeArgs> = {
+  name: "store_knowledge",
+  title: "Store Knowledge Entry",
+  description: "Store a new knowledge entry",
+  inputSchema: StoreKnowledgeSchema,
+  handler: async (args, userId) => {
+    try {
+      return await handler(args, userId);
+    } catch (error) {
+      return handleToolError(error, "Store knowledge");
+    }
+  },
+};
+```
+
+### Registro Centralizado
+
+```typescript
+// tools/index.ts
+export function registerAllTools(server: McpServer, userId: string): void {
+  const tools = [
+    storeKnowledgeTool,
+    searchKnowledgeTool,
+    // ... más tools
+  ];
+
+  for (const tool of tools) {
+    server.registerTool(
+      tool.name,
+      {
+        title: tool.title,
+        description: tool.description,
+        inputSchema: tool.inputSchema,
+      },
+      async (args: unknown) => tool.handler(args, userId),
+    );
+  }
+}
+```
+
 ## Utilidades (utils/)
 
-| Archivo     | Responsabilidad                              |
-| ----------- | -------------------------------------------- |
-| `logger.ts` | Logging estructurado con timestamps a stderr |
-| `id.ts`     | Generación de IDs únicos para MongoDB        |
-| `seed.ts`   | Datos de ejemplo para desarrollo y demos     |
+| Archivo           | Responsabilidad                               |
+| ----------------- | --------------------------------------------- |
+| `logger.ts`       | Logging estructurado con timestamps a stderr  |
+| `tool-handler.ts` | Manejo de errores y respuestas estandarizadas |
+| `id.ts`           | Generación de IDs únicos para MongoDB         |
+| `seed.ts`         | Datos de ejemplo para desarrollo y demos      |
+
+### Tool Handler Utility
+
+El `tool-handler.ts` estandariza el manejo de errores siguiendo los patrones de `base.type.ts`:
+
+```typescript
+// Uso en catch blocks
+} catch (error) {
+  return handleToolError(error, "Operation name");
+}
+
+// Con mensaje personalizado
+} catch (error) {
+  return handleToolError(error, "Get knowledge", {
+    customMessage: "Entry not found",
+    logLevel: "warn",
+  });
+}
+```
+
+**Tipos utilizados de base.type.ts:**
+
+- `ContentBlock` - Estructura de contenido MCP
+- `ResponseContent` - Array de ContentBlock
+- `ErrorResponse` - Patrón de error estandarizado
+- `LogLevel` - Niveles de log tipados
 
 ## Checklist de Calidad
 

@@ -9,16 +9,16 @@
 
 ## Resumen de Progreso
 
-| Phase | Nombre            | Estado             | Notas                                |
-| ----- | ----------------- | ------------------ | ------------------------------------ |
-| 0     | Foundations       | ✅ Completado      | Documentación, tipos Zod, estructura |
-| 1     | **MongoDB Atlas** | 🔄 **En Progreso** | Cluster setup, índices, conexión     |
-| 2     | Schema Design     | ✅ Completado      | Esquemas definidos en código         |
-| 3     | MCP Server Core   | 🔄 En Progreso     | 4 tools funcionando con MongoDB      |
-| 4     | Vector Search     | ⏳ Pendiente       | Atlas Vector Search + Ollama         |
-| 5     | Human Interaction | ⏳ Pendiente       | CLI tool, preview mode               |
-| 6     | IDE Integration   | ⏳ Pendiente       | Continue.dev                         |
-| 7     | Agent Evolution   | ⏳ Pendiente       | Dynamic prompts                      |
+| Phase | Nombre            | Estado            | Notas                                                |
+| ----- | ----------------- | ----------------- | ---------------------------------------------------- |
+| 0     | Foundations       | ✅ Completado     | Documentación, tipos Zod, estructura                 |
+| 1     | **MongoDB Atlas** | ✅ **Completado** | Cluster, índices, conexión, seguridad                |
+| 2     | Schema Design     | ✅ Completado     | Esquemas definidos en código                         |
+| 3     | MCP Server Core   | ✅ **Completado** | 5 tools modulares con arquitectura limpia            |
+| 4     | Vector Search     | 🔄 En Progreso    | Auto-embeddings en store, semantic_search tool listo |
+| 5     | Human Interaction | ⏳ Pendiente      | CLI tool, preview mode                               |
+| 6     | IDE Integration   | ⏳ Pendiente      | Continue.dev                                         |
+| 7     | Agent Evolution   | ⏳ Pendiente      | Dynamic prompts                                      |
 
 ---
 
@@ -129,12 +129,31 @@
 - [x] Implementar `src/db/vector-search.ts`
 - [x] Cargar variables de entorno con dotenv
 
-### 3.3 Core Tools
+### 3.3 Core Tools ✅
 
 - [x] `store_knowledge` - Guardar entries en MongoDB
 - [x] `search_knowledge` - Buscar por keywords
 - [x] `list_knowledge` - Listar con paginación
 - [x] `get_knowledge` - Obtener entry específico
+- [x] `semantic_search` - Búsqueda semántica con embeddings
+
+### 3.4 Tool Architecture ✅
+
+- [x] Modularizar tools en carpeta `tools/`
+- [x] Crear `tools/index.ts` para registro centralizado
+- [x] Crear `tools/index.type.ts` para tipos de tools
+- [x] Implementar patrón `ToolDefinition<T>`
+- [x] Delegar `registerAllTools()` desde `index.ts`
+- [x] Simplificar `index.ts` (de ~440 a ~120 líneas)
+
+### 3.5 Error Handling ✅
+
+- [x] Crear `utils/tool-handler.ts` con patrones base.type.ts
+- [x] Implementar `handleToolError()` para catch blocks
+- [x] Implementar `successResponse()` para respuestas exitosas
+- [x] Implementar `validationError()` para validaciones
+- [x] Usar tipos de base.type.ts (`ContentBlock`, `ErrorResponse`, `LogLevel`)
+- [x] Eliminar código repetitivo en handlers
 
 ### 3.4 Validation
 
@@ -154,30 +173,32 @@
 - [x] Configurar `OLLAMA_API_URL` en `.env`
 - [x] Probar generación de embeddings (768 dims verificado)
 
-### 4.2 Vector Storage
+### 4.2 Vector Storage ✅
 
-- [ ] Crear módulo `src/embeddings/ollama.ts`
-- [ ] Implementar `generateEmbedding(text)`
-- [ ] Implementar `batchEmbeddings(texts)`
-- [ ] Guardar embeddings en MongoDB (campo `embedding`)
-- [ ] Manejo de errores (fallback si Ollama no disponible)
+- [x] Crear módulo `src/embeddings/index.ts`
+- [x] Implementar `generateEmbedding(text)`
+- [x] Implementar `batchEmbeddings(texts)`
+- [x] Guardar embeddings en MongoDB (campo `embedding`)
+- [x] Manejo de errores (fallback si Ollama no disponible)
+- [x] Auto-generar embeddings al usar `store_knowledge`
 
-### 4.3 Semantic Search
+### 4.3 Semantic Search ✅
 
-- [ ] Implementar `searchKnowledge` con Atlas Vector Search
-- [ ] Usar `$vectorSearch` aggregation pipeline
-- [ ] Calcular cosine similarity en MongoDB
-- [ ] Configurar threshold (0.7 cosine similarity)
-- [ ] Configurar límite de resultados (top 10)
-- [ ] Implementar hybrid search (vector + keyword)
+- [x] Implementar `searchKnowledgeVector` con Atlas Vector Search
+- [x] Usar `$vectorSearch` aggregation pipeline
+- [x] Calcular cosine similarity en MongoDB
+- [x] Configurar límite de resultados (top 10)
+- [x] Exponer tool `semantic_search` en MCP
+- [ ] Implementar hybrid search (vector + keyword) - Opcional
+- [ ] Configurar threshold (0.7 cosine similarity) - Opcional
 
-### 4.4 Validation
+### 4.4 Validation ✅
 
-- [ ] Embeddings se generan correctamente con Ollama
-- [ ] Embeddings se guardan en MongoDB
-- [ ] Búsqueda semántica retorna resultados relevantes
-- [ ] Performance <1s para búsqueda
-- [ ] Hybrid search combina resultados
+- [x] Embeddings se generan correctamente con Ollama
+- [x] Embeddings se guardan en MongoDB automáticamente
+- [x] Búsqueda semántica tool expuesta y funcionando
+- [ ] Performance <1s para búsqueda (requiere índice vectorial en Atlas)
+- [ ] Hybrid search combina resultados (opcional)
 
 ---
 
