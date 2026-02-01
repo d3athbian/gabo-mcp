@@ -205,6 +205,153 @@ export async function withAuth<T>(
 }
 ```
 
+## API Key Authentication
+
+Sistema de autenticación basado en API Keys para control de acceso y revocación remota.
+
+### Arquitectura
+
+```
+┌─────────────────────┐         ┌──────────────────┐
+│   Cliente (IDE)     │         │   Servidor MCP   │
+│                     │         │                  │
+│  Continue.dev       │         │  1. Recibe call  │
+│  ├─ MCP_API_KEY     │────────>│  2. Valida key   │
+│  │   en .env        │         │  3. Ejecuta      │
+│  └─ Auto-enviado    │         │  4. Responde     │
+│     en cada tool    │<────────│                  │
+└─────────────────────┘         └──────────────────┘
+                                         │
+                                         ▼
+                              ┌──────────────────┐
+                              │   MongoDB Atlas  │
+                              │   api_keys coll  │
+                              │                  │
+                              │  • key_hash      │
+                              │  • name          │
+                              │  • is_active     │
+                              │  • last_used     │
+                              └──────────────────┘
+```
+
+### Colección api_keys
+
+```javascript
+// MongoDB Atlas - knowledge_mcp.api_keys
+{
+  _id: ObjectId,
+  key_hash: "$2b$10$...",      // bcrypt hash
+  name: "laptop-personal",      // identificador legible
+  created_at: ISODate,
+  last_used: ISODate,
+  is_active: true,
+  created_by: "bootstrap" | "api_key_id"
+}
+```
+
+### Flujo de Bootstrap (Primera vez)
+
+**Problema:** ¿Cómo crear el primer API key si no hay backoffice?
+
+**Solución:** Tool especial `create_first_api_key`
+
+```typescript
+// Solo funciona SI NO EXISTEN keys en la BD
+// Una vez usado, se bloquea automáticamente
+
+// Usuario ejecuta:
+@gabo-mcp-local using create_first_api_key, name: "setup-inicial"
+
+// Servidor responde:
+{
+  "success": true,
+  "api_key": "gmcp_live_abc123xyz789...",
+  "name": "setup-inicial",
+  "warning": "SAVE THIS KEY NOW - it won't be shown again!",
+  "next_steps": [
+    "1. Add to ~/.continue/config.yaml",
+    "2. Add to .env: MCP_API_KEY=gmcp_live_abc123xyz789...",
+    "3. Restart server"
+  ]
+}
+```
+
+### Tools de Administración
+
+| Tool                   | Descripción         | Requiere Auth       |
+| ---------------------- | ------------------- | ------------------- |
+| `create_first_api_key` | Bootstrap inicial   | ❌ Solo si BD vacía |
+| `create_api_key`       | Crear nuevo key     | ✅ Sí               |
+| `list_api_keys`        | Listar keys activos | ✅ Sí               |
+| `revoke_api_key`       | Invalidar key       | ✅ Sí               |
+
+### Validación en Tools
+
+Todas las tools existentes ahora requieren `api_key`:
+
+```typescript
+// store_knowledge ahora requiere api_key
+@gabo-mcp-local using store_knowledge,
+  api_key: "gmcp_live_abc123xyz789...",
+  type: "REACT_PATTERN",
+  title: "...",
+  content: "..."
+
+// Validación automática:
+// 1. Verificar key existe
+// 2. Verificar key está activo
+// 3. Verificar hash coincide
+// 4. Actualizar last_used
+// 5. Ejecutar operación
+```
+
+### Configuración Continue.dev
+
+```yaml
+# ~/.continue/config.yaml
+mcpServers:
+  gabo-mcp-local:
+    command: npx
+    args: ["tsx", "/path/to/gabo-mcp/src/index.ts"]
+    env:
+      MONGODB_URI: "${MONGODB_URI}"
+      MCP_API_KEY: "gmcp_live_abc123xyz789..." # ← API Key aquí
+```
+
+### Seguridad
+
+- **Hashing:** bcrypt con salt rounds 10
+- **Rate Limiting:** 5 intentos fallidos / minuto por IP
+- **Revocación:** Cambiar `is_active: false` bloquea inmediatamente
+- **Auditoría:** `last_used` timestamp en cada operación
+- **No expone keys:** Solo el hash se almacena
+
+### Escenarios de Uso
+
+**1. Setup Inicial (única máquina):**
+
+```bash
+# Primera vez
+@gabo-mcp-local using create_first_api_key, name: "laptop-gabo"
+# Guardar key en .env → Listo
+```
+
+**2. Múltiples Dispositivos:**
+
+```bash
+# Desde laptop principal (con key existente)
+@gabo-mcp-local using create_api_key, name: "desktop-trabajo"
+# Devuelve nuevo key → Copiar a desktop
+```
+
+**3. Revocar Acceso:**
+
+```bash
+# Laptop robada / ya no uso esa máquina
+@gabo-mcp-local using revoke_api_key, key_id: "desktop-trabajo"
+# Desktop ya no puede acceder, laptop principal sigue funcionando
+```
+
 ## Principios de Diseño
 
 ### ✅ Single Source of Truth
