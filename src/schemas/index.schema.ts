@@ -154,6 +154,14 @@ export const GetKnowledgeSchema = z.object({
 
 export type GetKnowledgeArgs = z.infer<typeof GetKnowledgeSchema>;
 
+export const SemanticSearchSchema = z.object({
+  query: z.string().min(1, "Query is required"),
+  type: KnowledgeTypeSchema.optional(),
+  limit: z.number().positive().int().default(10),
+});
+
+export type SemanticSearchArgs = z.infer<typeof SemanticSearchSchema>;
+
 export const MCPToolResponseSchema = z.object({
   content: z.array(
     z.object({

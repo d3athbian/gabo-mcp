@@ -15,17 +15,21 @@ import {
   listKnowledge,
   getKnowledge,
 } from "./db/queries.js";
+import { searchKnowledgeVector } from "./db/vector-search.js";
+import { generateEmbedding } from "./embeddings/index.js";
 import {
   StoreKnowledgeSchema,
   SearchKnowledgeSchema,
   ListKnowledgeSchema,
   GetKnowledgeSchema,
+  SemanticSearchSchema,
 } from "./schemas/index.schema.js";
 import type {
   StoreKnowledgeArgs,
   SearchKnowledgeArgs,
   ListKnowledgeArgs,
   GetKnowledgeArgs,
+  SemanticSearchArgs,
 } from "./schemas/index.schema.js";
 
 const isInspector =
@@ -59,15 +63,23 @@ server.registerTool(
         };
       }
 
+      // Generate embedding for the content
+      const embeddingText = `${title} ${content}`;
+      const embedding = await generateEmbedding(embeddingText);
+
       const entry = await storeKnowledge(DEV_USER_ID, {
         type,
         title,
         content,
         tags: tags || [],
         source,
+        embedding: embedding.length > 0 ? embedding : undefined,
       });
 
       logger.info(`✅ Knowledge stored with ID: ${entry.id}`);
+      if (embedding.length > 0) {
+        logger.info(`   🧠 Generated embedding (${embedding.length} dims)`);
+      }
 
       return {
         content: [
@@ -292,6 +304,92 @@ server.registerTool(
   },
 );
 
+server.registerTool(
+  "semantic_search",
+  {
+    title: "Semantic Search",
+    description:
+      "Search knowledge entries using AI-powered semantic similarity (vector search). Requires Atlas Vector Search index.",
+    inputSchema: SemanticSearchSchema,
+  },
+  // @ts-ignore - SDK type inference issue
+  async (args: SemanticSearchArgs) => {
+    try {
+      const { query, type, limit } = args;
+      if (!query) {
+        return {
+          content: [{ type: "text", text: "Error: query is required" }],
+          isError: true,
+        };
+      }
+
+      // Generate embedding for the query
+      const queryVector = await generateEmbedding(query);
+
+      if (queryVector.length === 0) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: "Error: Failed to generate embedding. Ensure Ollama is running with nomic-embed-text model.",
+            },
+          ],
+          isError: true,
+        };
+      }
+
+      const results = await searchKnowledgeVector(
+        DEV_USER_ID,
+        queryVector,
+        limit,
+        type,
+      );
+
+      logger.info(
+        `🔍 Semantic search for "${query}": found ${results.length} results`,
+      );
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(
+              {
+                success: true,
+                query,
+                results,
+                count: results.length,
+                search_type: "semantic",
+              },
+              null,
+              2,
+            ),
+          },
+        ],
+      };
+    } catch (error) {
+      logger.error("Semantic search failed", error);
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(
+              {
+                success: false,
+                error: error instanceof Error ? error.message : String(error),
+                note: "Ensure Atlas Vector Search index is configured in MongoDB Atlas. See server startup logs for instructions.",
+              },
+              null,
+              2,
+            ),
+          },
+        ],
+        isError: true,
+      };
+    }
+  },
+);
+
 async function main() {
   const logPath = "/tmp/gabo-mcp-traffic.log";
   const logFile = fs.createWriteStream(logPath, { flags: "w" });
@@ -365,9 +463,10 @@ async function main() {
   logger.info("");
   logger.info("Available Tools:");
   logger.info("  1. store_knowledge - Store a new knowledge entry");
-  logger.info("  2. search_knowledge - Search knowledge entries");
-  logger.info("  3. list_knowledge - List all knowledge entries");
-  logger.info("  4. get_knowledge - Get a specific knowledge entry");
+  logger.info("  2. search_knowledge - Search knowledge entries (text)");
+  logger.info("  3. semantic_search - Search knowledge entries (AI/vector)");
+  logger.info("  4. list_knowledge - List all knowledge entries");
+  logger.info("  5. get_knowledge - Get a specific knowledge entry");
   logger.info("");
   logger.info("📝 MCP Traffic Logs: mcp_traffic.log");
   logger.info("");

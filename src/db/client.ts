@@ -60,6 +60,9 @@ export async function connectToDatabase(): Promise<Db> {
     await db.command({ ping: 1 });
     logger.info("   Ping: OK");
 
+    // Setup indexes for optimal performance
+    await setupIndexes();
+
     return db;
   } catch (error) {
     logger.error("❌ Failed to connect to MongoDB Atlas", error);
@@ -107,6 +110,69 @@ export function getKnowledgeTagsCollection() {
 
 export function getKnowledgeAuditLogCollection() {
   return getDatabase().collection("knowledge_audit_log");
+}
+
+/**
+ * Setup database indexes
+ * Creates necessary indexes for optimal query performance
+ * Should be called after connecting to database
+ */
+export async function setupIndexes(): Promise<void> {
+  try {
+    const entriesCollection = getKnowledgeEntriesCollection();
+
+    logger.info("🔧 Setting up database indexes...");
+
+    // Index for user_id filtering (most queries filter by user)
+    await entriesCollection.createIndex({ user_id: 1 });
+    logger.info("   ✓ Index: user_id");
+
+    // Compound index for user + type queries
+    await entriesCollection.createIndex({ user_id: 1, type: 1 });
+    logger.info("   ✓ Index: user_id + type");
+
+    // Index for sorting by creation date
+    await entriesCollection.createIndex({ user_id: 1, created_at: -1 });
+    logger.info("   ✓ Index: user_id + created_at");
+
+    // Index for tags (allows efficient tag filtering)
+    await entriesCollection.createIndex({ user_id: 1, tags: 1 });
+    logger.info("   ✓ Index: user_id + tags");
+
+    // Text index for full-text search on title and content
+    await entriesCollection.createIndex(
+      { title: "text", content: "text" },
+      {
+        weights: {
+          title: 10, // Title matches are more important
+          content: 1,
+        },
+        name: "text_search_index",
+      },
+    );
+    logger.info("   ✓ Text index: title + content");
+
+    logger.info("✅ All indexes created successfully");
+
+    // Note about vector search index
+    logger.info("");
+    logger.info("⚠️  IMPORTANT: Vector Search Index");
+    logger.info(
+      "   For vector search, you need to create a vector index manually in MongoDB Atlas:",
+    );
+    logger.info("   1. Go to: https://cloud.mongodb.com");
+    logger.info("   2. Select your cluster → Search → Create Index");
+    logger.info("   3. Choose: Vector Search");
+    logger.info("   4. Collection: knowledge_entries");
+    logger.info("   5. Index name: vector_index");
+    logger.info("   6. Path: embedding");
+    logger.info("   7. Dimensions: 768 (for nomic-embed-text)");
+    logger.info("   8. Similarity: cosine");
+    logger.info("");
+  } catch (error) {
+    logger.error("❌ Failed to create indexes", error);
+    // Don't throw - indexes might already exist
+  }
 }
 
 /**

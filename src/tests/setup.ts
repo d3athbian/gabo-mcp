@@ -1,41 +1,53 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import {
+  describe,
+  it,
+  expect,
+  beforeEach,
+  vi,
+  beforeAll,
+  afterAll,
+} from "vitest";
+import { MongoClient, Db } from "mongodb";
+import { connectToDatabase, closeDatabase } from "../db/client.js";
 
 /**
- * Test setup with mocked Supabase
- * Actual tests to be implemented in Phase 3
+ * Test setup for MongoDB Atlas
+ * Uses real MongoDB connection for integration tests
  */
 
-vi.mock('../db/client.ts', () => ({
-  supabase: {
-    from: vi.fn(() => ({
-      select: vi.fn().mockReturnThis(),
-      insert: vi.fn().mockReturnThis(),
-      update: vi.fn().mockReturnThis(),
-      delete: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      or: vi.fn().mockReturnThis(),
-      order: vi.fn().mockReturnThis(),
-      range: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({ data: {}, error: null }),
-    })),
-  },
-  testConnection: vi.fn().mockResolvedValue(true),
-}));
+const TEST_USER_ID = "test-user-123";
 
-describe('Knowledge MCP Server - Setup', () => {
+// Skip tests if no MongoDB URI is available
+const hasMongoDB = !!process.env.MONGODB_URI;
+
+describe("Knowledge MCP Server - MongoDB", () => {
+  beforeAll(async () => {
+    if (hasMongoDB) {
+      await connectToDatabase();
+    }
+  });
+
+  afterAll(async () => {
+    if (hasMongoDB) {
+      await closeDatabase();
+    }
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
-  
-  it('should have mocked Supabase', () => {
-    expect(true).toBe(true);
+
+  it.skipIf(!hasMongoDB)("should connect to MongoDB", async () => {
+    const db = await connectToDatabase();
+    expect(db).toBeDefined();
+    expect(db.databaseName).toBe("knowledge_mcp");
   });
-  
-  // TODO: Add actual test cases in Phase 3
-  // - Test storeKnowledge function
-  // - Test searchKnowledge function
-  // - Test getKnowledge function
-  // - Test listKnowledge function
-  // - Test embeddings (Phase 4)
-  // - Test validation and error handling
+
+  it.skipIf(!hasMongoDB)("should ping MongoDB successfully", async () => {
+    const db = await connectToDatabase();
+    const result = await db.command({ ping: 1 });
+    expect(result.ok).toBe(1);
+  });
 });
+
+export { TEST_USER_ID };
