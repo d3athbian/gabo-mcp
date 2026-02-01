@@ -24,6 +24,7 @@ import {
   GetKnowledgeSchema,
   SemanticSearchSchema,
 } from "./schemas/index.schema.js";
+import { handleToolError } from "./utils/tool-handler.js";
 import type {
   StoreKnowledgeArgs,
   SearchKnowledgeArgs,
@@ -99,23 +100,7 @@ server.registerTool(
         ],
       };
     } catch (error) {
-      logger.error("Failed to store knowledge", error);
-      return {
-        content: [
-          {
-            type: "text",
-            text: JSON.stringify(
-              {
-                success: false,
-                error: error instanceof Error ? error.message : String(error),
-              },
-              null,
-              2,
-            ),
-          },
-        ],
-        isError: true,
-      };
+      return handleToolError(error, "Store knowledge");
     }
   },
 );
@@ -165,23 +150,7 @@ server.registerTool(
         ],
       };
     } catch (error) {
-      logger.error("Failed to search knowledge", error);
-      return {
-        content: [
-          {
-            type: "text",
-            text: JSON.stringify(
-              {
-                success: false,
-                error: error instanceof Error ? error.message : String(error),
-              },
-              null,
-              2,
-            ),
-          },
-        ],
-        isError: true,
-      };
+      return handleToolError(error, "Search knowledge");
     }
   },
 );
@@ -222,23 +191,7 @@ server.registerTool(
         ],
       };
     } catch (error) {
-      logger.error("Failed to list knowledge", error);
-      return {
-        content: [
-          {
-            type: "text",
-            text: JSON.stringify(
-              {
-                success: false,
-                error: error instanceof Error ? error.message : String(error),
-              },
-              null,
-              2,
-            ),
-          },
-        ],
-        isError: true,
-      };
+      return handleToolError(error, "List knowledge");
     }
   },
 );
@@ -281,25 +234,10 @@ server.registerTool(
         ],
       };
     } catch (error) {
-      logger.warn(
-        `Entry not found or error: ${error instanceof Error ? error.message : String(error)}`,
-      );
-      return {
-        content: [
-          {
-            type: "text",
-            text: JSON.stringify(
-              {
-                success: false,
-                error: "Entry not found",
-              },
-              null,
-              2,
-            ),
-          },
-        ],
-        isError: true,
-      };
+      return handleToolError(error, "Get knowledge", {
+        customMessage: "Entry not found",
+        logLevel: "warn",
+      });
     }
   },
 );
@@ -368,24 +306,7 @@ server.registerTool(
         ],
       };
     } catch (error) {
-      logger.error("Semantic search failed", error);
-      return {
-        content: [
-          {
-            type: "text",
-            text: JSON.stringify(
-              {
-                success: false,
-                error: error instanceof Error ? error.message : String(error),
-                note: "Ensure Atlas Vector Search index is configured in MongoDB Atlas. See server startup logs for instructions.",
-              },
-              null,
-              2,
-            ),
-          },
-        ],
-        isError: true,
-      };
+      return handleToolError(error, "Semantic search");
     }
   },
 );
