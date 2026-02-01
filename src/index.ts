@@ -1,5 +1,5 @@
 /**
- * MCP Server Implementation with stdio transport
+ * MCP Server Implementation with MongoDB Atlas
  * Run locally: npm run dev:local
  * Connect via MCP Inspector for web UI: npx @modelcontextprotocol/inspector tsx src/index.ts
  */
@@ -8,9 +8,13 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import * as fs from "fs";
 import { logger } from "./utils/logger.js";
-import type { StoredEntry } from "./schemas/index.schema.js";
-import { getSampleEntries } from "./utils/seed.js";
-import { generateId } from "./utils/id.js";
+import { connectToDatabase, closeDatabase } from "./db/client.js";
+import {
+  storeKnowledge,
+  searchKnowledge,
+  listKnowledge,
+  getKnowledge,
+} from "./db/queries.js";
 import {
   StoreKnowledgeSchema,
   SearchKnowledgeSchema,
@@ -28,7 +32,7 @@ const isInspector =
   process.env.MCP_INSPECTOR === "true" ||
   process.argv.some((arg) => arg.includes("inspector"));
 
-const storage = new Map<string, StoredEntry>();
+const DEV_USER_ID = process.env.DEV_USER_ID || "dev-user-123";
 
 const server = new McpServer({
   name: "gabo-mcp-local",
@@ -44,48 +48,63 @@ server.registerTool(
   },
   // @ts-ignore - SDK type inference issue
   async (args: StoreKnowledgeArgs) => {
-    const { type, title, content, tags, source } = args;
-    if (!title || !content) {
+    try {
+      const { type, title, content, tags, source } = args;
+      if (!title || !content) {
+        return {
+          content: [
+            { type: "text", text: "Error: title and content are required" },
+          ],
+          isError: true,
+        };
+      }
+
+      const entry = await storeKnowledge(DEV_USER_ID, {
+        type,
+        title,
+        content,
+        tags: tags || [],
+        source,
+      });
+
+      logger.info(`✅ Knowledge stored with ID: ${entry.id}`);
+
       return {
         content: [
-          { type: "text", text: "Error: title and content are required" },
+          {
+            type: "text",
+            text: JSON.stringify(
+              {
+                success: true,
+                id: entry.id,
+                message: "Knowledge stored successfully",
+                entry,
+              },
+              null,
+              2,
+            ),
+          },
+        ],
+      };
+    } catch (error) {
+      logger.error("Failed to store knowledge", error);
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(
+              {
+                success: false,
+                error: error instanceof Error ? error.message : String(error),
+              },
+              null,
+              2,
+            ),
+          },
         ],
         isError: true,
       };
     }
-
-    const id = generateId();
-    const entry: StoredEntry = {
-      id,
-      type,
-      title,
-      content,
-      tags: tags || [],
-      source: source || "mcp-local",
-      created_at: new Date().toISOString(),
-    };
-
-    storage.set(id, entry);
-
-    logger.info(`✅ Knowledge stored with ID: ${id}`);
-
-    return {
-      content: [
-        {
-          type: "text",
-          text: JSON.stringify(
-            {
-              success: true,
-              id,
-              message: "Knowledge stored successfully",
-              entry,
-            },
-            null,
-            2,
-          ),
-        },
-      ],
-    };
   },
 );
 
@@ -93,48 +112,65 @@ server.registerTool(
   "search_knowledge",
   {
     title: "Search Knowledge",
-    description: "Search knowledge entries",
+    description: "Search knowledge entries by keywords",
     inputSchema: SearchKnowledgeSchema,
   },
   // @ts-ignore - SDK type inference issue
   async (args: SearchKnowledgeArgs) => {
-    const { query, type } = args;
-    if (!query) {
+    try {
+      const { query, type } = args;
+      if (!query) {
+        return {
+          content: [{ type: "text", text: "Error: query is required" }],
+          isError: true,
+        };
+      }
+
+      const results = await searchKnowledge(DEV_USER_ID, {
+        query,
+        type,
+        limit: 10,
+        offset: 0,
+      });
+
+      logger.info(`🔍 Search for "${query}": found ${results.length} results`);
+
       return {
-        content: [{ type: "text", text: "Error: query is required" }],
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(
+              {
+                success: true,
+                query,
+                results,
+                count: results.length,
+              },
+              null,
+              2,
+            ),
+          },
+        ],
+      };
+    } catch (error) {
+      logger.error("Failed to search knowledge", error);
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(
+              {
+                success: false,
+                error: error instanceof Error ? error.message : String(error),
+              },
+              null,
+              2,
+            ),
+          },
+        ],
         isError: true,
       };
     }
-
-    const results = Array.from(storage.values())
-      .filter((entry) => {
-        const matchesQuery =
-          entry.title.toLowerCase().includes(query.toLowerCase()) ||
-          entry.content.toLowerCase().includes(query.toLowerCase());
-        const matchesType = !type || entry.type === type;
-        return matchesQuery && matchesType;
-      })
-      .slice(0, 10);
-
-    logger.info(`🔍 Search for "${query}": found ${results.length} results`);
-
-    return {
-      content: [
-        {
-          type: "text",
-          text: JSON.stringify(
-            {
-              success: true,
-              query,
-              results,
-              count: results.length,
-            },
-            null,
-            2,
-          ),
-        },
-      ],
-    };
   },
 );
 
@@ -147,32 +183,51 @@ server.registerTool(
   },
   // @ts-ignore - SDK type inference issue
   async (args: ListKnowledgeArgs) => {
-    const { limit } = args;
-    const entries = Array.from(storage.values())
-      .sort(
-        (a, b) =>
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-      )
-      .slice(0, limit);
+    try {
+      const { limit } = args;
+      const { data: entries, count } = await listKnowledge(
+        DEV_USER_ID,
+        undefined,
+        limit,
+      );
 
-    logger.info(`📚 Listing ${entries.length} entries`);
+      logger.info(`📚 Listing ${entries.length} entries (total: ${count})`);
 
-    return {
-      content: [
-        {
-          type: "text",
-          text: JSON.stringify(
-            {
-              success: true,
-              entries,
-              total: storage.size,
-            },
-            null,
-            2,
-          ),
-        },
-      ],
-    };
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(
+              {
+                success: true,
+                entries,
+                total: count,
+              },
+              null,
+              2,
+            ),
+          },
+        ],
+      };
+    } catch (error) {
+      logger.error("Failed to list knowledge", error);
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(
+              {
+                success: false,
+                error: error instanceof Error ? error.message : String(error),
+              },
+              null,
+              2,
+            ),
+          },
+        ],
+        isError: true,
+      };
+    }
   },
 );
 
@@ -180,23 +235,43 @@ server.registerTool(
   "get_knowledge",
   {
     title: "Get Knowledge Entry",
-    description: "Get a specific knowledge entry",
+    description: "Get a specific knowledge entry by ID",
     inputSchema: GetKnowledgeSchema,
   },
   // @ts-ignore - SDK type inference issue
   async (args: GetKnowledgeArgs) => {
-    const { id } = args;
-    if (!id) {
+    try {
+      const { id } = args;
+      if (!id) {
+        return {
+          content: [{ type: "text", text: "Error: id is required" }],
+          isError: true,
+        };
+      }
+
+      const entry = await getKnowledge(DEV_USER_ID, id);
+
+      logger.info(`✅ Retrieved entry: ${id}`);
+
       return {
-        content: [{ type: "text", text: "Error: id is required" }],
-        isError: true,
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(
+              {
+                success: true,
+                entry,
+              },
+              null,
+              2,
+            ),
+          },
+        ],
       };
-    }
-
-    const entry = storage.get(id);
-
-    if (!entry) {
-      logger.warn(`Entry not found: ${id}`);
+    } catch (error) {
+      logger.warn(
+        `Entry not found or error: ${error instanceof Error ? error.message : String(error)}`,
+      );
       return {
         content: [
           {
@@ -214,24 +289,6 @@ server.registerTool(
         isError: true,
       };
     }
-
-    logger.info(`✅ Retrieved entry: ${id}`);
-
-    return {
-      content: [
-        {
-          type: "text",
-          text: JSON.stringify(
-            {
-              success: true,
-              entry,
-            },
-            null,
-            2,
-          ),
-        },
-      ],
-    };
   },
 );
 
@@ -240,6 +297,16 @@ async function main() {
   const logFile = fs.createWriteStream(logPath, { flags: "w" });
 
   logger.info(`📝 MCP Traffic Logs: ${logPath}`);
+
+  // Connect to MongoDB Atlas
+  try {
+    logger.info("🔗 Connecting to MongoDB Atlas...");
+    await connectToDatabase();
+    logger.info("✅ MongoDB connection established");
+  } catch (error) {
+    logger.error("❌ Failed to connect to MongoDB", error);
+    process.exit(1);
+  }
 
   const trace = (direction: string, data: string) => {
     const timestamp = new Date().toISOString();
@@ -285,14 +352,16 @@ async function main() {
 
   logger.info("");
   logger.info("═".repeat(60));
-  logger.info("🚀 Knowledge MCP Server (Local)");
+  logger.info("🚀 Knowledge MCP Server (MongoDB Atlas Edition)");
   logger.info("═".repeat(60));
   logger.info("");
   logger.info("Server Configuration:");
   logger.info("  • Name: gabo-mcp-local");
   logger.info("  • Version: 0.1.0");
   logger.info("  • Transport: stdio (no HTTP port)");
-  logger.info("  • Mode: In-memory (no external dependencies)");
+  logger.info("  • Database: MongoDB Atlas M0 (Free Tier)");
+  logger.info("  • Vector Search: ✅ Enabled (768 dims)");
+  logger.info("  • Embeddings: Ollama (nomic-embed-text)");
   logger.info("");
   logger.info("Available Tools:");
   logger.info("  1. store_knowledge - Store a new knowledge entry");
@@ -304,11 +373,6 @@ async function main() {
   logger.info("");
 
   try {
-    const samples = getSampleEntries();
-    samples.forEach((entry) => storage.set(entry.id, entry));
-    logger.info(`✅ Seeded ${samples.length} sample entries`);
-    logger.info("");
-
     const transport = new StdioServerTransport();
     logger.info("🔗 Connecting via stdio...");
 
@@ -344,13 +408,28 @@ async function main() {
     logger.info("Waiting for MCP protocol messages...");
     logger.info("═".repeat(60));
     logger.info("");
+
+    // Graceful shutdown
+    process.on("SIGINT", async () => {
+      logger.info("\n🛑 Shutting down...");
+      await closeDatabase();
+      process.exit(0);
+    });
+
+    process.on("SIGTERM", async () => {
+      logger.info("\n🛑 Shutting down...");
+      await closeDatabase();
+      process.exit(0);
+    });
   } catch (error) {
     logger.error("Failed to start server", error);
+    await closeDatabase();
     process.exit(1);
   }
 }
 
-main().catch((error) => {
+main().catch(async (error) => {
   logger.error("Unexpected error", error);
+  await closeDatabase();
   process.exit(1);
 });

@@ -20,7 +20,7 @@ Your personal AI memory. Instead of starting from scratch with each tool, this s
 - ✅ **Human-in-the-loop** - Nothing happens without explicit intention
 - ✅ **Semantic search** - Find knowledge by meaning, not just keywords
 - ✅ **Portable** - Export anytime, no vendor lock-in
-- ✅ **Secure** - Row-level security, encrypted at rest
+- ✅ **Secure** - Application-level security, encrypted at rest
 - ✅ **Local embeddings** - Privacy-first, runs on your Mac
 - ✅ **Flexible embeddings** - Start with Ollama, switch to OpenAI later
 
@@ -28,14 +28,14 @@ Your personal AI memory. Instead of starting from scratch with each tool, this s
 
 ## Stack
 
-| Layer | Technology | Why |
-|-------|-----------|-----|
-| **Backend** | Node.js 20 + TypeScript | Type safety, MCP SDK support |
-| **Database** | Supabase (Postgres + pgvector) | Managed RLS, embeddings, hosted |
-| **Embeddings** | Ollama + nomic-embed-text | Local, fast (50-100ms), private |
-| **Auth** | Supabase Auth | OAuth + email/password |
-| **Deploy** | Vercel | Serverless, Git native |
-| **Testing** | Vitest | Fast, TypeScript native |
+| Layer          | Technology                     | Why                             |
+| -------------- | ------------------------------ | ------------------------------- |
+| **Backend**    | Node.js 20 + TypeScript        | Type safety, MCP SDK support    |
+| **Database**   | MongoDB Atlas (M0 Free Tier) | Vector Search, scalable, hosted |
+| **Embeddings** | Ollama + nomic-embed-text      | Local, fast (50-100ms), private |
+| **Auth**       | Application-level (user_id filtering)                  | Simple, effective for personal use          |
+| **Deploy**     | Vercel                         | Serverless, Git native          |
+| **Testing**    | Vitest                         | Fast, TypeScript native         |
 
 ---
 
@@ -57,7 +57,7 @@ gabo-mcp/
 │   │   ├── tools.ts              # MCP tool implementations
 │   │   └── resources.ts          # MCP resources (future)
 │   ├── db/
-│   │   ├── client.ts             # Supabase client
+│   │   ├── client.ts             # MongoDB Atlas client
 │   │   └── queries.ts            # Database functions
 │   ├── embeddings/
 │   │   └── index.ts              # Embedding pipeline
@@ -81,7 +81,7 @@ gabo-mcp/
 
 - Node.js 20+
 - Ollama installed (`brew install ollama`)
-- A Supabase account (free tier works)
+- A MongoDB Atlas account (M0 Free Tier)
 
 ### 1. Clone & Install
 
@@ -101,7 +101,7 @@ Then edit `.env` with your values:
 
 ```env
 NODE_ENV=development
-SUPABASE_URL=https://your-project.supabase.co
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/knowledge_mcp?retryWrites=true&w=majority
 SUPABASE_ANON_KEY=your-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 OLLAMA_API_URL=http://localhost:11434
@@ -148,16 +148,16 @@ npm start
 
 The system supports 8 capture types:
 
-| Type | Purpose | Example |
-|------|---------|---------|
-| `UI_REASONING` | Why you make UI/UX decisions | "Always use semantic HTML for accessibility" |
-| `ARCH_DECISION` | Architecture choices & trade-offs | "Microservices vs monolith analysis" |
-| `PROMPT` | Refined prompts that work | "Effective prompts for code generation" |
-| `ERROR_CORRECTION` | Bug fixes & lessons learned | "How to debug React state issues" |
-| `CODE_SNIPPET` | Reusable code patterns | "useCallback hook pattern" |
-| `DESIGN_DECISION` | Design principles | "Design system color standards" |
-| `TECHNICAL_INSIGHT` | Technical discoveries | "TypeScript discriminated unions" |
-| `REACT_PATTERN` | React-specific patterns | "Custom hooks for data fetching" |
+| Type                | Purpose                           | Example                                      |
+| ------------------- | --------------------------------- | -------------------------------------------- |
+| `UI_REASONING`      | Why you make UI/UX decisions      | "Always use semantic HTML for accessibility" |
+| `ARCH_DECISION`     | Architecture choices & trade-offs | "Microservices vs monolith analysis"         |
+| `PROMPT`            | Refined prompts that work         | "Effective prompts for code generation"      |
+| `ERROR_CORRECTION`  | Bug fixes & lessons learned       | "How to debug React state issues"            |
+| `CODE_SNIPPET`      | Reusable code patterns            | "useCallback hook pattern"                   |
+| `DESIGN_DECISION`   | Design principles                 | "Design system color standards"              |
+| `TECHNICAL_INSIGHT` | Technical discoveries             | "TypeScript discriminated unions"            |
+| `REACT_PATTERN`     | React-specific patterns           | "Custom hooks for data fetching"             |
 
 ---
 
@@ -195,6 +195,7 @@ Via Continue.dev:
 ```
 
 The system will use:
+
 - **Phase 3:** Keyword search (title + content)
 - **Phase 4:** Semantic search (vector similarity)
 - **Phase 5+:** Hybrid search combining both
@@ -238,16 +239,16 @@ The CI/CD pipeline will verify all of these automatically.
 
 ## Project Phases
 
-| Phase | Status | Duration | Focus |
-|-------|--------|----------|-------|
-| 0. **Foundations** | ✅ In Progress | Week 1 | Governance, docs, setup |
-| 1. **Supabase** | ⏳ Planned | Week 2 | DB provisioning, auth |
-| 2. **Schema** | ⏳ Planned | Week 3 | Tables, RLS, indexes |
-| 3. **MCP Core** | ⏳ Planned | Week 4 | Store/search (no embeddings) |
-| 4. **Vector Search** | ⏳ Planned | Week 5 | Embeddings, semantic search |
-| 5. **Human Interaction** | ⏳ Planned | Week 6 | CLI capture, preview mode |
-| 6. **IDE Integration** | ⏳ Planned | Week 7 | Continue.dev, IDE plugins |
-| 7. **Agent Evolution** | ⏳ Planned | Week 8+ | Dynamic prompts, versioning |
+| Phase                    | Status         | Duration | Focus                        |
+| ------------------------ | -------------- | -------- | ---------------------------- |
+| 0. **Foundations**       | ✅ In Progress | Week 1   | Governance, docs, setup      |
+| 1. **Supabase**          | ⏳ Planned     | Week 2   | Cluster setup, Vector Search        |
+| 2. **Schema**            | ⏳ Planned     | Week 3   | Tables, RLS, indexes         |
+| 3. **MCP Core**          | ⏳ Planned     | Week 4   | Store/search (no embeddings) |
+| 4. **Vector Search**     | ⏳ Planned     | Week 5   | Embeddings, semantic search  |
+| 5. **Human Interaction** | ⏳ Planned     | Week 6   | CLI capture, preview mode    |
+| 6. **IDE Integration**   | ⏳ Planned     | Week 7   | Continue.dev, IDE plugins    |
+| 7. **Agent Evolution**   | ⏳ Planned     | Week 8+  | Dynamic prompts, versioning  |
 
 See [docs/plan/project-plan.md](docs/plan/project-plan.md) for detailed phase breakdown.
 
@@ -289,7 +290,7 @@ All variables are defined in `.env.example`. Key ones:
 
 ```env
 # Database
-SUPABASE_URL=https://xxxxx.supabase.co
+MONGODB_URI=mongodb+srv://xxxxx.mongodb.net
 SUPABASE_ANON_KEY=xxxx
 SUPABASE_SERVICE_ROLE_KEY=xxxx
 
@@ -369,7 +370,7 @@ MIT License - See [LICENSE](LICENSE)
 ## Roadmap
 
 - [x] Phase 0: Documentation & setup
-- [ ] Phase 1: Supabase infrastructure
+- [ ] Phase 1: MongoDB Atlas infrastructure
 - [ ] Phase 2: Database schema design
 - [ ] Phase 3: MCP server core (store/search without embeddings)
 - [ ] Phase 4: Vector embeddings & semantic search

@@ -14,6 +14,7 @@
 **Solution:** A personal MCP server that captures, structures, and reuses technical reasoning across any tool or model.
 
 **Success Criteria:**
+
 - ✅ Can capture knowledge from CLI/IDE
 - ✅ Can search for past knowledge with semantic search
 - ✅ Agent uses knowledge base to inform decisions
@@ -37,20 +38,20 @@
 │  ├── Resources: knowledge index, tagged collections            │
 │  └── Prompts: system prompts with learned knowledge            │
 └────────────────────┬────────────────────────────────────────────┘
-                     │ (REST API / PostgreSQL)
+                     │ (MongoDB Driver)
 ┌────────────────────▼────────────────────────────────────────────┐
 │  Embeddings + Logic Layer                                       │
-│  ├── Model: nomic-embed-text (Ollama) or OpenAI                │
-│  ├── Vector Storage: pgvector in Postgres                      │
+│  ├── Model: nomic-embed-text (Ollama) - Local                  │
+│  ├── Vector Search: Atlas Vector Search (768 dims)             │
 │  └── Semantic Search: cosine similarity + hybrid               │
 └────────────────────┬────────────────────────────────────────────┘
                      │
 ┌────────────────────▼────────────────────────────────────────────┐
-│  Supabase (Postgres + pgvector + RLS + Auth)                   │
-│  ├── Schemas: knowledge_entries, knowledge_tags               │
-│  ├── Row Level Security: Only user sees own data              │
-│  ├── Encryption: At rest + in transit                         │
-│  └── Service Role: MCP server access only                     │
+│  MongoDB Atlas (M0 Free Tier)                                   │
+│  ├── Collections: knowledge_entries, knowledge_tags            │
+│  ├── Vector Search: Native vector similarity search            │
+│  ├── Security: Application-level (user_id filtering)           │
+│  └── Storage: 512 MB (enough for 60,000+ entries)             │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -59,17 +60,20 @@
 ## Phase 0: Foundations (Week 1) ✅
 
 ### Objective
+
 Define governance, knowledge classification, and project structure.
 
 ### Deliverables
 
 #### 0.1 Knowledge Definition ✅
+
 - [x] Document what constitutes "knowledge"
 - [x] Define storage policy with 8 capture types
 - [x] Create `knowledge-guidelines.md` (reference existing)
 - [x] Define metadata structure for entries
 
 **Capture Event Types:**
+
 1. `UI_REASONING` — UI/UX design decisions and rationale
 2. `ARCH_DECISION` — Architecture choices and trade-offs
 3. `PROMPT` — Refined prompts that work well with models
@@ -80,10 +84,11 @@ Define governance, knowledge classification, and project structure.
 8. `REACT_PATTERN` — React-specific patterns and hooks
 
 #### 0.2 Privacy & Security Policy ✅
+
 - [x] Create `privacy-policy.md`
 - [x] Document allowed data (9 categories)
 - [x] Document prohibited data (8 categories)
-- [x] Define RLS strategy for Supabase
+- [x] Define security strategy (application-level with user_id)
 - [x] Define encryption requirements
 - [x] Set data retention policies
 - [x] Outline user rights (access, modify, delete, export)
@@ -91,6 +96,7 @@ Define governance, knowledge classification, and project structure.
 **Key Principle:** Human-in-the-loop, total transparency, user sovereignty
 
 #### 0.3 Project Structure ⏳ In Progress
+
 - [ ] Create `tsconfig.json` (TypeScript config)
 - [ ] Create `package.json` with scripts
 - [ ] Create `.env.example` template
@@ -103,46 +109,55 @@ Define governance, knowledge classification, and project structure.
 
 ---
 
-## Phase 1: Supabase Infrastructure (Week 2)
+## Phase 1: Database Infrastructure (Week 2)
 
 ### Objective
-Provision Supabase project and enable required extensions.
+
+Provision MongoDB Atlas cluster and configure Vector Search.
+
+**Note:** This plan was originally written for Supabase, but the implementation uses MongoDB Atlas M0 (Free Tier) which includes Vector Search natively.
 
 ### Deliverables
 
-#### 1.1 Project Creation
-- [ ] Create Supabase project in cloud console
-- [ ] Select region (recommended: nearest to you)
-- [ ] Save `SUPABASE_URL` and `SUPABASE_ANON_KEY` to `.env`
-- [ ] Generate and save `SUPABASE_SERVICE_ROLE_KEY` to Vercel
-- [ ] Test connection with CLI: `npx supabase status`
+#### 1.1 Cluster Setup
 
-#### 1.2 Extensions
-- [ ] Enable `pgvector` extension (for embeddings)
-- [ ] Enable `uuid-ossp` extension (for UUID generation)
-- [ ] Enable `pgtap` extension (optional, for testing)
-- [ ] Verify extensions: `SELECT * FROM pg_extension;`
+- [ ] Create MongoDB Atlas account
+- [ ] Create M0 (Free Forever) cluster
+- [ ] Select cloud provider and region
+- [ ] Configure IP whitelist (0.0.0.0/0 for development)
+- [ ] Create database user
+- [ ] Save `MONGODB_URI` to `.env`
+- [ ] Test connection with MongoDB Compass or application
 
-#### 1.3 Authentication Setup
-- [ ] Enable email/password auth method
-- [ ] Configure redirect URLs for Vercel deployment
-- [ ] Create test user account for testing
-- [ ] Test manual login flow with SDK
-- [ ] Store credentials in secure location
+#### 1.2 Vector Search Configuration
+
+- [ ] Create `knowledge_entries` collection
+- [ ] Create Atlas Vector Search index (768 dimensions, cosine similarity)
+- [ ] Verify index is active in Atlas UI
+- [ ] Test vector search query
+
+#### 1.3 Security Setup
+
+- [ ] Define application-level security strategy (user_id filtering)
+- [ ] Implement security middleware
+- [ ] Document security patterns
+- [ ] Test data isolation between users
 
 #### 1.4 Validation
-- [ ] All extensions active and verified
-- [ ] Can authenticate with test user
-- [ ] Can query database (test table)
-- [ ] Service role key accessible in Vercel secrets
 
-**Success Metric:** Connection working, extensions active, auth functional
+- [ ] Connection to MongoDB Atlas working
+- [ ] Vector Search index active
+- [ ] Security implemented and tested
+- [ ] Application can read/write data
+
+**Success Metric:** Connection working, Vector Search active, security functional
 
 ---
 
 ## Phase 2: Schema Design (Week 3)
 
 ### Objective
+
 Design and implement database schema with Row Level Security.
 
 ### Deliverables
@@ -150,6 +165,7 @@ Design and implement database schema with Row Level Security.
 #### 2.1 Core Tables
 
 **knowledge_entries**
+
 ```sql
 CREATE TABLE knowledge_entries (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -179,6 +195,7 @@ CREATE INDEX idx_knowledge_embedding ON knowledge_entries USING ivfflat (embeddi
 ```
 
 **knowledge_tags** (Normalized tags for analytics)
+
 ```sql
 CREATE TABLE knowledge_tags (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -192,6 +209,7 @@ CREATE INDEX idx_tags_user ON knowledge_tags(user_id);
 ```
 
 **knowledge_audit_log** (Security/compliance)
+
 ```sql
 CREATE TABLE knowledge_audit_log (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -207,6 +225,7 @@ CREATE INDEX idx_audit_action ON knowledge_audit_log(action);
 ```
 
 #### 2.2 Row Level Security
+
 ```sql
 ALTER TABLE knowledge_entries ENABLE ROW LEVEL SECURITY;
 ALTER TABLE knowledge_tags ENABLE ROW LEVEL SECURITY;
@@ -233,6 +252,7 @@ CREATE POLICY "Users can delete own entries"
 ```
 
 #### 2.3 Validation
+
 - [ ] All schemas created without errors
 - [ ] Indexes created and visible
 - [ ] RLS policies enforced
@@ -247,14 +267,16 @@ CREATE POLICY "Users can delete own entries"
 ## Phase 3: MCP Server Core (Week 4)
 
 ### Objective
+
 Implement basic MCP server with storage and retrieval (no embeddings yet).
 
 ### Deliverables
 
 #### 3.1 Project Setup
+
 ```bash
 npm init -y
-npm install --save @modelcontextprotocol/sdk @supabase/supabase-js dotenv
+npm install --save @modelcontextprotocol/sdk mongodb dotenv zod
 npm install --dev typescript @types/node tsx
 npx tsc --init
 ```
@@ -262,28 +284,33 @@ npx tsc --init
 #### 3.2 Core Tools (Keyword Search)
 
 **Tool: `store_knowledge`**
+
 - Input: type, title, content, tags[], source
 - Output: { id, created_at, embedding_status }
 - Logic: Validate input, sanitize, store in DB, return entry ID
 - Error handling: No secrets leaked, validation errors clear
 
 **Tool: `search_knowledge`**
+
 - Input: query, type (optional), limit
 - Output: [{ id, title, content, type, created_at, relevance_score }]
 - Logic: Full-text search on title + content, filter by type
 - Sorting: By created_at DESC (most recent first)
 
 **Tool: `list_knowledge`**
+
 - Input: type (optional), limit, offset
 - Output: Paginated list of entries
 - Logic: List all entries, optionally filter by type
 
 **Tool: `get_knowledge`**
+
 - Input: entry_id
 - Output: Full entry with all metadata
 - Error: 404 if not found or not owned by user
 
 #### 3.3 Implementation Structure
+
 ```
 src/
 ├── index.ts              # MCP server entry point
@@ -293,7 +320,7 @@ src/
 │   ├── tools.ts         # Tool handlers
 │   └── resources.ts     # Resource handlers
 ├── db/
-│   ├── client.ts        # Supabase client
+│   ├── client.ts        # MongoDB Atlas client
 │   └── queries.ts       # Database functions
 ├── embeddings/
 │   └── placeholder.ts   # Stub for Phase 4
@@ -303,6 +330,7 @@ src/
 ```
 
 #### 3.4 Deployment
+
 - [ ] Code compiles without errors
 - [ ] Push to GitHub
 - [ ] Deploy to Vercel (Node.js 20)
@@ -316,11 +344,13 @@ src/
 ## Phase 4: Vector Search (Week 5)
 
 ### Objective
+
 Add embeddings pipeline using local Ollama.
 
 ### Deliverables
 
 #### 4.1 Embedding Model Setup
+
 - [ ] Install Ollama: `brew install ollama`
 - [ ] Pull model: `ollama pull nomic-embed-text`
 - [ ] Verify running: `curl http://localhost:11434/api/tags`
@@ -328,6 +358,7 @@ Add embeddings pipeline using local Ollama.
 - [ ] Set `EMBED_MODEL=nomic-embed-text`
 
 **Model specs:**
+
 - **Dimensions:** 768
 - **Size:** 274MB
 - **Speed:** ~50-100ms per embedding on M5 Pro
@@ -335,6 +366,7 @@ Add embeddings pipeline using local Ollama.
 - **Cost:** $0 (local)
 
 #### 4.2 Vector Storage
+
 - [ ] Create embedding module: `src/embeddings/ollama.ts`
 - [ ] Function: `generateEmbedding(text: string): Promise<number[]>`
 - [ ] Function: `batchEmbeddings(texts: string[]): Promise<number[][]>`
@@ -342,7 +374,9 @@ Add embeddings pipeline using local Ollama.
 - [ ] Caching: Store embeddings to avoid recomputation
 
 #### 4.3 Semantic Search
+
 Update `search_knowledge` tool:
+
 - [ ] Convert query to embedding
 - [ ] Find similar embeddings in pgvector
 - [ ] Hybrid search: combine semantic + keyword
@@ -350,6 +384,7 @@ Update `search_knowledge` tool:
 - [ ] Limit: Return top 10 (configurable)
 
 #### 4.4 Validation
+
 - [ ] Embeddings generate correctly
 - [ ] Vector search returns relevant results
 - [ ] Performance: <1s for search
@@ -362,12 +397,15 @@ Update `search_knowledge` tool:
 ## Phase 5: Human Interaction (Week 6)
 
 ### Objective
+
 Simple interface for manual knowledge capture.
 
 ### Deliverables
 
 #### 5.1 Command Format
+
 Users capture knowledge via structured commands in chat/CLI:
+
 ```
 SAVE_KNOWLEDGE:
   type: REACT_PATTERN
@@ -378,6 +416,7 @@ SAVE_KNOWLEDGE:
 ```
 
 #### 5.2 CLI Tool
+
 ```bash
 npm run capture REACT_PATTERN \
   "useCallback with dependencies" \
@@ -386,12 +425,14 @@ npm run capture REACT_PATTERN \
 ```
 
 #### 5.3 Preview Mode
+
 - [ ] Show exactly what will be saved before sending
 - [ ] Highlight: title, content preview, tags
 - [ ] Confirm before uploading
 - [ ] Show where it's being stored (timestamp, entry ID)
 
 #### 5.4 Integration Points
+
 - [ ] CLI tool working
 - [ ] Can see what was saved via `get_knowledge`
 - [ ] Tags properly indexed and searchable
@@ -404,11 +445,13 @@ npm run capture REACT_PATTERN \
 ## Phase 6: IDE Integration (Week 7)
 
 ### Objective
+
 Integrate with development environment and Continue.dev.
 
 ### Deliverables
 
 #### 6.1 Continue.dev Integration (Priority 1)
+
 - [ ] Create Continue.dev extension config
 - [ ] Expose `store_knowledge` tool
 - [ ] Expose `search_knowledge` tool
@@ -417,11 +460,13 @@ Integrate with development environment and Continue.dev.
 - [ ] Test with Continue.dev IDE integration
 
 #### 6.2 Antigravity / VSCode Fork (Optional)
+
 - [ ] Document MCP connection setup
 - [ ] Test with Antigravity if available
 - [ ] Provide connection guide for users
 
 #### 6.3 Quick Actions
+
 - [ ] Keyboard shortcut: Ctrl+Shift+K (save knowledge)
 - [ ] Context menu: "Add to knowledge base"
 - [ ] Selection capture: Highlight → Save
@@ -433,18 +478,22 @@ Integrate with development environment and Continue.dev.
 ## Phase 7: Agent Evolution (Week 8+)
 
 ### Objective
+
 Make agents learn from and adapt to your knowledge base.
 
 ### Deliverables
 
 #### 7.1 Knowledge Loader
+
 - [ ] Tool: `load_knowledge` - fetch recent entries
 - [ ] Summarize learnings by type
 - [ ] Format as system prompt enhancement
 - [ ] Cache for efficiency
 
 #### 7.2 Dynamic Prompt Generation
+
 Generate base system prompt from knowledge:
+
 ```
 You are an AI assistant working with {user}.
 
@@ -465,12 +514,14 @@ Common trade-offs they make:
 ```
 
 #### 7.3 Versioning & Evolution
+
 - [ ] Tag knowledge with version: `thinking_style_v1`
 - [ ] Track evolution of your approach
 - [ ] Ability to "rollback to previous you"
 - [ ] Compare different approaches over time
 
 #### 7.4 Continuous Refinement
+
 - [ ] Agent suggests new learnings
 - [ ] You validate/reject suggestions
 - [ ] Knowledge becomes more accurate over time
@@ -482,77 +533,85 @@ Common trade-offs they make:
 
 ## Core Non-Negotiables
 
-| Principle | Implementation |
-|-----------|-----------------|
-| ❌ Nothing automatic | Requires explicit command for every action |
-| ❌ Nothing without validation | Preview and confirm before save |
-| ✅ Everything observable | Logs of all operations visible |
-| ✅ Everything versionable | Timestamps, git history, audit log |
-| ✅ Everything portable | Export anytime as JSON + metadata |
+| Principle                     | Implementation                             |
+| ----------------------------- | ------------------------------------------ |
+| ❌ Nothing automatic          | Requires explicit command for every action |
+| ❌ Nothing without validation | Preview and confirm before save            |
+| ✅ Everything observable      | Logs of all operations visible             |
+| ✅ Everything versionable     | Timestamps, git history, audit log         |
+| ✅ Everything portable        | Export anytime as JSON + metadata          |
 
 ---
 
 ## Stack Definition
 
-| Layer | Technology | Rationale |
-|-------|-----------|-----------|
-| **Backend** | Node.js 20 + TypeScript | Type safety, MCP SDK support |
-| **MCP SDK** | @modelcontextprotocol/sdk | Industry standard |
-| **Database** | Supabase (Postgres + pgvector) | RLS, auth, hosted |
-| **Embeddings** | Ollama + nomic-embed-text | Local, fast, private |
-| **Alternative** | OpenAI embeddings | For scale (future) |
-| **Auth** | Supabase Auth | OAuth + email/password |
-| **Deployment** | Vercel | Serverless, Git integration |
-| **Testing** | Vitest | Fast, TypeScript native |
-| **Linting** | ESLint + Prettier | Code quality |
+| Layer           | Technology                            | Rationale                          |
+| --------------- | ------------------------------------- | ---------------------------------- |
+| **Backend**     | Node.js 20 + TypeScript               | Type safety, MCP SDK support       |
+| **MCP SDK**     | @modelcontextprotocol/sdk             | Industry standard                  |
+| **Database**    | MongoDB Atlas (M0 Free Tier)          | Vector Search, scalable, hosted    |
+| **Embeddings**  | Ollama + nomic-embed-text             | Local, fast, private, 768 dims     |
+| **Alternative** | OpenAI embeddings                     | For scale (future)                 |
+| **Auth**        | Application-level (user_id filtering) | Simple, effective for personal use |
+| **Deployment**  | Vercel                                | Serverless, Git integration        |
+| **Testing**     | Vitest                                | Fast, TypeScript native            |
+| **Linting**     | ESLint + Prettier                     | Code quality                       |
 
 ---
 
 ## Success Metrics
 
 ### Phase 0 (Foundations)
+
 - ✅ Privacy policy documented
 - ✅ Project plan detailed
 - ✅ TypeScript configured
 - ✅ CI/CD pipeline ready
 
-### Phase 1 (Supabase)
-- [ ] Supabase project created
-- [ ] Extensions enabled
-- [ ] Connection tested
+### Phase 1 (MongoDB Atlas)
+
+- [x] MongoDB Atlas cluster created
+- [x] Vector Search index configured
+- [x] Connection tested
 - [ ] Auth working
 
 ### Phase 2 (Schema)
+
 - [ ] All tables created
 - [ ] Indexes created
 - [ ] RLS policies enforced
 - [ ] No data leaks
 
 ### Phase 3 (MCP Core)
+
 - [ ] Server starts without errors
 - [ ] All 4 tools working
 - [ ] Response time <200ms
 - [ ] Error handling proper
 
 ### Phase 4 (Vector Search)
+
 - [ ] Embeddings generating
 - [ ] Semantic search working
 - [ ] Hybrid search combining results
 - [ ] Response time <1s
 
 ### Phase 5 (Human Interaction)
+
 - [ ] CLI tool works
 - [ ] Preview shows correct data
 - [ ] Tags indexed properly
 - [ ] Easy to save knowledge
 
 ### Phase 6 (IDE Integration)
+
 - [ ] Continue.dev extension working
 - [ ] Tools callable from chat
 - [ ] Quick actions accessible
 - [ ] Fast response times
 
 ### Phase 7 (Agent Evolution)
+
 - [ ] Knowledge affects agent behavior
 - [ ] System prompts dynamically generated
 - [ ] Versioning working
@@ -562,28 +621,28 @@ Common trade-offs they make:
 
 ## Risk Management
 
-| Risk | Mitigation |
-|------|-----------|
-| **Data leak** | RLS + encryption, careful sanitization |
+| Risk                        | Mitigation                                |
+| --------------------------- | ----------------------------------------- |
+| **Data leak**               | RLS + encryption, careful sanitization    |
 | **Performance degradation** | Vector indexes, batch operations, caching |
-| **Auth failure** | Test coverage, Supabase audit logs |
-| **Embedding cost** | Start local, monitor usage, cache results |
-| **Scope creep** | Clear phase gates, MVP focus |
+| **Auth failure**            | Test coverage, Supabase audit logs        |
+| **Embedding cost**          | Start local, monitor usage, cache results |
+| **Scope creep**             | Clear phase gates, MVP focus              |
 
 ---
 
 ## Timeline
 
-| Phase | Duration | Status | Start | End |
-|-------|----------|--------|-------|-----|
-| 0. Foundations | 1 week | ⏳ In Progress | Jan 29 | Feb 5 |
-| 1. Supabase | 1 week | ⏳ Planned | Feb 5 | Feb 12 |
-| 2. Schema | 1 week | ⏳ Planned | Feb 12 | Feb 19 |
-| 3. MCP Core | 1 week | ⏳ Planned | Feb 19 | Feb 26 |
-| 4. Vector | 1 week | ⏳ Planned | Feb 26 | Mar 5 |
-| 5. Human | 1 week | ⏳ Planned | Mar 5 | Mar 12 |
-| 6. IDE | 1 week | ⏳ Planned | Mar 12 | Mar 19 |
-| 7. Agent | 2 weeks | ⏳ Planned | Mar 19 | Apr 2 |
+| Phase          | Duration | Status         | Start  | End    |
+| -------------- | -------- | -------------- | ------ | ------ |
+| 0. Foundations | 1 week   | ⏳ In Progress | Jan 29 | Feb 5  |
+| 1. Supabase    | 1 week   | ⏳ Planned     | Feb 5  | Feb 12 |
+| 2. Schema      | 1 week   | ⏳ Planned     | Feb 12 | Feb 19 |
+| 3. MCP Core    | 1 week   | ⏳ Planned     | Feb 19 | Feb 26 |
+| 4. Vector      | 1 week   | ⏳ Planned     | Feb 26 | Mar 5  |
+| 5. Human       | 1 week   | ⏳ Planned     | Mar 5  | Mar 12 |
+| 6. IDE         | 1 week   | ⏳ Planned     | Mar 12 | Mar 19 |
+| 7. Agent       | 2 weeks  | ⏳ Planned     | Mar 19 | Apr 2  |
 
 **Target Launch:** April 2, 2026
 
@@ -623,6 +682,6 @@ Common trade-offs they make:
 
 **Project Lead:** @gabo  
 **Last Updated:** January 29, 2026  
-**Repository:** [github.com/gabo-mcp](https://github.com/gabo/gabo-mcp)  
+**Repository:** [github.com/gabo-mcp](https://github.com/gabo/gabo-mcp)
 
 This plan is a living document. Updates will be made as phases complete and learning occurs.

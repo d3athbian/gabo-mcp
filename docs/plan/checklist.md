@@ -1,22 +1,24 @@
 # Project Checklist - Personal Knowledge MCP
 
 **Last Updated:** February 1, 2026  
-**Status:** Phase 3 (MCP Core) - In Progress
+**Status:** Phase 1 (MongoDB Atlas Setup) - In Progress  
+**Database:** MongoDB Atlas M0 (Free Tier)  
+**Architecture:** Zod schemas → MongoDB + Vector Search
 
 ---
 
 ## Resumen de Progreso
 
-| Phase | Nombre                  | Estado         |
-| ----- | ----------------------- | -------------- |
-| 0     | Foundations             | ✅ Completado  |
-| 1     | Supabase Infrastructure | ⏳ Pendiente   |
-| 2     | Schema Design           | ⏳ Pendiente   |
-| 3     | MCP Server Core         | 🔄 En Progreso |
-| 4     | Vector Search           | ⏳ Pendiente   |
-| 5     | Human Interaction       | ⏳ Pendiente   |
-| 6     | IDE Integration         | ⏳ Pendiente   |
-| 7     | Agent Evolution         | ⏳ Pendiente   |
+| Phase | Nombre            | Estado             | Notas                                |
+| ----- | ----------------- | ------------------ | ------------------------------------ |
+| 0     | Foundations       | ✅ Completado      | Documentación, tipos Zod, estructura |
+| 1     | **MongoDB Atlas** | 🔄 **En Progreso** | Cluster setup, índices, conexión     |
+| 2     | Schema Design     | ✅ Completado      | Esquemas definidos en código         |
+| 3     | MCP Server Core   | 🔄 En Progreso     | 4 tools funcionando con MongoDB      |
+| 4     | Vector Search     | ⏳ Pendiente       | Atlas Vector Search + Ollama         |
+| 5     | Human Interaction | ⏳ Pendiente       | CLI tool, preview mode               |
+| 6     | IDE Integration   | ⏳ Pendiente       | Continue.dev                         |
+| 7     | Agent Evolution   | ⏳ Pendiente       | Dynamic prompts                      |
 
 ---
 
@@ -34,7 +36,7 @@
 - [x] Crear `docs/plan/privacy-policy.md`
 - [x] Documentar datos permitidos (9 categorías)
 - [x] Documentar datos prohibidos (8 categorías)
-- [x] Definir estrategia RLS para Supabase
+- [x] Definir estrategia de seguridad (app-level con user_id)
 - [x] Definir requisitos de encriptación
 - [x] Establecer políticas de retención
 - [x] Definir derechos del usuario
@@ -48,64 +50,65 @@
 - [x] Crear estructura `src/`
 - [x] Configurar arquitectura de tipos con Zod
 - [x] Documentar arquitectura en `docs/plan/typing/architecture.md`
+- [x] Actualizar manifesto para MongoDB Atlas
 
 ---
 
-## Phase 1: Supabase Infrastructure ⏳
+## Phase 1: MongoDB Atlas Infrastructure 🔄
 
-### 1.1 Project Creation
+### 1.1 Cluster Setup
 
-- [ ] Crear Supabase project en cloud console
-- [ ] Seleccionar región
-- [ ] Guardar `SUPABASE_URL` y `SUPABASE_ANON_KEY` en `.env`
-- [ ] Generar y guardar `SUPABASE_SERVICE_ROLE_KEY`
-- [ ] Probar conexión: `npx supabase status`
+- [x] Crear cuenta en MongoDB Atlas
+- [x] Crear cluster M0 (Free Forever)
+- [x] Seleccionar región (AWS/GCP/Azure)
+- [x] Configurar IP Whitelist (0.0.0.0/0 para desarrollo)
+- [x] Crear usuario de base de datos
+- [x] Guardar `MONGODB_URI` en `.env`
+- [ ] Probar conexión con aplicación
 
-### 1.2 Extensions
+### 1.2 Atlas Vector Search Configuration
 
-- [ ] Habilitar extensión `pgvector`
-- [ ] Habilitar extensión `uuid-ossp`
-- [ ] Verificar extensiones: `SELECT * FROM pg_extension;`
+- [x] Crear colección `knowledge_entries`
+- [x] Crear índice vectorial
+- [x] Configurar: path="embedding", numDimensions=768, similarity="cosine"
+- [x] Verificar índice creado en Atlas UI
 
-### 1.3 Authentication Setup
+### 1.3 Security Setup
 
-- [ ] Habilitar email/password auth
-- [ ] Configurar redirect URLs
-- [ ] Crear cuenta de test
-- [ ] Probar login flow
+- [x] Implementar filtrado por `user_id` en todas las queries
+- [x] Validar ownership en operaciones de escritura
+- [x] Documentar patrón de seguridad
 
 ### 1.4 Validation
 
-- [ ] Extensiones activas
-- [ ] Autenticación funciona
-- [ ] Conexión a DB funciona
+- [x] Conexión exitosa a MongoDB Atlas
+- [x] Índice vectorial configurado
+- [x] Seguridad implementada
 
 ---
 
-## Phase 2: Schema Design ⏳
+## Phase 2: MongoDB Schema Design ✅
 
-### 2.1 Core Tables
+### 2.1 Core Collections
 
-- [ ] Crear tabla `knowledge_entries`
-- [ ] Crear tabla `knowledge_tags`
-- [ ] Crear tabla `knowledge_audit_log`
+- [x] Definir esquema `knowledge_entries` (documentos con embedding)
+- [x] Definir esquema `knowledge_tags` (tags normalizados)
+- [x] Definir esquema `knowledge_audit_log` (auditoría)
 
-### 2.2 Row Level Security
+### 2.2 Indexes
 
-- [ ] Habilitar RLS en todas las tablas
-- [ ] Crear policies para aislar datos por usuario
-- [ ] Probar que usuario A no ve datos de usuario B
+- [x] Índice en `user_id` (todas las colecciones)
+- [x] Índice en `type` (knowledge_entries)
+- [x] Índice en `created_at` descendente
+- [x] Índice en `tags` (array)
+- [x] Índice de texto en `title` + `content`
+- [x] Índice vectorial (Atlas Vector Search)
 
-### 2.3 Indexes
+### 2.3 Validation
 
-- [ ] Crear índices para búsquedas eficientes
-- [ ] Configurar índice vectorial para pgvector
-
-### 2.4 Validation
-
-- [ ] Todos los schemas creados sin errores
-- [ ] RLS enforced
-- [ ] Tests de aislamiento de datos
+- [x] Esquemas Zod definidos
+- [x] Tipos TypeScript inferidos
+- [x] Queries implementadas
 
 ---
 
@@ -118,64 +121,60 @@
 - [x] Crear entry point `src/index.ts`
 - [x] Configurar logger en `src/utils/logger.ts`
 
-### 3.2 Core Tools (In-Memory) ✅
+### 3.2 Database Integration ✅
 
-- [x] `store_knowledge` - Guardar entries
+- [x] Instalar driver MongoDB
+- [x] Implementar `src/db/client.ts`
+- [x] Implementar `src/db/queries.ts`
+- [x] Implementar `src/db/vector-search.ts`
+- [x] Cargar variables de entorno con dotenv
+
+### 3.3 Core Tools
+
+- [x] `store_knowledge` - Guardar entries en MongoDB
 - [x] `search_knowledge` - Buscar por keywords
 - [x] `list_knowledge` - Listar con paginación
 - [x] `get_knowledge` - Obtener entry específico
 
-### 3.3 Zod Schema Architecture ✅
-
-- [x] `src/schemas/index.schema.ts` como fuente de verdad
-- [x] Tipos inferidos con `z.infer`
-- [x] Eliminar tipos duplicados en `.type.ts`
-- [x] Documentar arquitectura de tipos
-
-### 3.4 Conectar a Supabase (Pendiente)
-
-- [ ] Implementar `src/db/client.ts` con Supabase
-- [ ] Implementar `src/db/queries.ts` para operaciones CRUD
-- [ ] Reemplazar storage in-memory por Supabase
-- [ ] Configurar variables de entorno
-
-### 3.5 Validation
+### 3.4 Validation
 
 - [x] Server compila sin errores
-- [x] Tools funcionan (con storage in-memory)
-- [ ] Server conecta a Supabase (pendiente)
-- [ ] Response time <200ms (pendiente)
+- [x] Server conecta a MongoDB Atlas
+- [ ] Response time <200ms
 
 ---
 
 ## Phase 4: Vector Search ⏳
 
-### 4.1 Embedding Model Setup
+### 4.1 Embedding Model Setup ✅
 
-- [ ] Instalar Ollama: `brew install ollama`
-- [ ] Descargar modelo: `ollama pull nomic-embed-text`
-- [ ] Verificar: `curl http://localhost:11434/api/tags`
-- [ ] Configurar `OLLAMA_API_URL` en `.env`
+- [x] Instalar Ollama: `brew install ollama`
+- [x] Descargar modelo: `ollama pull nomic-embed-text`
+- [x] Verificar: `curl http://localhost:11434/api/tags`
+- [x] Configurar `OLLAMA_API_URL` en `.env`
+- [x] Probar generación de embeddings (768 dims verificado)
 
 ### 4.2 Vector Storage
 
 - [ ] Crear módulo `src/embeddings/ollama.ts`
 - [ ] Implementar `generateEmbedding(text)`
 - [ ] Implementar `batchEmbeddings(texts)`
+- [ ] Guardar embeddings en MongoDB (campo `embedding`)
 - [ ] Manejo de errores (fallback si Ollama no disponible)
-- [ ] Cache de embeddings
 
 ### 4.3 Semantic Search
 
-- [ ] Convertir query a embedding
-- [ ] Buscar similar embeddings en pgvector
-- [ ] Implementar hybrid search (semantic + keyword)
+- [ ] Implementar `searchKnowledge` con Atlas Vector Search
+- [ ] Usar `$vectorSearch` aggregation pipeline
+- [ ] Calcular cosine similarity en MongoDB
 - [ ] Configurar threshold (0.7 cosine similarity)
-- [ ] Configurar límite de resultados
+- [ ] Configurar límite de resultados (top 10)
+- [ ] Implementar hybrid search (vector + keyword)
 
 ### 4.4 Validation
 
-- [ ] Embeddings se generan correctamente
+- [ ] Embeddings se generan correctamente con Ollama
+- [ ] Embeddings se guardan en MongoDB
 - [ ] Búsqueda semántica retorna resultados relevantes
 - [ ] Performance <1s para búsqueda
 - [ ] Hybrid search combina resultados
@@ -276,6 +275,7 @@
 | ✅ Todo observable     | ✅ Logs de todas las operaciones |
 | ✅ Todo versionable    | ✅ Timestamps, audit log         |
 | ✅ Todo portable       | ✅ Export como JSON              |
+| ✅ Privacy-first       | ✅ Embeddings locales con Ollama |
 
 ---
 
@@ -288,54 +288,60 @@
 - [x] TypeScript configurado
 - [x] Arquitectura de tipos definida
 
+### Phase 1 🔄 (MongoDB Atlas)
+
+- [x] MongoDB Atlas cluster creado
+- [x] Atlas Vector Search configurado
+- [x] Conexión establecida
+- [x] Seguridad implementada
+
+### Phase 2 ✅
+
+- [x] Esquemas definidos
+- [x] Tipos inferidos
+- [x] Queries implementadas
+
 ### Phase 3 🔄
 
 - [x] Server inicia sin errores
-- [x] 4 tools funcionando (in-memory)
-- [ ] Tools funcionan con Supabase
+- [x] 4 tools funcionando con MongoDB
 - [ ] Response time <200ms
 
 ### Phase 4 ⏳
 
-- [ ] Embeddings generando
+- [x] Ollama + nomic-embed-text configurado
+- [ ] Embeddings guardándose en MongoDB
 - [ ] Búsqueda semántica funcionando
 - [ ] Hybrid search combinando resultados
 - [ ] Response time <1s
 
 ---
 
-## Próximo Paso Inmediato
+## Tech Stack Actual
 
-**Conectar MCP Server a Supabase** (Phase 3.4)
-
-1. Crear cuenta en Supabase
-2. Habilitar pgvector
-3. Configurar tablas y RLS
-4. Implementar `src/db/client.ts`
-5. Implementar `src/db/queries.ts`
-6. Reemplazar storage in-memory
-
----
-
-## Notas de Progreso (Feb 1, 2026)
-
-### Completado Hoy
-
-- ✅ Eliminado `handlers/tools.type.ts` (redundante)
-- ✅ `index.type.ts` ahora solo re-exporta desde schemas
-- ✅ Todos los tipos de dominio en `schemas/index.schema.ts`
-- ✅ Tipos puros mantienen en `base.type.ts` (EntityId, LogFn, etc.)
-- ✅ Documentación de arquitectura actualizada
-- ✅ Servidor MCP funciona con Zod schemas
-
-### Tech Stack Actual
-
-- Node.js 20 + TypeScript
-- @modelcontextprotocol/sdk 1.25.3
-- Zod 3.22 (validación + tipos)
-- Storage: In-memory (pendiente: Supabase)
-- Embeddings: Pendiente (Ollama)
+- **Backend:** Node.js 20 + TypeScript
+- **MCP SDK:** @modelcontextprotocol/sdk 1.25.3
+- **Validation:** Zod 3.22
+- **Database:** MongoDB Atlas M0 (Free Tier)
+- **Vector Search:** Atlas Vector Search (768 dims)
+- **Embeddings:** Ollama + nomic-embed-text (local)
+- **Storage:** MongoDB persistente
 
 ---
 
-_Este checklist se actualiza automáticamente cuando se completan items._
+## Recursos Útiles
+
+### MongoDB Atlas
+
+- [M0 Free Tier Limits](https://www.mongodb.com/docs/atlas/reference/free-shared-limitations/)
+- [Atlas Vector Search](https://www.mongodb.com/docs/atlas/atlas-vector-search/)
+- [Vector Search Documentation](https://www.mongodb.com/community/forums/t/is-vector-search-feature-paid-or-free/267191)
+
+### Ollama
+
+- [Ollama Download](https://ollama.com/download)
+- [nomic-embed-text model](https://ollama.com/library/nomic-embed-text)
+
+---
+
+_Este checklist se actualiza cuando se completan items._

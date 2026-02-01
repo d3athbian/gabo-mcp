@@ -4,6 +4,8 @@
 
 Este proyecto utiliza **esquemas Zod como fuente de verdad** para todas las definiciones de tipos. Los tipos TypeScript se generan automáticamente usando `z.infer<typeof Schema>`, garantizando que la validación en runtime y el tipado estático estén siempre sincronizados.
 
+**Stack Actual:** Node.js + TypeScript + MongoDB Atlas (M0 Free Tier) + Ollama (embeddings locales)
+
 ## Jerarquía de Tipos
 
 ### 1. `base.type.ts` - Tipos Base Genéricos (Sin Zod)
@@ -14,8 +16,7 @@ Tipos primitivos y patrones abstractos reutilizables. **No necesitan validación
 - **Patrones**: `BaseEntity`, `PaginationParams`, `FilterParams`
 - **Respuestas**: `ApiResponse<T>`, `SuccessResponse<T>`, `ErrorResponse`
 - **Logging**: `LogFn`, `LogErrorFn`, `LoggerInterface`
-- **Estructuras**: `ContentBlock`, `ResponseContent`, `DatabaseRow`
-- **Database**: `DatabaseRow`, `QueryError`
+- **Estructuras**: `ContentBlock`, `ResponseContent`
 
 ### 2. `schemas/index.schema.ts` - FUENTE DE VERDAD
 
@@ -29,18 +30,20 @@ Cada esquema Zod define:
 
 ```typescript
 // schemas/index.schema.ts
-export const StoredEntrySchema = z.object({
-  id: z.string(),
+export const KnowledgeEntrySchema = z.object({
+  id: z.string(), // MongoDB ObjectId como string
+  user_id: z.string(),
   type: z.string(),
   title: z.string(),
   content: z.string(),
+  embedding: z.array(z.number()).optional(), // Array de 768 floats
   tags: z.array(z.string()),
   source: z.string().optional(),
   created_at: z.string(),
 });
 
 // El tipo se genera automáticamente
-export type StoredEntry = z.infer<typeof StoredEntrySchema>;
+export type KnowledgeEntry = z.infer<typeof KnowledgeEntrySchema>;
 ```
 
 ### 3. `types.ts` y `index.type.ts` - Re-exportaciones
@@ -49,34 +52,148 @@ Estos archivos simplemente re-exportan los tipos generados:
 
 ```typescript
 // types.ts
-export type { StoredEntry, KnowledgeType, ... } from "./schemas/index.schema.js";
+export type { KnowledgeEntry, KnowledgeType, ... } from "./schemas/index.schema.js";
 ```
 
 ## Estructura de Archivos
 
 ```
 src/
-├── base.type.ts              ← Tipos primitivos y patrones genéricos (sin validación Zod)
+├── base.type.ts              ← Tipos primitivos y patrones genéricos
 ├── types.ts                  ← Re-exporta tipos desde schemas
 ├── index.type.ts             ← Re-exporta tipos específicos del servidor
 ├── index.ts                  ← Entry point del servidor MCP
 ├── schemas/                  ← FUENTE DE VERDAD (esquemas Zod)
 │   └── index.schema.ts       ← Todos los esquemas y tipos inferidos
+├── db/                       ← MongoDB Atlas Integration
+│   ├── client.ts             ← MongoDB client connection
+│   ├── queries.ts            ← Database operations
+│   └── vector-search.ts      ← Vector search utilities
 ├── utils/                    ← Funciones reutilizables
 │   ├── logger.ts             ← Logging estructurado
 │   ├── id.ts                 ← Generación de IDs únicos
 │   └── seed.ts               ← Datos de ejemplo
-├── config/
-│   ├── config.ts
-│   └── config.type.ts        ← Tipos de configuración (tipos puros)
-├── db/
-│   ├── client.ts
-│   ├── client.type.ts        ← Tipos de Supabase (tipos puros)
-│   ├── queries.ts
-│   └── queries.type.ts       ← Tipos de queries (tipos puros)
 └── embeddings/
-    ├── index.ts
-    └── index.type.ts         ← Tipos de embeddings (tipos puros)
+    └── index.ts              ← Ollama embeddings integration
+```
+
+## MongoDB Atlas Arquitectura
+
+### Esquema de Colecciones
+
+```javascript
+// knowledge_entries collection
+{
+  _id: ObjectId,
+  user_id: string,           // Clerk o Auth0 user ID
+  type: string,              // REACT_PATTERN | ARCH_DECISION | etc.
+  title: string,
+  content: string,
+  embedding: [768 floats],   // Vector de nomic-embed-text
+  tags: [string],
+  source: string,
+  visibility: "private" | "archived",
+  created_at: ISODate,
+  updated_at: ISODate
+}
+
+// knowledge_tags collection (normalizada)
+{
+  _id: ObjectId,
+  user_id: string,
+  tag: string,
+  count: number,             // Usos del tag
+  created_at: ISODate
+}
+
+// knowledge_audit_log collection
+{
+  _id: ObjectId,
+  user_id: string,
+  action: "INSERT" | "UPDATE" | "DELETE" | "SEARCH",
+  entry_id: ObjectId,
+  details: object,
+  created_at: ISODate
+}
+```
+
+### Índices Requeridos
+
+```javascript
+// Índices básicos
+db.knowledge_entries.createIndex({ user_id: 1 });
+db.knowledge_entries.createIndex({ type: 1 });
+db.knowledge_entries.createIndex({ created_at: -1 });
+db.knowledge_entries.createIndex({ tags: 1 });
+
+// Índice de texto para búsqueda por palabras
+db.knowledge_entries.createIndex({ title: "text", content: "text" });
+
+// Índice vectorial (Atlas Vector Search)
+// Configurado vía MongoDB Atlas UI
+```
+
+### Atlas Vector Search (M0 Free Tier)
+
+**Configuración del índice vectorial:**
+
+```json
+{
+  "fields": [
+    {
+      "type": "vector",
+      "path": "embedding",
+      "numDimensions": 768,
+      "similarity": "cosine"
+    }
+  ]
+}
+```
+
+**Consulta de ejemplo:**
+
+```javascript
+db.knowledge_entries.aggregate([{
+  $vectorSearch: {
+    index: "vector_index",
+    path: "embedding",
+    queryVector: [0.12, -0.34, ...], // 768 dims
+    numCandidates: 100,
+    limit: 10
+  }
+}])
+```
+
+## Seguridad (RLS Equivalente)
+
+MongoDB Atlas M0 no tiene Row Level Security (RLS) nativo. Implementamos seguridad a nivel de aplicación:
+
+### Patrón de Seguridad
+
+```typescript
+// Cada query DEBE filtrar por user_id
+const entries = await db.knowledge_entries
+  .find({ user_id: currentUserId }) // ← Siempre filtrar
+  .toArray();
+
+// Operaciones de escritura verifican ownership
+await db.knowledge_entries.updateOne(
+  { _id: entryId, user_id: currentUserId }, // ← Verificar ownership
+  { $set: updates },
+);
+```
+
+### Middleware de Autenticación
+
+```typescript
+// src/db/client.ts
+export async function withAuth<T>(
+  userId: string,
+  operation: () => Promise<T>,
+): Promise<T> {
+  if (!userId) throw new Error("Authentication required");
+  return operation();
+}
 ```
 
 ## Principios de Diseño
@@ -179,11 +296,11 @@ export type CreatePostInput = z.infer<typeof CreatePostInputSchema>;
 
 ## Utilidades (utils/)
 
-| Archivo     | Responsabilidad                                 |
-| ----------- | ----------------------------------------------- |
-| `logger.ts` | Logging estructurado con timestamps a stderr    |
-| `id.ts`     | Generación de IDs únicos para storage in-memory |
-| `seed.ts`   | Datos de ejemplo para desarrollo y demos        |
+| Archivo     | Responsabilidad                              |
+| ----------- | -------------------------------------------- |
+| `logger.ts` | Logging estructurado con timestamps a stderr |
+| `id.ts`     | Generación de IDs únicos para MongoDB        |
+| `seed.ts`   | Datos de ejemplo para desarrollo y demos     |
 
 ## Checklist de Calidad
 
@@ -194,11 +311,19 @@ export type CreatePostInput = z.infer<typeof CreatePostInputSchema>;
 - ✅ Cero uso de `interface`
 - ✅ TypeScript compila sin errores
 - ✅ La validación runtime coincide con los tipos
+- ✅ Cada query MongoDB filtra por `user_id`
+- ✅ Atlas Vector Search index configurado
 
-## Beneficios de Esta Arquitectura
+## Beneficios de MongoDB Atlas M0
 
-1. **Consistencia**: Un solo lugar para definir estructuras
-2. **Documentación**: Los esquemas documentan la forma de los datos
-3. **Validación**: Verificación automática en runtime
-4. **Tipado**: Type-safety garantizado
-5. **Mantenimiento**: Cambios centralizados
+1. **Vector Search nativo** - Búsqueda semántica real con `$vectorSearch`
+2. **Gratis para siempre** - 512 MB es suficiente para años de uso personal
+3. **Escalabilidad** - Upgrade a M10 cuando sea necesario ($56/mes)
+4. **Seguridad** - TLS/SSL, backups automáticos (con upgrade)
+5. **Developer Experience** - MongoDB Compass, Atlas UI, métricas
+
+## Referencias
+
+- [MongoDB Atlas M0 Limits](https://www.mongodb.com/docs/atlas/reference/free-shared-limitations/)
+- [Atlas Vector Search](https://www.mongodb.com/docs/atlas/atlas-vector-search/)
+- [Vector Search in M0 Free Tier](https://www.mongodb.com/community/forums/t/is-vector-search-feature-paid-or-free/267191)

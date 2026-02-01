@@ -40,6 +40,8 @@ export const KnowledgeEntrySchema = z.object({
   tags: z.array(z.string()),
   source: z.string().optional(),
   visibility: VisibilityTypeSchema.optional(),
+  // NOTE: En Supabase Free Tier se almacena como JSONB[]
+  // Upgrade a Pro para usar VECTOR(768) nativo de pgvector
   embedding: z.array(z.number()).optional(),
   created_at: z.string(),
   updated_at: z.string().optional(),
