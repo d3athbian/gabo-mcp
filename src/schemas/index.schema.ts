@@ -196,12 +196,13 @@ export type ToolResponseData = z.infer<typeof ToolResponseDataSchema>;
 export const ApiKeySchema = z.object({
   id: z.string(),
   key_hash: z.string(),
-  key_preview: z.string(), // últimos 5 caracteres para identificación
+  key_preview: z.string(),
   name: z.string(),
   created_at: z.string(),
   last_used: z.string().optional(),
   is_active: z.boolean(),
-  created_by: z.string(), // "bootstrap" o key_id que lo creó
+  created_by: z.string(),
+  is_global: z.boolean().optional(),
 });
 
 export type ApiKey = z.infer<typeof ApiKeySchema>;

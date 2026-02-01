@@ -18,6 +18,54 @@ export async function hasAnyApiKeys(): Promise<boolean> {
 }
 
 /**
+ * Get the global API key (first/only key)
+ * Used for cross-device recovery
+ */
+export async function getGlobalApiKey(): Promise<Omit<
+  ApiKey,
+  "key_hash"
+> | null> {
+  const collection = getApiKeysCollection();
+  const doc = await collection.findOne({ is_active: true });
+
+  if (!doc) return null;
+
+  return {
+    id: doc._id.toString(),
+    key_preview: doc.key_preview,
+    name: doc.name,
+    created_at: doc.created_at,
+    last_used: doc.last_used,
+    is_active: doc.is_active,
+    created_by: doc.created_by,
+  };
+}
+
+/**
+ * Get the raw API key document including hash
+ * For internal authentication use only
+ */
+export async function getApiKeyDocumentByHash(
+  keyHash: string,
+): Promise<ApiKey | null> {
+  const collection = getApiKeysCollection();
+  const doc = await collection.findOne({ key_hash: keyHash });
+
+  if (!doc) return null;
+
+  return {
+    id: doc._id.toString(),
+    key_hash: doc.key_hash,
+    key_preview: doc.key_preview,
+    name: doc.name,
+    created_at: doc.created_at,
+    last_used: doc.last_used,
+    is_active: doc.is_active,
+    created_by: doc.created_by,
+  };
+}
+
+/**
  * Create a new API key
  */
 export async function createApiKey(
@@ -37,6 +85,7 @@ export async function createApiKey(
     last_used: undefined,
     is_active: true,
     created_by: createdBy,
+    is_global: createdBy.startsWith("gabo_"),
   };
 
   const result = await collection.insertOne(doc);

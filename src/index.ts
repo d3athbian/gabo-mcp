@@ -166,14 +166,27 @@ async function main() {
     logger.info("");
 
     // Graceful shutdown
-    process.on("SIGINT", async () => {
-      logger.info("\n🛑 Shutting down...");
+    const shutdown = async (signal: string) => {
+      logger.info(`\n🛑 Received ${signal}, shutting down...`);
+      await closeDatabase();
+      logger.info("👋 Server stopped");
+      process.exit(0);
+    };
+
+    process.on("SIGINT", () => shutdown("SIGINT"));
+    process.on("SIGTERM", () => shutdown("SIGTERM"));
+    process.on("SIGQUIT", () => shutdown("SIGQUIT"));
+
+    // Handle parent process disconnect (when VS Code closes)
+    process.on("disconnect", async () => {
+      logger.info("\n👋 Parent process disconnected, shutting down...");
       await closeDatabase();
       process.exit(0);
     });
 
-    process.on("SIGTERM", async () => {
-      logger.info("\n🛑 Shutting down...");
+    // Handle stdin close
+    process.stdin.on("end", async () => {
+      logger.info("\n👋 Input stream closed, shutting down...");
       await closeDatabase();
       process.exit(0);
     });

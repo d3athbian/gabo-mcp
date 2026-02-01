@@ -26,6 +26,7 @@ export type MCPConfig = {
   port: number;
   timeout: number;
   maxContextLength: number;
+  apiKey: string | undefined;
 };
 
 export type FeaturesConfig = {

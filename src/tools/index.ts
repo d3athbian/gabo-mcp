@@ -14,6 +14,7 @@ import { createFirstApiKeyTool } from "./create-first-api-key.js";
 import { createApiKeyTool } from "./create-api-key.js";
 import { listApiKeysTool } from "./list-api-keys.js";
 import { revokeApiKeyTool } from "./revoke-api-key.js";
+import { healthCheckTool } from "./health-check.js";
 
 // Export all tool definitions
 export {
@@ -27,6 +28,7 @@ export {
   createApiKeyTool,
   listApiKeysTool,
   revokeApiKeyTool,
+  healthCheckTool,
 };
 
 // Export types
@@ -58,6 +60,8 @@ export function registerAllTools(server: McpServer, userId: string): void {
     getKnowledgeTool,
     semanticSearchTool,
     checkVectorSearchTool,
+    // Utility (no auth required)
+    healthCheckTool,
   ];
 
   for (const tool of tools) {

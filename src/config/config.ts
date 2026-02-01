@@ -43,6 +43,7 @@ export const config: Config = {
     port: parseInt(process.env.MCP_SERVER_PORT || "3000", 10),
     timeout: parseInt(process.env.MCP_REQUEST_TIMEOUT || "30000", 10),
     maxContextLength: parseInt(process.env.MAX_CONTEXT_LENGTH || "2048", 10),
+    apiKey: process.env.MCP_API_KEY,
   },
 
   features: {
