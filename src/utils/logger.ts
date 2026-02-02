@@ -28,7 +28,9 @@ export function createLogger(): Logger {
     process.stderr.write(`${formatMessage("❌", msg)} - ${errorMsg}\n`);
   };
 
-  return { info, warn, error };
+  const debug: LogFn = (_msg: string) => {};
+
+  return { info, warn, error, debug };
 }
 
 export const logger = createLogger();

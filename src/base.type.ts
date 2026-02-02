@@ -7,9 +7,9 @@
 // ENVIRONMENT & CONFIGURATION TYPES
 // ============================================================================
 
-export type NodeEnvironment = 'development' | 'production' | 'test';
+export type NodeEnvironment = "development" | "production" | "test";
 
-export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+export type LogLevel = "debug" | "info" | "warn" | "error";
 
 export type Nullable<T> = T | null | undefined;
 
@@ -45,7 +45,7 @@ export type KnowledgeAttributes = {
 
 export type KnowledgeWithMeta = KnowledgeAttributes & {
   user_id: EntityId;
-  visibility?: 'private' | 'archived';
+  visibility?: "private" | "archived";
   embedding?: number[];
   updated_at?: EntityTimestamp;
 };
@@ -93,7 +93,7 @@ export type ListResponse<T> = {
 // ============================================================================
 
 export type ContentBlock = {
-  type: 'text';
+  type: "text";
   text: string;
 };
 
@@ -111,6 +111,7 @@ export type LoggerInterface = {
   info: LogFn;
   warn: LogFn;
   error: LogErrorFn;
+  debug: LogFn;
 };
 
 // ============================================================================
