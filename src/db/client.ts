@@ -4,6 +4,9 @@
  * Uses M0 Free Tier with Vector Search
  */
 
+// Suppress dotenv output to prevent breaking MCP protocol on stdout
+process.env.DOTENV_CONFIG_QUIET = "true";
+
 import { config } from "dotenv";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";

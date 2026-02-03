@@ -4,6 +4,7 @@
  */
 
 import { config } from "../config/config.js";
+import { logger } from "../utils/logger.js";
 import type { EmbeddingResponse } from "../types.js";
 
 /**
@@ -24,7 +25,7 @@ export async function generateEmbedding(text: string): Promise<number[]> {
       throw new Error("OpenAI embeddings not yet implemented");
     }
   } catch (error) {
-    console.error("Failed to generate embedding:", error);
+    logger.error("Failed to generate embedding", error);
     // Graceful degradation: return empty array
     return [];
   }
@@ -81,6 +82,6 @@ export async function semanticSearch(
   _limit = 10,
 ): Promise<string[]> {
   // TODO: Implement semantic search with pgvector in Phase 4
-  console.log("Semantic search not yet implemented (Phase 4)");
+  logger.info("Semantic search not yet implemented (Phase 4)");
   return [];
 }

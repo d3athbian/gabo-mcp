@@ -5,6 +5,7 @@
  */
 
 import { getKnowledgeEntriesCollection } from "./client.js";
+import { logger } from "../utils/logger.js";
 import type { SearchResult } from "../types.ts";
 
 /**
@@ -66,7 +67,7 @@ export async function searchKnowledgeVector(
       embedding_score: doc.score,
     }));
   } catch (error) {
-    console.error("Vector search error:", error);
+    logger.error("Vector search error", error);
     throw new Error(
       `Vector search failed. Ensure Atlas Vector Search index is configured. Error: ${
         error instanceof Error ? error.message : String(error)

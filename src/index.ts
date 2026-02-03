@@ -13,9 +13,6 @@ import { registerAllTools } from "./tools/index.js";
 import { ensureApiKeyExists } from "./middleware/auth.js";
 
 process.title = "gabo-mcp-server";
-logger.info(
-  `🔖 Process started with title: ${process.title} (PID: ${process.pid})`,
-);
 
 const isInspector =
   process.env.MCP_INSPECTOR === "true" ||
@@ -31,6 +28,11 @@ const server = new McpServer({
 registerAllTools(server, DEV_USER_ID);
 
 async function main() {
+  // Log startup info (now inside main to ensure proper initialization order)
+  logger.info(
+    `🔖 Process started with title: ${process.title} (PID: ${process.pid})`,
+  );
+
   const logPath = "/tmp/gabo-mcp-traffic.log";
   const logFile = fs.createWriteStream(logPath, { flags: "w" });
 
