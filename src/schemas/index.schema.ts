@@ -23,6 +23,7 @@ export const KnowledgeTypeSchema = z.enum([
   "DESIGN_DECISION",
   "TECHNICAL_INSIGHT",
   "REACT_PATTERN",
+  "PITFALL",
 ]);
 
 export type KnowledgeType = z.infer<typeof KnowledgeTypeSchema>;
@@ -160,6 +161,13 @@ export const SuggestPatternsSchema = z.object({
 }).merge(AuthenticatedToolSchema);
 
 export type SuggestPatternsArgs = z.infer<typeof SuggestPatternsSchema>;
+
+export const GetPitfallsSchema = z.object({
+  query: z.string().min(1, "Query is required"),
+  context: z.string().optional(),
+}).merge(AuthenticatedToolSchema);
+
+export type GetPitfallsArgs = z.infer<typeof GetPitfallsSchema>;
 
 // ============================================================================
 // MCP RESPONSE SCHEMAS

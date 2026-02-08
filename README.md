@@ -11,8 +11,9 @@ Es el puente entre tus pensamientos técnicos y tus herramientas de IA. En lugar
 - 📝 **Captura**: Guarda razonamientos, decisiones y snippets refinados en el momento.
 - 🔍 **Recupera**: Encuentra información por palabras clave o por **significado semántico**.
 - 🔐 **Controla**: Tú decides qué se guarda y quién accede mediante una clave secreta.
-- ☁️ **Persistente**: Datos guardados de forma segura en MongoDB Atlas.
 - 🔄 **Aprendizaje Automático**: Ayuda a los agentes a destilar lecciones y patrones automáticamente tras cada tarea.
+- ⚠️ **Prevención de Errores**: Sistema de "Checklist Preventivos" basado en errores pasados para evitar regresiones.
+- 🔄 **Bucle de Feedback Negativo**: Detección automática de fallos y proyecciones para atajar errores antes de que se repitan.
 
 ---
 
@@ -21,10 +22,10 @@ Es el puente entre tus pensamientos técnicos y tus herramientas de IA. En lugar
 Aquí tienes cómo puedes interactuar con el servidor a través de prompts en tu entorno favorito:
 
 ### 1. Guardar Conocimiento (`store_knowledge`)
-Guarda fragmentos de código, decisiones de diseño o prompts que funcionan bien.
+Guarda fragmentos de código, decisiones de diseño o prompts que funcionan bien. También puedes guardar **Errores/Peligros**.
 
 **Ejemplo de Prompt:**
-> "Gabo, guarda este patrón de React como `REACT_PATTERN`. Título: 'Uso de Composition sobre Inheritance'. Contenido: 'Explicación del patrón...' con etiquetas `react, clean-code`."
+> "Gabo, guarda esto como un `PITFALL`. Título: 'Error al cerrar conexiones de Mongo'. Contenido: 'Asegúrate de llamar a `client.close()` en el block `finally`...'."
 
 ### 2. Buscar por Texto (`search_knowledge`)
 Búsqueda tradicional por palabras clave en tus títulos y descripciones.
@@ -57,11 +58,17 @@ Analiza la tarea actual para sugerir categorías o detectar si algo similar ya e
 **Ejemplo de Prompt:**
 > "Analiza estos cambios y dime si encajan con algún patrón que ya tengamos en mi base de conocimientos."
 
+### 7. Prevenir Errores (`get_pitfalls`)
+Genera un checklist preventivo basado en errores pasados para no repetirlos.
+
+**Ejemplo de Prompt:**
+> "Antes de empezar esta refactorización, dime si hay algún `PITFALL` conocido que deba evitar."
+
 ---
 
 ## 🏗️ Categorías de Conocimiento
 
-El sistema organiza tu cerebro digital en estos 8 tipos:
+El sistema organiza tu cerebro digital en estos 9 tipos:
 
 | Tipo | Propósito |
 | :--- | :--- |
@@ -73,6 +80,7 @@ El sistema organiza tu cerebro digital en estos 8 tipos:
 | `DESIGN_DECISION` | Principios y estándares de diseño. |
 | `TECHNICAL_INSIGHT` | Descubrimientos técnicos o "Aha!" moments. |
 | `REACT_PATTERN` | Patrones específicos del ecosistema React. |
+| `PITFALL` | **"Qué NO hacer"**: Errores conocidos y checklists preventivos. |
 
 ---
 
