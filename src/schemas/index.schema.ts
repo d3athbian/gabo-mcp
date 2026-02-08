@@ -15,15 +15,17 @@ import {
 // ============================================================================
 
 export const KnowledgeTypeSchema = z.enum([
-  "UI_REASONING",
+  "UI_UX",
   "ARCH_DECISION",
   "PROMPT",
   "ERROR_CORRECTION",
   "CODE_SNIPPET",
   "DESIGN_DECISION",
   "TECHNICAL_INSIGHT",
-  "REACT_PATTERN",
+  "PATTERN",
   "PITFALL",
+  "INFRASTRUCTURE",
+  "TESTING",
 ]);
 
 export type KnowledgeType = z.infer<typeof KnowledgeTypeSchema>;
