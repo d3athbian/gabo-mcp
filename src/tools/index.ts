@@ -9,6 +9,7 @@ import { searchKnowledgeTool } from "./search-knowledge/index.js";
 import { listKnowledgeTool } from "./list-knowledge/index.js";
 import { getKnowledgeTool } from "./get-knowledge/index.js";
 import { semanticSearchTool } from "./semantic-search/index.js";
+import { suggestPatternsTool } from "./suggest-patterns/index.js";
 
 import { withAuth } from "../middleware/auth/index.js";
 import { withErrorHandler } from "../utils/tool-handler/index.js";
@@ -19,6 +20,7 @@ export {
   listKnowledgeTool,
   getKnowledgeTool,
   semanticSearchTool,
+  suggestPatternsTool,
 };
 
 export type {
@@ -34,6 +36,7 @@ export function registerAllTools(server: McpServer): void {
     listKnowledgeTool,
     getKnowledgeTool,
     semanticSearchTool,
+    suggestPatternsTool,
   ];
 
   for (const tool of tools) {

@@ -12,6 +12,7 @@ Es el puente entre tus pensamientos técnicos y tus herramientas de IA. En lugar
 - 🔍 **Recupera**: Encuentra información por palabras clave o por **significado semántico**.
 - 🔐 **Controla**: Tú decides qué se guarda y quién accede mediante una clave secreta.
 - ☁️ **Persistente**: Datos guardados de forma segura en MongoDB Atlas.
+- 🔄 **Aprendizaje Automático**: Ayuda a los agentes a destilar lecciones y patrones automáticamente tras cada tarea.
 
 ---
 
@@ -49,6 +50,12 @@ Recupera el contenido completo de una entrada específica.
 
 **Ejemplo de Prompt:**
 > "Dame el detalle completo de la entrada con ID `65c2f...` para revisar el código que guardé ayer."
+
+### 6. Sugerir Patrones (`suggest_patterns`)
+Analiza la tarea actual para sugerir categorías o detectar si algo similar ya existe.
+
+**Ejemplo de Prompt:**
+> "Analiza estos cambios y dime si encajan con algún patrón que ya tengamos en mi base de conocimientos."
 
 ---
 

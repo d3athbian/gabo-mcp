@@ -10,7 +10,7 @@ export const storeKnowledgeTool: ToolDefinition<StoreKnowledgeArgs> = {
     description: "Store knowledge.",
     inputSchema: StoreKnowledgeSchema,
     handler: async (args) => {
-        const { type, title, content, tags, source, embedding } = args;
+        const { type, title, content, tags, source, embedding, metadata } = args;
 
         const entry = await storeKnowledge({
             type,
@@ -19,6 +19,7 @@ export const storeKnowledgeTool: ToolDefinition<StoreKnowledgeArgs> = {
             tags: tags || [],
             source,
             embedding,
+            metadata,
         });
 
         return successResponse({

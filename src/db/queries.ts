@@ -29,7 +29,15 @@ function toObjectId(id: string): ObjectId {
 export async function storeKnowledge(
   input: CreateKnowledgeInput & { embedding?: number[] },
 ): Promise<KnowledgeEntry> {
-  const { type, title, content, tags = [], source, embedding } = input;
+  const {
+    type,
+    title,
+    content,
+    tags = [],
+    source,
+    embedding,
+    metadata,
+  } = input;
 
   const collection = getKnowledgeEntriesCollection();
 
@@ -40,6 +48,7 @@ export async function storeKnowledge(
     content: content.trim(),
     tags,
     source,
+    metadata,
     visibility: "private" as const,
     embedding: embedding || [],
     created_at: now,
@@ -55,6 +64,7 @@ export async function storeKnowledge(
     content: content.trim(),
     tags,
     source,
+    metadata,
     visibility: "private",
     embedding: embedding || [],
     created_at: now,

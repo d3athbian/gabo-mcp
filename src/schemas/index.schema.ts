@@ -41,6 +41,7 @@ export const BaseKnowledgeSchema = z.object({
   content: z.string().min(1, "Content is required"),
   tags: z.array(z.string()).default([]),
   source: z.string().optional(),
+  metadata: z.record(z.any()).optional(),
 });
 
 // ============================================================================
@@ -152,6 +153,13 @@ export const SemanticSearchSchema = z.object({
 }).merge(AuthenticatedToolSchema);
 
 export type SemanticSearchArgs = z.infer<typeof SemanticSearchSchema>;
+
+export const SuggestPatternsSchema = z.object({
+  query: z.string().min(1, "Query is required"),
+  context: z.string().optional(),
+}).merge(AuthenticatedToolSchema);
+
+export type SuggestPatternsArgs = z.infer<typeof SuggestPatternsSchema>;
 
 // ============================================================================
 // MCP RESPONSE SCHEMAS
