@@ -1,393 +1,90 @@
-# Personal Knowledge MCP Server
+# Gabo MCP (MongoDB Atlas Edition) 🚀
 
-A personal MCP (Model Context Protocol) server that captures, structures, and reuses technical knowledge across any AI tool or model.
-
-> **Status:** Phase 0 (Foundations) - January 2026
+Tu memoria personal de inteligencia artificial. **Gabo MCP** es un servidor de Model Context Protocol diseñado para capturar, estructurar y reutilizar conocimiento técnico de forma persistente.
 
 ---
 
-## What is it?
+## 🧠 ¿Qué es Gabo MCP?
 
-Your personal AI memory. Instead of starting from scratch with each tool, this server:
+Es el puente entre tus pensamientos técnicos y tus herramientas de IA. En lugar de explicar tus patrones de diseño o decisiones de arquitectura una y otra vez, Gabo MCP permite que tus agentes (como Cursor, Claude o Continue) **recuerden** cómo trabajas.
 
-- 📝 **Captures** your technical reasoning, decisions, patterns, and refined prompts
-- 🔍 **Organizes** knowledge by type (architecture, code snippets, React patterns, etc.)
-- 🧠 **Remembers** your approach so agents behave more like you over time
-- 🚀 **Works everywhere** - Continue.dev, IDEs, agents, any MCP-compatible tool
-
-### Key Features
-
-- ✅ **Human-in-the-loop** - Nothing happens without explicit intention
-- ✅ **Semantic search** - Find knowledge by meaning, not just keywords
-- ✅ **Portable** - Export anytime, no vendor lock-in
-- ✅ **Secure** - Application-level security, encrypted at rest
-- ✅ **Local embeddings** - Privacy-first, runs on your Mac
-- ✅ **Flexible embeddings** - Start with Ollama, switch to OpenAI later
+- 📝 **Captura**: Guarda razonamientos, decisiones y snippets refinados en el momento.
+- 🔍 **Recupera**: Encuentra información por palabras clave o por **significado semántico**.
+- 🔐 **Controla**: Tú decides qué se guarda y quién accede mediante una clave secreta.
+- ☁️ **Persistente**: Datos guardados de forma segura en MongoDB Atlas.
 
 ---
 
-## Stack
+## 🛠️ Herramientas y Ejemplos de Uso
 
-| Layer          | Technology                     | Why                             |
-| -------------- | ------------------------------ | ------------------------------- |
-| **Backend**    | Node.js 20 + TypeScript        | Type safety, MCP SDK support    |
-| **Database**   | MongoDB Atlas (M0 Free Tier) | Vector Search, scalable, hosted |
-| **Embeddings** | Ollama + nomic-embed-text      | Local, fast (50-100ms), private |
-| **Auth**       | Application-level (user_id filtering)                  | Simple, effective for personal use          |
-| **Deploy**     | Vercel                         | Serverless, Git native          |
-| **Testing**    | Vitest                         | Fast, TypeScript native         |
+Aquí tienes cómo puedes interactuar con el servidor a través de prompts en tu entorno favorito:
 
----
+### 1. Guardar Conocimiento (`store_knowledge`)
+Guarda fragmentos de código, decisiones de diseño o prompts que funcionan bien.
 
-## Project Structure
+**Ejemplo de Prompt:**
+> "Gabo, guarda este patrón de React como `REACT_PATTERN`. Título: 'Uso de Composition sobre Inheritance'. Contenido: 'Explicación del patrón...' con etiquetas `react, clean-code`."
 
-```
-gabo-mcp/
-├── docs/
-│   └── plan/
-│       ├── manifesto.md          # Project vision
-│       ├── knowledge-guidelines.md # What knowledge means
-│       ├── privacy-policy.md      # Security & data governance
-│       └── project-plan.md        # 7-phase detailed plan
-├── src/
-│   ├── index.ts                  # MCP server entry point
-│   ├── config.ts                 # Configuration from env
-│   ├── types.ts                  # TypeScript interfaces
-│   ├── handlers/
-│   │   ├── tools.ts              # MCP tool implementations
-│   │   └── resources.ts          # MCP resources (future)
-│   ├── db/
-│   │   ├── client.ts             # MongoDB Atlas client
-│   │   └── queries.ts            # Database functions
-│   ├── embeddings/
-│   │   └── index.ts              # Embedding pipeline
-│   └── tests/
-│       ├── setup.ts              # Test configuration
-│       └── *.test.ts             # Test files
-├── .github/workflows/
-│   └── ci.yml                    # GitHub Actions CI/CD
-├── .env.example                  # Environment template
-├── tsconfig.json                 # TypeScript config
-├── vitest.config.ts              # Vitest config
-├── package.json                  # Dependencies
-└── README.md                     # This file
-```
+### 2. Buscar por Texto (`search_knowledge`)
+Búsqueda tradicional por palabras clave en tus títulos y descripciones.
+
+**Ejemplo de Prompt:**
+> "Busca en mi base de conocimientos cualquier cosa relacionada con 'autenticación JWT' en la categoría `CODE_SNIPPET`."
+
+### 3. Búsqueda Semántica (`semantic_search`)
+Encuentra conceptos similares aunque no compartan exactamente las mismas palabras.
+*Nota: Esta herramienta suele ser invocada automáticamente por agentes inteligentes cuando necesitan contexto profundo.*
+
+**Ejemplo de Prompt:**
+> "Encuentra soluciones que he usado antes para problemas de concurrencia en bases de datos."
+
+### 4. Listar Entradas (`list_knowledge`)
+Revisa qué tienes guardado en tu base de datos.
+
+**Ejemplo de Prompt:**
+> "Muéstrame las últimas 5 entradas de conocimiento que he guardado."
+
+### 5. Obtener Detalle (`get_knowledge`)
+Recupera el contenido completo de una entrada específica.
+
+**Ejemplo de Prompt:**
+> "Dame el detalle completo de la entrada con ID `65c2f...` para revisar el código que guardé ayer."
 
 ---
 
-## Quick Start
+## 🏗️ Categorías de Conocimiento
 
-### Prerequisites
+El sistema organiza tu cerebro digital en estos 8 tipos:
 
-- Node.js 20+
-- Ollama installed (`brew install ollama`)
-- A MongoDB Atlas account (M0 Free Tier)
-
-### 1. Clone & Install
-
-```bash
-git clone https://github.com/gabo/gabo-mcp.git
-cd gabo-mcp
-npm install
-```
-
-### 2. Setup Environment
-
-```bash
-cp .env.example .env
-```
-
-Then edit `.env` with your values:
-
-```env
-NODE_ENV=development
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/knowledge_mcp?retryWrites=true&w=majority
-SUPABASE_ANON_KEY=your-anon-key
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-OLLAMA_API_URL=http://localhost:11434
-EMBED_MODEL=nomic-embed-text
-```
-
-### 3. Start Ollama
-
-```bash
-# Install model (one-time)
-ollama pull nomic-embed-text
-
-# Start Ollama service
-ollama serve
-```
-
-In another terminal:
-
-### 4. Build & Test
-
-```bash
-# Type checking
-npm run type-check
-
-# Linting
-npm run lint
-
-# Unit tests
-npm run test
-
-# Development mode (watches for changes)
-npm run dev
-
-# Production build
-npm run build
-
-# Start production server
-npm start
-```
+| Tipo | Propósito |
+| :--- | :--- |
+| `UI_REASONING` | Decisiones de interfaz y experiencia de usuario. |
+| `ARCH_DECISION` | Decisiones de arquitectura y sus trade-offs. |
+| `PROMPT` | Prompts refinados que dan resultados excelentes. |
+| `ERROR_CORRECTION` | Lecciones aprendidas tras corregir bugs complejos. |
+| `CODE_SNIPPET` | Patrones de código reutilizables y limpios. |
+| `DESIGN_DECISION` | Principios y estándares de diseño. |
+| `TECHNICAL_INSIGHT` | Descubrimientos técnicos o "Aha!" moments. |
+| `REACT_PATTERN` | Patrones específicos del ecosistema React. |
 
 ---
 
-## Knowledge Types
+## ⚙️ Configuración Rápida
 
-The system supports 8 capture types:
-
-| Type                | Purpose                           | Example                                      |
-| ------------------- | --------------------------------- | -------------------------------------------- |
-| `UI_REASONING`      | Why you make UI/UX decisions      | "Always use semantic HTML for accessibility" |
-| `ARCH_DECISION`     | Architecture choices & trade-offs | "Microservices vs monolith analysis"         |
-| `PROMPT`            | Refined prompts that work         | "Effective prompts for code generation"      |
-| `ERROR_CORRECTION`  | Bug fixes & lessons learned       | "How to debug React state issues"            |
-| `CODE_SNIPPET`      | Reusable code patterns            | "useCallback hook pattern"                   |
-| `DESIGN_DECISION`   | Design principles                 | "Design system color standards"              |
-| `TECHNICAL_INSIGHT` | Technical discoveries             | "TypeScript discriminated unions"            |
-| `REACT_PATTERN`     | React-specific patterns           | "Custom hooks for data fetching"             |
+1.  **Requisitos**: Node.js 20+ y una instancia de MongoDB Atlas.
+2.  **Instalación**: `npm install && npm run build`.
+3.  **Variables de Entorno**: Configura tu `MONGODB_URI` en el archivo `.env`.
+4.  **Autenticación**: En el primer arranque, el servidor generará una **Master Key**. Cópiala y añádela a la configuración de tu cliente MCP (ej. `MCP_API_KEY=gabo_...`).
 
 ---
 
-## Saving Knowledge (Planned - Phase 5)
+## 📖 Documentación Adicional
 
-Via CLI (when Phase 5 is ready):
-
-```bash
-npm run capture REACT_PATTERN \
-  "useCallback with proper dependencies" \
-  "Full explanation..." \
-  --tags react,hooks,performance
-```
-
-Via Continue.dev (when Phase 6 is ready):
-
-```
-/save_knowledge REACT_PATTERN "title" "content" --tags react
-```
+- [Arquitectura Técnica](docs/ARCHITECTURE.md): Detalles sobre Zod SSOT, Middlewares y el diseño del sistema.
+- [Guía de Instalación](docs/SETUP_GUIDE.md): 3 formas de correr y probar el servidor.
+- [Vector Search](docs/VECTOR_SEARCH_SETUP.md): Cómo configurar los índices en MongoDB Atlas.
+- [Autenticación](docs/API_KEY_AUTH.md): Detalles sobre el sistema de seguridad basado en llaves.
 
 ---
 
-## Searching Knowledge (Planned - Phase 4+)
-
-Via CLI:
-
-```bash
-npm run search "react hooks" --type REACT_PATTERN
-```
-
-Via Continue.dev:
-
-```
-/search "react state management"
-```
-
-The system will use:
-
-- **Phase 3:** Keyword search (title + content)
-- **Phase 4:** Semantic search (vector similarity)
-- **Phase 5+:** Hybrid search combining both
-
----
-
-## Development Workflow
-
-### File Structure
-
-- **`docs/`** - Project planning and governance
-- **`src/`** - TypeScript source code
-- **`.github/workflows/`** - CI/CD pipelines
-- **`.env*`** - Environment variables (`.env.example` is tracked, `.env` is not)
-
-### Running Locally
-
-```bash
-# Terminal 1: Ollama (if not running)
-ollama serve
-
-# Terminal 2: Development server
-npm run dev
-
-# Terminal 3: Testing (optional)
-npm run test:watch
-```
-
-### Before Committing
-
-```bash
-npm run type-check
-npm run lint
-npm run test
-npm run build
-```
-
-The CI/CD pipeline will verify all of these automatically.
-
----
-
-## Project Phases
-
-| Phase                    | Status         | Duration | Focus                        |
-| ------------------------ | -------------- | -------- | ---------------------------- |
-| 0. **Foundations**       | ✅ In Progress | Week 1   | Governance, docs, setup      |
-| 1. **Supabase**          | ⏳ Planned     | Week 2   | Cluster setup, Vector Search        |
-| 2. **Schema**            | ⏳ Planned     | Week 3   | Tables, RLS, indexes         |
-| 3. **MCP Core**          | ⏳ Planned     | Week 4   | Store/search (no embeddings) |
-| 4. **Vector Search**     | ⏳ Planned     | Week 5   | Embeddings, semantic search  |
-| 5. **Human Interaction** | ⏳ Planned     | Week 6   | CLI capture, preview mode    |
-| 6. **IDE Integration**   | ⏳ Planned     | Week 7   | Continue.dev, IDE plugins    |
-| 7. **Agent Evolution**   | ⏳ Planned     | Week 8+  | Dynamic prompts, versioning  |
-
-See [docs/plan/project-plan.md](docs/plan/project-plan.md) for detailed phase breakdown.
-
----
-
-## Security & Privacy
-
-### What's Stored (✅ Allowed)
-
-- Technical reasoning and decisions
-- Code snippets and patterns
-- Refined prompts
-- UI/UX principles
-- Bug fixes and lessons learned
-
-### What's NOT Stored (❌ Prohibited)
-
-- Client names, company identifiers
-- Private code or credentials
-- API keys, tokens, secrets
-- Personal data of others (PII)
-- Financial or commercial data
-
-### Security Measures
-
-- **Row Level Security (RLS)** - Only you see your data
-- **Encryption at rest** - All data encrypted in Postgres
-- **No auto-save** - Explicit commands only
-- **Audit logs** - Track all access
-- **Service isolation** - MCP server has limited permissions
-
-See [docs/plan/privacy-policy.md](docs/plan/privacy-policy.md) for full policy.
-
----
-
-## Environment Variables
-
-All variables are defined in `.env.example`. Key ones:
-
-```env
-# Database
-MONGODB_URI=mongodb+srv://xxxxx.mongodb.net
-SUPABASE_ANON_KEY=xxxx
-SUPABASE_SERVICE_ROLE_KEY=xxxx
-
-# Embeddings
-EMBED_MODEL=nomic-embed-text              # Model name
-OLLAMA_API_URL=http://localhost:11434     # Ollama endpoint
-EMBED_BATCH_SIZE=32                       # Docs per batch
-EMBED_CACHE_ENABLED=true                  # Cache embeddings
-
-# MCP Server
-MCP_SERVER_PORT=3000
-MCP_REQUEST_TIMEOUT=30000
-
-# Features
-ENABLE_EMBEDDINGS=true
-ENABLE_CACHE=true
-ENABLE_AUDIT_LOG=true
-
-# Debugging
-DEBUG=false
-LOG_LEVEL=info
-```
-
----
-
-## Troubleshooting
-
-### "Cannot find module '@supabase/supabase-js'"
-
-```bash
-npm install
-```
-
-### "Ollama connection failed"
-
-Make sure Ollama is running:
-
-```bash
-ollama serve
-```
-
-And the `OLLAMA_API_URL` in `.env` matches (default: `http://localhost:11434`)
-
-### "TypeScript compilation errors"
-
-```bash
-npm run type-check
-```
-
-### "Tests failing"
-
-```bash
-npm run test -- --reporter=verbose
-```
-
----
-
-## Contributing
-
-This is a personal project, but the code is public. Feel free to:
-
-- 🐛 Report issues
-- 💡 Suggest improvements
-- 📖 Improve documentation
-- 🔍 Review code
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) (future).
-
----
-
-## License
-
-MIT License - See [LICENSE](LICENSE)
-
----
-
-## Roadmap
-
-- [x] Phase 0: Documentation & setup
-- [ ] Phase 1: MongoDB Atlas infrastructure
-- [ ] Phase 2: Database schema design
-- [ ] Phase 3: MCP server core (store/search without embeddings)
-- [ ] Phase 4: Vector embeddings & semantic search
-- [ ] Phase 5: Manual knowledge capture (CLI/UI)
-- [ ] Phase 6: IDE integration (Continue.dev)
-- [ ] Phase 7: Agent evolution (dynamic prompts, versioning)
-- [ ] Phase 8+: Multi-user, sharing, advanced features
-
----
-
-## Contact
-
-**Project Lead:** @gabo  
-**Repository:** [github.com/gabo/gabo-mcp](https://github.com/gabo/gabo-mcp)  
-**Status:** Active development (Phase 0)
-
----
-
-**Last Updated:** January 29, 2026  
-**Next Phase:** February 5, 2026
+**Desarrollado por @gabo** | Inspirado en el Advanced Agentic Coding de DeepMind.
