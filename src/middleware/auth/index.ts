@@ -39,8 +39,6 @@ export async function validateApiKey(apiKey: string): Promise<AuthResult> {
         return { success: false, error: "API key has been revoked" };
     }
 
-    logger.info(`API key validated: ${keyDoc.id}`);
-
     return {
         success: true,
         keyId: keyDoc.id,

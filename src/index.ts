@@ -28,29 +28,16 @@ const server = new McpServer({
 registerAllTools(server);
 
 async function main() {
-  // Log startup info (now inside main to ensure proper initialization order)
-  logger.info(
-    `🔖 Process started with title: ${process.title} (PID: ${process.pid})`,
-  );
-
   const logPath = "/tmp/gabo-mcp-traffic.log";
   const logFile = fs.createWriteStream(logPath, { flags: "w" });
 
-  logger.info(`📝 MCP Traffic Logs: ${logPath}`);
-
   try {
-    logger.info("🔗 Connecting to MongoDB Atlas...");
     await connectToDatabase();
-    logger.info("✅ MongoDB connection established");
 
     const newKey = await ensureApiKeyExists();
     if (newKey) {
-      logger.info("");
-      logger.info("🔑 FIRST TIME SETUP - API KEY GENERATED");
-      logger.info("   Key: " + newKey);
-      logger.info("   Add to your Continue.dev config:");
-      logger.info(`   MCP_API_KEY=${newKey}`);
-      logger.info("");
+      logger.info(`🔑 First-time API key generated: ${newKey}`);
+      logger.warn("⚠️  Add this key to your MCP config (e.g. Continue.dev or Cursor)");
     }
   } catch (error) {
     logger.error("❌ Failed to connect to MongoDB", error);
@@ -70,7 +57,7 @@ async function main() {
   ): boolean {
     try {
       trace(
-        "📤 OUT (Server -> Client)",
+        "📤 OUT",
         typeof chunk === "string" ? chunk : chunk.toString(),
       );
     } catch (e) { }
@@ -95,78 +82,23 @@ async function main() {
 
   process.stdin.on("data", (chunk) => {
     try {
-      trace("📥 IN (Client -> Server)", chunk.toString());
+      trace("📥 IN", chunk.toString());
     } catch (e) { }
   });
 
-  logger.info("");
-  logger.info("═".repeat(60));
-  logger.info("🚀 Knowledge MCP Server (MongoDB Atlas Edition)");
-  logger.info("═".repeat(60));
-  logger.info("");
-  logger.info("Server Configuration:");
-  logger.info("  • Name: gabo-mcp-local");
-  logger.info("  • Version: 0.1.0");
-  logger.info("  • Transport: stdio (no HTTP port)");
-  logger.info("  • Database: MongoDB Atlas M0 (Free Tier)");
-  logger.info("  • Vector Search: ✅ Enabled (via Atlas)");
-  logger.info("");
-  logger.info("Available Tools:");
-  logger.info("    • API key is auto-generated on first run or check MongoDB");
-  logger.info("    • Use the key in your client (Continue.dev, Cursor, etc.)");
-  logger.info("");
-  logger.info("  📚 Knowledge Management:");
-  logger.info("    1. store_knowledge - Store a new knowledge entry");
-  logger.info("    2. search_knowledge - Search knowledge entries (text)");
-  logger.info("    3. semantic_search - Vector search (provide vector)");
-  logger.info("    4. list_knowledge - List all knowledge entries");
-  logger.info("    5. get_knowledge - Get a specific knowledge entry");
-  logger.info("");
-  logger.info(`📝 MCP Traffic Logs: ${logPath}`);
-  logger.info("");
-
   try {
     const transport = new StdioServerTransport();
-    logger.info("🔗 Connecting via stdio...");
-
     await server.connect(transport);
-
-    logger.info("✅ Server connected and ready!");
-    logger.info("");
+    logger.info("🚀 Gabo MCP Server connected and ready! (Transport: stdio)");
 
     if (isInspector) {
-      logger.info("🌐 MCP Inspector Interface:");
-      logger.info("  ► Web UI Port: 5173");
-      logger.info("  ► URL: http://localhost:5173");
-      logger.info("  ► Server Transport: stdio (embedded)");
-      logger.info("");
+      logger.info("🌐 MCP Inspector ready at http://localhost:5173");
     }
-
-    logger.info("📖 How to Use:");
-    logger.info("");
-    logger.info("  Option 1: Web UI (Recommended)");
-    logger.info("    $ npm run dev:inspector");
-    logger.info("    → Open http://localhost:5173");
-    logger.info("");
-    logger.info("  Option 2: VS Code MCP Debugger");
-    logger.info('    • Install extension: "MCP Debugger"');
-    logger.info("    • Config: ~/.mcp/servers.json");
-    logger.info("    • Server runs on: stdio");
-    logger.info("");
-    logger.info("  Option 3: Continue.dev");
-    logger.info("    • Config: ~/.continue/config.yml");
-    logger.info("    • Server runs on: stdio");
-    logger.info("");
-    logger.info("═".repeat(60));
-    logger.info("Waiting for MCP protocol messages...");
-    logger.info("═".repeat(60));
-    logger.info("");
 
     // Graceful shutdown
     const shutdown = async (signal: string) => {
       logger.info(`\n🛑 Received ${signal}, shutting down...`);
       await closeDatabase();
-      logger.info("👋 Server stopped");
       process.exit(0);
     };
 

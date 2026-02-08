@@ -1,4 +1,3 @@
-import { logger } from "../../utils/logger/index.js";
 import { successResponse } from "../../utils/tool-handler/index.js";
 import { storeKnowledge } from "../../db/queries.js";
 import { StoreKnowledgeSchema } from "../../schemas/index.schema.js";
@@ -21,8 +20,6 @@ export const storeKnowledgeTool: ToolDefinition<StoreKnowledgeArgs> = {
             source,
             embedding,
         });
-
-        logger.info(`✅ Stored: ${title} (${entry.id})`);
 
         return successResponse({
             id: entry.id,
