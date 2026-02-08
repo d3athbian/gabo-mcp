@@ -58,3 +58,12 @@ Utilizamos un sistema de registro centralizado que envuelve cada herramienta en 
 
 - **`logger`**: Sistema de logs asíncrono que escribe exclusivamente en archivos (`/tmp/gabo-mcp.log`) para no interferir con el protocolo STDIO del MCP.
 - **Traffic Log**: Registro detallado de la entrada y salida de mensajes del protocolo en `/tmp/gabo-mcp-traffic.log`.
+- **Rotación Automática**: Los logs se rotan cuando superan 5MB, manteniendo una copia `.old` como respaldo.
+- **Limpieza Automática**: En cada inicio del servidor, se eliminan logs con más de 3 días de antigüedad para evitar acumulación de espacio.
+
+## 🔄 Deduplicación Semántica
+
+El servidor implementa un sistema de prevención de duplicados basado en similitud vectorial:
+- Antes de insertar una nueva entrada, se ejecuta una búsqueda vectorial para detectar contenido similar.
+- Si se encuentra una entrada con > 92% de similitud semántica, se rechaza la inserción con un error `KNOWLEDGE_DUPLICATE`.
+- Este sistema funciona **cross-language**: detecta duplicados aunque estén en diferentes idiomas (español, inglés, etc.).

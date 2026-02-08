@@ -86,6 +86,27 @@ El sistema organiza tu cerebro digital en estos tipos universales:
 
 ---
 
+## 🔒 Características de Seguridad y Mantenimiento
+
+### Deduplicación Semántica Automática
+El servidor incluye un sistema de **deduplicación inteligente** que previene guardar conocimiento redundante:
+- Antes de guardar una nueva entrada, el sistema verifica si ya existe contenido similar (> 92% de similitud semántica).
+- Funciona **independientemente del idioma**: detecta duplicados aunque estén en español, inglés u otros idiomas.
+- Si se detecta un duplicado, el sistema devuelve un error `KNOWLEDGE_DUPLICATE` con el ID y título de la entrada existente.
+
+### Gestión Automática de Logs
+Para evitar que los logs consuman espacio en disco:
+- **Rotación Automática**: Los archivos de log se rotan cuando superan los 5MB.
+- **Limpieza Automática**: Al iniciar el servidor, se eliminan automáticamente logs con más de 3 días de antigüedad.
+- **Ubicación**: Los logs se guardan en `/tmp/gabo-mcp.log` y `/tmp/gabo-mcp-traffic.log`.
+
+### Campo `source` Optimizado
+El campo `source` está diseñado para patrones y contextos reutilizables:
+- ✅ **Recomendado**: `"auth_flow_optimization"`, `"db_migration_pattern"`
+- ❌ **Evitar**: Rutas de archivos locales específicas (a menos que sea crítico)
+
+---
+
 ## ⚙️ Configuración Rápida
 
 1.  **Requisitos**: Node.js 20+ y una instancia de MongoDB Atlas.
