@@ -6,7 +6,6 @@
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import * as fs from "fs";
 import { logger } from "./utils/logger/index.js";
 import { connectToDatabase, closeDatabase } from "./db/client.js";
 import { registerAllTools } from "./tools/index.js";
@@ -28,10 +27,10 @@ const server = new McpServer({
 registerAllTools(server);
 
 async function main() {
-  const logPath = "/tmp/gabo-mcp-traffic.log";
-  const logFile = fs.createWriteStream(logPath, { flags: "w" });
-
   try {
+    // Cleanup old logs on startup
+    logger.cleanup();
+
     await connectToDatabase();
 
     const newKey = await ensureApiKeyExists();
@@ -45,8 +44,7 @@ async function main() {
   }
 
   const trace = (direction: string, data: string) => {
-    const timestamp = new Date().toISOString();
-    logFile.write(`[${timestamp}] ${direction}:\n${data}\n${"─".repeat(70)}\n`);
+    logger.logTraffic(direction, data);
   };
 
   const originalStdoutWrite = process.stdout.write.bind(process.stdout);
