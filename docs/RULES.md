@@ -2,6 +2,13 @@
 
 This document defines the MANDATORY rules that any AI agent must follow when working within this environment.
 
+## 🚨 PROTOCOL 0: BOOTSTRAP FROM KNOWLEDGE (MANDATORY)
+
+**At the start of every session, YOU MUST:**
+1.  **Trust the MCP, NOT your memory**: Your context is ephemeral; the Knowledge Base is the source of truth.
+2.  **Read Rules**: Execute `read_resource("gabo://rules")` to align with the latest governance.
+3.  **Check Context**: If discussing a specific topic, run `search_knowledge` FIRST.
+
 ## 🚨 CORE DIRECTIVE: CONSULT BEFORE ACTING
 
 **YOU MUST** verify existing knowledge before writing new code or suggesting solutions. This is not optional.
