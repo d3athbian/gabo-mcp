@@ -106,8 +106,14 @@ export type SearchResult = z.infer<typeof SearchResultSchema>;
 // TOOL INFRASTRUCTURE
 // ============================================================================
 
+const REQUIRE_ARG_API_KEY =
+  process.env.MCP_REQUIRE_ARG_KEY !== "false" &&
+  process.env.MCP_HOST !== "opencode";
+
 export const AuthenticatedToolSchema = z.object({
-  api_key: z.string().min(1, "API key is required"),
+  api_key: REQUIRE_ARG_API_KEY
+    ? z.string().min(1, "API key is required")
+    : z.string().min(1, "API key is required").optional(),
 });
 
 export type AuthenticatedToolArgs = z.infer<typeof AuthenticatedToolSchema>;

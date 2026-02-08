@@ -32,22 +32,6 @@ registerResources(server);
 registerPrompts(server);
 
 async function main() {
-  try {
-    // Cleanup old logs on startup
-    logger.cleanup();
-
-    await connectToDatabase();
-
-    const newKey = await ensureApiKeyExists();
-    if (newKey) {
-      logger.info(`🔑 First-time API key generated: ${newKey}`);
-      logger.warn("⚠️  Add this key to your MCP config (e.g. Continue.dev or Cursor)");
-    }
-  } catch (error) {
-    logger.error("❌ Failed to connect to MongoDB", error);
-    process.exit(1);
-  }
-
   const trace = (direction: string, data: string) => {
     logger.logTraffic(direction, data);
   };
@@ -89,10 +73,39 @@ async function main() {
     } catch (e) { }
   });
 
+  const shouldHandshakeEarly =
+    process.env.MCP_HOST === "opencode" ||
+    process.env.MCP_EARLY_HANDSHAKE === "true";
+
+  const startBackend = async () => {
+    try {
+      // Cleanup old logs on startup
+      logger.cleanup();
+
+      await connectToDatabase();
+
+      const newKey = await ensureApiKeyExists();
+      if (newKey) {
+        logger.info(`🔑 First-time API key generated: ${newKey}`);
+        logger.warn("⚠️  Add this key to your MCP config (e.g. Continue.dev or Cursor)");
+      }
+    } catch (error) {
+      logger.error("❌ Failed to connect to MongoDB", error);
+      process.exit(1);
+    }
+  };
+
   try {
     const transport = new StdioServerTransport();
-    await server.connect(transport);
-    logger.info("🚀 Gabo MCP Server connected and ready! (Transport: stdio)");
+    if (shouldHandshakeEarly) {
+      await server.connect(transport);
+      logger.info("🚀 Gabo MCP Server connected and ready! (Transport: stdio)");
+      await startBackend();
+    } else {
+      await startBackend();
+      await server.connect(transport);
+      logger.info("🚀 Gabo MCP Server connected and ready! (Transport: stdio)");
+    }
 
     if (isInspector) {
       logger.info("🌐 MCP Inspector ready at http://localhost:5173");
