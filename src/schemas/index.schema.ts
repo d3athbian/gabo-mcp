@@ -43,7 +43,7 @@ export const BaseKnowledgeSchema = z.object({
   title: z.string().min(1, "Title is required"),
   content: z.string().min(1, "Content is required"),
   tags: z.array(z.string()).default([]),
-  source: z.string().optional(),
+  source: z.string().optional().describe("Context or pattern this knowledge applies to (e.g. 'auth_flow_optimization', 'db_migration_pattern'). Avoid specific local file paths unless critical."),
   metadata: z.record(z.any()).optional(),
 });
 

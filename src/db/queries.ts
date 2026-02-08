@@ -10,7 +10,8 @@ import type {
   CreateKnowledgeInput,
   SearchKnowledgeInput,
   SearchResult,
-} from "../types.ts";
+} from "../types.js";
+import { searchKnowledgeVector } from "./vector-search.js";
 
 /**
  * Convert string ID to ObjectId safely
@@ -40,6 +41,18 @@ export async function storeKnowledge(
   } = input;
 
   const collection = getKnowledgeEntriesCollection();
+
+  // Deduplication check (if embedding is provided)
+  if (embedding && embedding.length > 0) {
+    const similar = await searchKnowledgeVector(embedding, 1, type);
+    if (similar.length > 0) {
+      const bestMatch = similar[0];
+      // Similarity threshold: 0.92 (arbitrary high bar for "pretty much the same")
+      if (bestMatch.embedding_score && bestMatch.embedding_score > 0.92) {
+        throw new Error(`KNOWLEDGE_DUPLICATE: A very similar entry already exists (ID: ${bestMatch.id}, Title: "${bestMatch.title}")`);
+      }
+    }
+  }
 
   const now = new Date().toISOString();
   const doc = {
@@ -82,16 +95,15 @@ export async function searchKnowledge(
 
   const collection = getKnowledgeEntriesCollection();
 
-  const filter: any = {
+  const filter = {
     $or: [
       { title: { $regex: query, $options: "i" } },
       { content: { $regex: query, $options: "i" } },
     ],
+    ...Object.fromEntries(
+      Object.entries({ type }).filter(([_, v]) => v !== undefined)
+    ),
   };
-
-  if (type) {
-    filter.type = type;
-  }
 
   const results = await collection
     .find(filter)
@@ -150,10 +162,9 @@ export async function listKnowledge(
 ): Promise<{ data: KnowledgeEntry[]; count: number }> {
   const collection = getKnowledgeEntriesCollection();
 
-  const filter: any = {};
-  if (type) {
-    filter.type = type;
-  }
+  const filter = Object.fromEntries(
+    Object.entries({ type }).filter(([_, v]) => v !== undefined)
+  );
 
   const [results, count] = await Promise.all([
     collection
@@ -191,25 +202,19 @@ export async function updateKnowledge(
 ): Promise<KnowledgeEntry> {
   const collection = getKnowledgeEntriesCollection();
 
-  const updateData: any = {
+  // Construcción funcional del objeto de actualización (Evita el "if bloat")
+  const updateData = {
+    ...Object.fromEntries(
+      Object.entries({
+        title: updates.title?.trim(),
+        content: updates.content?.trim(),
+        tags: updates.tags,
+        source: updates.source,
+        type: updates.type,
+      }).filter(([_, v]) => v !== undefined)
+    ),
     updated_at: new Date().toISOString(),
   };
-
-  if (updates.title !== undefined) {
-    updateData.title = updates.title.trim();
-  }
-  if (updates.content !== undefined) {
-    updateData.content = updates.content.trim();
-  }
-  if (updates.tags !== undefined) {
-    updateData.tags = updates.tags;
-  }
-  if (updates.source !== undefined) {
-    updateData.source = updates.source;
-  }
-  if (updates.type !== undefined) {
-    updateData.type = updates.type;
-  }
 
   const result = await collection.findOneAndUpdate(
     { _id: toObjectId(entryId) },
