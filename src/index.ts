@@ -19,12 +19,17 @@ const isInspector =
 
 
 
+import { registerResources } from "./resources/index.js";
+import { registerPrompts } from "./prompts/index.js";
+
 const server = new McpServer({
   name: "gabo-mcp-local",
   version: "0.1.0",
 });
 
 registerAllTools(server);
+registerResources(server);
+registerPrompts(server);
 
 async function main() {
   try {

@@ -88,6 +88,30 @@ El sistema organiza tu cerebro digital en estos tipos universales:
 
 ## 🔒 Características de Seguridad y Mantenimiento
 
+### 🛡️ Sistema de Sanitización de Contenido
+El servidor incluye un **sistema de protección automática** que previene el almacenamiento accidental de información sensible:
+
+**Perfiles de Seguridad**:
+- **`work`**: Seguridad máxima para entornos profesionales
+  - Bloquea: datos corporativos, información de usuarios/clientes, credenciales, PII, variables de entorno
+  - Ideal para: código de empresa, proyectos de clientes, trabajo sensible
+- **`personal`**: Seguridad estándar para proyectos personales
+  - Bloquea: credenciales, tokens, API keys, PII crítico
+  - Ideal para: proyectos personales, contribuciones open-source, aprendizaje
+
+**Qué detecta y bloquea**:
+- ✅ Contraseñas y credenciales de autenticación
+- ✅ API keys (GitHub, OpenAI, AWS, etc.)
+- ✅ Tokens JWT y OAuth
+- ✅ Strings de conexión a bases de datos
+- ✅ Emails, teléfonos, tarjetas de crédito
+- ✅ Nombres de empresas y dominios corporativos (perfil `work`)
+- ✅ Referencias a variables de entorno (perfil `work`)
+
+**Configuración**: Establece `SECURITY_PROFILE=work` o `personal` en tu `.env`
+
+📖 **[Documentación completa del sistema de sanitización →](docs/SANITIZATION.md)**
+
 ### Deduplicación Semántica Automática
 El servidor incluye un sistema de **deduplicación inteligente** que previene guardar conocimiento redundante:
 - Antes de guardar una nueva entrada, el sistema verifica si ya existe contenido similar (> 92% de similitud semántica).
@@ -122,6 +146,7 @@ El campo `source` está diseñado para patrones y contextos reutilizables:
 - [Guía de Instalación](docs/SETUP_GUIDE.md): 3 formas de correr y probar el servidor.
 - [Vector Search](docs/VECTOR_SEARCH_SETUP.md): Cómo configurar los índices en MongoDB Atlas.
 - [Autenticación](docs/API_KEY_AUTH.md): Detalles sobre el sistema de seguridad basado en llaves.
+- **[Sistema de Sanitización](docs/SANITIZATION.md): Protección contra almacenamiento de datos sensibles.**
 
 ---
 

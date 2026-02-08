@@ -1,0 +1,9 @@
+{
+    "blacklistedCompanies": [],
+    "blacklistedDomains": [],
+    "blacklistedKeywords": [
+        "internal",
+        "confidential",
+        "proprietary"
+    ]
+}

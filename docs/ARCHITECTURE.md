@@ -38,6 +38,7 @@ Utilizamos **Zod** como la única fuente de verdad para el tipado y la validaci�
 - **Global Secret Key**: El servidor requiere una clave secreta (`gabo_...`) para todas las operaciones.
 - **Middleware Componible**: La autenticación se maneja mediante un middleware `withAuth` que extrae y valida la clave antes de permitir la ejecución de cualquier herramienta.
 - **Bootstrap Automático**: En la primera ejecución, si no hay claves registradas en MongoDB, el servidor genera una clave maestra inicial.
+- **Content Sanitization**: Sistema de protección que previene el almacenamiento de información sensible (credenciales, PII, datos corporativos). Configurable mediante perfiles de seguridad (`work` | `personal`). Ver [SANITIZATION.md](SANITIZATION.md) para detalles completos.
 
 ## 🛠️ Gestión de Errores y Middlewares
 
