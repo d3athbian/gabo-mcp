@@ -22,7 +22,7 @@ const MONGODB_URI = process.env.MONGODB_URI;
 if (!MONGODB_URI) {
   throw new Error(
     "MONGODB_URI environment variable is required. " +
-      "Get it from MongoDB Atlas: https://cloud.mongodb.com",
+    "Get it from MongoDB Atlas: https://cloud.mongodb.com",
   );
 }
 
@@ -130,21 +130,19 @@ export async function setupIndexes(): Promise<void> {
 
     logger.info("🔧 Setting up database indexes...");
 
-    // Index for user_id filtering (most queries filter by user)
-    await entriesCollection.createIndex({ user_id: 1 });
-    logger.info("   ✓ Index: user_id");
+    // Index for type queries
+    await entriesCollection.createIndex({ type: 1 });
+    logger.info("   ✓ Index: type");
 
-    // Compound index for user + type queries
-    await entriesCollection.createIndex({ user_id: 1, type: 1 });
-    logger.info("   ✓ Index: user_id + type");
+
 
     // Index for sorting by creation date
-    await entriesCollection.createIndex({ user_id: 1, created_at: -1 });
-    logger.info("   ✓ Index: user_id + created_at");
+    await entriesCollection.createIndex({ created_at: -1 });
+    logger.info("   ✓ Index: created_at");
 
     // Index for tags (allows efficient tag filtering)
-    await entriesCollection.createIndex({ user_id: 1, tags: 1 });
-    logger.info("   ✓ Index: user_id + tags");
+    await entriesCollection.createIndex({ tags: 1 });
+    logger.info("   ✓ Index: tags");
 
     // Text index for full-text search on title and content
     await entriesCollection.createIndex(
@@ -161,8 +159,8 @@ export async function setupIndexes(): Promise<void> {
 
     // API Keys indexes
     const apiKeysCollection = getApiKeysCollection();
-    await apiKeysCollection.createIndex({ key_hash: 1 }, { unique: true });
-    logger.info("   ✓ Index: api_keys.key_hash (unique)");
+    await apiKeysCollection.createIndex({ key: 1 }, { unique: true });
+    logger.info("   ✓ Index: api_keys.key (unique)");
 
     await apiKeysCollection.createIndex({ is_active: 1, created_at: -1 });
     logger.info("   ✓ Index: api_keys.is_active + created_at");

@@ -28,17 +28,6 @@ export const config: Config = {
     url: process.env.MONGODB_URI!,
   },
 
-  embeddings: {
-    model: process.env.EMBED_MODEL || "nomic-embed-text",
-    provider: (process.env.EMBED_PROVIDER || "ollama") as "ollama" | "openai",
-    ollamaUrl: process.env.OLLAMA_API_URL || "http://localhost:11434",
-    openaiApiKey: process.env.OPENAI_API_KEY,
-    openaiModel: process.env.OPENAI_EMBEDDING_MODEL || "text-embedding-3-small",
-    batchSize: parseInt(process.env.EMBED_BATCH_SIZE || "32", 10),
-    cacheDir: process.env.EMBED_CACHE_DIR || "./cache/embeddings",
-    cacheEnabled: process.env.EMBED_CACHE_ENABLED === "true",
-  },
-
   mcp: {
     port: parseInt(process.env.MCP_SERVER_PORT || "3000", 10),
     timeout: parseInt(process.env.MCP_REQUEST_TIMEOUT || "30000", 10),
@@ -47,7 +36,6 @@ export const config: Config = {
   },
 
   features: {
-    enableEmbeddings: process.env.ENABLE_EMBEDDINGS !== "false", // Default true
     enableCache: process.env.ENABLE_CACHE === "true",
     enableAuditLog: process.env.ENABLE_AUDIT_LOG === "true",
   },

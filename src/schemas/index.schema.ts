@@ -33,7 +33,6 @@ export type VisibilityType = z.infer<typeof VisibilityTypeSchema>;
 
 export const KnowledgeEntrySchema = z.object({
   id: z.string(),
-  user_id: z.string(),
   type: KnowledgeTypeSchema,
   title: z.string(),
   content: z.string(),
@@ -97,21 +96,17 @@ export const MCPToolResultSchema = z.object({
 
 export type MCPToolResult = z.infer<typeof MCPToolResultSchema>;
 
-export const EmbeddingResponseSchema = z.object({
-  embedding: z.array(z.number()),
-  model: z.string(),
-  usage: z
-    .object({
-      prompt_tokens: z.number().optional(),
-    })
-    .optional(),
-});
 
-export type EmbeddingResponse = z.infer<typeof EmbeddingResponseSchema>;
 
 // ============================================================================
 // SERVER-SPECIFIC TYPES
 // ============================================================================
+
+export const AuthenticatedToolSchema = z.object({
+  api_key: z.string().min(1, "API key is required"),
+});
+
+export type AuthenticatedToolArgs = z.infer<typeof AuthenticatedToolSchema>;
 
 export const StoredEntrySchema = z.object({
   id: z.string(),
@@ -131,34 +126,35 @@ export const StoreKnowledgeSchema = z.object({
   content: z.string().min(1, "Content is required"),
   tags: z.array(z.string()).optional(),
   source: z.string().optional(),
-});
+  embedding: z.array(z.number()).optional(),
+}).merge(AuthenticatedToolSchema);
 
 export type StoreKnowledgeArgs = z.infer<typeof StoreKnowledgeSchema>;
 
 export const SearchKnowledgeSchema = z.object({
   query: z.string().min(1, "Query is required"),
   type: KnowledgeTypeSchema.optional(),
-});
+}).merge(AuthenticatedToolSchema);
 
 export type SearchKnowledgeArgs = z.infer<typeof SearchKnowledgeSchema>;
 
 export const ListKnowledgeSchema = z.object({
   limit: z.number().positive().int().default(10),
-});
+}).merge(AuthenticatedToolSchema);
 
 export type ListKnowledgeArgs = z.infer<typeof ListKnowledgeSchema>;
 
 export const GetKnowledgeSchema = z.object({
   id: z.string().min(1, "ID is required"),
-});
+}).merge(AuthenticatedToolSchema);
 
 export type GetKnowledgeArgs = z.infer<typeof GetKnowledgeSchema>;
 
 export const SemanticSearchSchema = z.object({
-  query: z.string().min(1, "Query is required"),
+  query_vector: z.array(z.number()).min(1, "Vector is required"),
   type: KnowledgeTypeSchema.optional(),
   limit: z.number().positive().int().default(10),
-});
+}).merge(AuthenticatedToolSchema);
 
 export type SemanticSearchArgs = z.infer<typeof SemanticSearchSchema>;
 
@@ -196,18 +192,10 @@ export type ToolResponseData = z.infer<typeof ToolResponseDataSchema>;
 export const ApiKeySchema = z.object({
   id: z.string(),
   key: z.string(),
-  key_preview: z.string(),
-  name: z.string(),
   created_at: z.string(),
   last_used: z.string().optional(),
   is_active: z.boolean(),
-  created_by: z.string(),
 });
 
 export type ApiKey = z.infer<typeof ApiKeySchema>;
 
-export const AuthenticatedToolSchema = z.object({
-  api_key: z.string().min(1, "API key is required"),
-});
-
-export type AuthenticatedToolArgs = z.infer<typeof AuthenticatedToolSchema>;

@@ -1,33 +1,25 @@
-/**
- * Get Knowledge Tool - Sin validación
- */
-
 import { handleToolError, successResponse } from "../utils/tool-handler.js";
+import { withAuth } from "../middleware/auth.js";
 import { getKnowledge } from "../db/queries.js";
-import { z } from "zod";
+import { GetKnowledgeSchema } from "../schemas/index.schema.js";
+import type { GetKnowledgeArgs } from "../schemas/index.schema.js";
 import type { ToolDefinition } from "./index.type.js";
 
-const GetSchema = z.object({
-  id: z.string().min(1),
-});
-
-type GetArgs = z.infer<typeof GetSchema>;
-
-const handler = async (args: GetArgs) => {
-  const entry = await getKnowledge("dev-user-123", args.id);
+const handler = async (args: Omit<GetKnowledgeArgs, "api_key">) => {
+  const entry = await getKnowledge(args.id);
   return successResponse({ entry });
 };
 
-export const getKnowledgeTool: ToolDefinition<GetArgs> = {
+export const getKnowledgeTool: ToolDefinition<GetKnowledgeArgs> = {
   name: "get_knowledge",
   title: "Get Knowledge",
   description: "Get entry by ID.",
-  inputSchema: GetSchema,
-  handler: async (args, _userId) => {
+  inputSchema: GetKnowledgeSchema,
+  handler: withAuth(async (args) => {
     try {
       return await handler(args);
     } catch (error) {
       return handleToolError(error, "Get");
     }
-  },
+  }),
 };

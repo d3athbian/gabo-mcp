@@ -1,7 +1,6 @@
 /**
  * MongoDB Queries for Knowledge Management
- * All queries implement application-level security by filtering by user_id
- * This replaces Supabase RLS in MongoDB Atlas M0
+ * All queries are global for the instance (Autenticación via Secret Key)
  */
 
 import { ObjectId } from "mongodb";
@@ -26,10 +25,8 @@ function toObjectId(id: string): ObjectId {
 
 /**
  * Store a new knowledge entry
- * Security: Always includes user_id
  */
 export async function storeKnowledge(
-  userId: string,
   input: CreateKnowledgeInput & { embedding?: number[] },
 ): Promise<KnowledgeEntry> {
   const { type, title, content, tags = [], source, embedding } = input;
@@ -46,7 +43,6 @@ export async function storeKnowledge(
 
   const now = new Date().toISOString();
   const doc = {
-    user_id: userId,
     type,
     title: title.trim(),
     content: content.trim(),
@@ -62,7 +58,6 @@ export async function storeKnowledge(
 
   return {
     id: result.insertedId.toString(),
-    user_id: userId,
     type,
     title: title.trim(),
     content: content.trim(),
@@ -76,12 +71,9 @@ export async function storeKnowledge(
 }
 
 /**
- * Search knowledge entries by keyword
- * Phase 3: Full-text search without embeddings
- * Security: Filters by user_id
+ * Search knowledge entries by keyword (Text search)
  */
 export async function searchKnowledge(
-  userId: string,
   input: SearchKnowledgeInput,
 ): Promise<SearchResult[]> {
   const { query, type, limit = 10 } = input;
@@ -92,9 +84,7 @@ export async function searchKnowledge(
 
   const collection = getKnowledgeEntriesCollection();
 
-  // Build query with security filter
   const filter: any = {
-    user_id: userId,
     $or: [
       { title: { $regex: query, $options: "i" } },
       { content: { $regex: query, $options: "i" } },
@@ -124,17 +114,14 @@ export async function searchKnowledge(
 
 /**
  * Get a single knowledge entry by ID
- * Security: Verifies user_id matches
  */
 export async function getKnowledge(
-  userId: string,
   entryId: string,
 ): Promise<KnowledgeEntry> {
   const collection = getKnowledgeEntriesCollection();
 
   const doc = await collection.findOne({
     _id: toObjectId(entryId),
-    user_id: userId,
   });
 
   if (!doc) {
@@ -143,7 +130,6 @@ export async function getKnowledge(
 
   return {
     id: doc._id.toString(),
-    user_id: doc.user_id,
     type: doc.type,
     title: doc.title,
     content: doc.content,
@@ -158,17 +144,15 @@ export async function getKnowledge(
 
 /**
  * List knowledge entries with optional filtering
- * Security: Filters by user_id
  */
 export async function listKnowledge(
-  userId: string,
   type?: string,
   limit = 10,
   offset = 0,
 ): Promise<{ data: KnowledgeEntry[]; count: number }> {
   const collection = getKnowledgeEntriesCollection();
 
-  const filter: any = { user_id: userId };
+  const filter: any = {};
   if (type) {
     filter.type = type;
   }
@@ -186,7 +170,6 @@ export async function listKnowledge(
   return {
     data: results.map((doc) => ({
       id: doc._id.toString(),
-      user_id: doc.user_id,
       type: doc.type,
       title: doc.title,
       content: doc.content,
@@ -203,10 +186,8 @@ export async function listKnowledge(
 
 /**
  * Update a knowledge entry
- * Security: Verifies user_id matches
  */
 export async function updateKnowledge(
-  userId: string,
   entryId: string,
   updates: Partial<CreateKnowledgeInput>,
 ): Promise<KnowledgeEntry> {
@@ -233,18 +214,17 @@ export async function updateKnowledge(
   }
 
   const result = await collection.findOneAndUpdate(
-    { _id: toObjectId(entryId), user_id: userId },
+    { _id: toObjectId(entryId) },
     { $set: updateData },
     { returnDocument: "after" },
   );
 
   if (!result) {
-    throw new Error("Knowledge entry not found or access denied");
+    throw new Error("Knowledge entry not found");
   }
 
   return {
     id: result._id.toString(),
-    user_id: result.user_id,
     type: result.type,
     title: result.title,
     content: result.content,
@@ -259,56 +239,31 @@ export async function updateKnowledge(
 
 /**
  * Delete a knowledge entry
- * Security: Verifies user_id matches
  */
 export async function deleteKnowledge(
-  userId: string,
   entryId: string,
 ): Promise<void> {
   const collection = getKnowledgeEntriesCollection();
 
   const result = await collection.deleteOne({
     _id: toObjectId(entryId),
-    user_id: userId,
   });
 
   if (result.deletedCount === 0) {
-    throw new Error("Knowledge entry not found or access denied");
+    throw new Error("Knowledge entry not found");
   }
 }
 
 /**
- * Get all unique tags for a user
- * Security: Filters by user_id
+ * Get all unique tags
  */
-export async function getUserTags(userId: string): Promise<string[]> {
+export async function getUserTags(): Promise<string[]> {
   const collection = getKnowledgeEntriesCollection();
 
   const results = await collection
-    .distinct("tags", { user_id: userId })
+    .distinct("tags", {})
     .then((tags) => tags.flat().filter((tag, i, arr) => arr.indexOf(tag) === i))
     .then((tags) => tags.sort());
 
   return results;
-}
-
-/**
- * Update embedding for an entry (used after generating with Ollama)
- * Security: Verifies user_id matches
- */
-export async function updateEmbedding(
-  userId: string,
-  entryId: string,
-  embedding: number[],
-): Promise<void> {
-  const collection = getKnowledgeEntriesCollection();
-
-  const result = await collection.updateOne(
-    { _id: toObjectId(entryId), user_id: userId },
-    { $set: { embedding, updated_at: new Date().toISOString() } },
-  );
-
-  if (result.matchedCount === 0) {
-    throw new Error("Knowledge entry not found or access denied");
-  }
 }

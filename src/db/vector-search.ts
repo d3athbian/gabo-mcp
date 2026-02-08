@@ -16,7 +16,6 @@ import type { SearchResult } from "../types.ts";
  * - similarity: "cosine"
  */
 export async function searchKnowledgeVector(
-  userId: string,
   queryVector: number[],
   limit = 10,
   type?: string,
@@ -36,7 +35,6 @@ export async function searchKnowledgeVector(
     },
     {
       $match: {
-        user_id: userId, // Security: filter by user
         ...(type && { type }), // Optional type filter
       },
     },
@@ -69,8 +67,7 @@ export async function searchKnowledgeVector(
   } catch (error) {
     logger.error("Vector search error", error);
     throw new Error(
-      `Vector search failed. Ensure Atlas Vector Search index is configured. Error: ${
-        error instanceof Error ? error.message : String(error)
+      `Vector search failed. Ensure Atlas Vector Search index is configured. Error: ${error instanceof Error ? error.message : String(error)
       }`,
     );
   }
@@ -81,7 +78,6 @@ export async function searchKnowledgeVector(
  * Falls back to text search if vector search fails
  */
 export async function searchKnowledgeHybrid(
-  userId: string,
   queryText: string,
   queryVector: number[],
   limit = 10,
@@ -90,8 +86,8 @@ export async function searchKnowledgeHybrid(
 ): Promise<SearchResult[]> {
   // Run both searches in parallel
   const [vectorResults, textResults] = await Promise.all([
-    searchKnowledgeVector(userId, queryVector, limit * 2, type).catch(() => []),
-    searchKnowledgeText(userId, queryText, limit * 2, type),
+    searchKnowledgeVector(queryVector, limit * 2, type).catch(() => []),
+    searchKnowledgeText(queryText, limit * 2, type),
   ]);
 
   // Combine and deduplicate results
@@ -141,7 +137,6 @@ export async function searchKnowledgeHybrid(
  * Fallback when vector search is not available
  */
 async function searchKnowledgeText(
-  userId: string,
   query: string,
   limit = 10,
   type?: string,
@@ -149,7 +144,6 @@ async function searchKnowledgeText(
   const collection = getKnowledgeEntriesCollection();
 
   const filter: any = {
-    user_id: userId,
     $text: { $search: query },
   };
 

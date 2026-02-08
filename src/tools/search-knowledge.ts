@@ -1,33 +1,13 @@
-/**
- * Search Knowledge Tool - Sin validación
- */
-
 import { handleToolError, successResponse } from "../utils/tool-handler.js";
+import { withAuth } from "../middleware/auth.js";
 import { searchKnowledge } from "../db/queries.js";
-import { z } from "zod";
+import { SearchKnowledgeSchema } from "../schemas/index.schema.js";
+import type { SearchKnowledgeArgs } from "../schemas/index.schema.js";
 import type { ToolDefinition } from "./index.type.js";
 
-const SearchSchema = z.object({
-  query: z.string().min(1),
-  type: z
-    .enum([
-      "UI_REASONING",
-      "ARCH_DECISION",
-      "PROMPT",
-      "ERROR_CORRECTION",
-      "CODE_SNIPPET",
-      "DESIGN_DECISION",
-      "TECHNICAL_INSIGHT",
-      "REACT_PATTERN",
-    ])
-    .optional(),
-});
-
-type SearchArgs = z.infer<typeof SearchSchema>;
-
-const handler = async (args: SearchArgs) => {
+const handler = async (args: Omit<SearchKnowledgeArgs, "api_key">) => {
   const { query, type } = args;
-  const results = await searchKnowledge("dev-user-123", {
+  const results = await searchKnowledge({
     query,
     type,
     limit: 10,
@@ -41,16 +21,16 @@ const handler = async (args: SearchArgs) => {
   });
 };
 
-export const searchKnowledgeTool: ToolDefinition<SearchArgs> = {
+export const searchKnowledgeTool: ToolDefinition<SearchKnowledgeArgs> = {
   name: "search_knowledge",
   title: "Search Knowledge",
   description: "Search knowledge.",
-  inputSchema: SearchSchema,
-  handler: async (args, _userId) => {
+  inputSchema: SearchKnowledgeSchema,
+  handler: withAuth(async (args) => {
     try {
       return await handler(args);
     } catch (error) {
       return handleToolError(error, "Search");
     }
-  },
+  }),
 };

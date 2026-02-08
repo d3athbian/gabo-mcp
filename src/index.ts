@@ -18,14 +18,14 @@ const isInspector =
   process.env.MCP_INSPECTOR === "true" ||
   process.argv.some((arg) => arg.includes("inspector"));
 
-const DEV_USER_ID = process.env.DEV_USER_ID || "dev-user-123";
+
 
 const server = new McpServer({
   name: "gabo-mcp-local",
   version: "0.1.0",
 });
 
-registerAllTools(server, DEV_USER_ID);
+registerAllTools(server);
 
 async function main() {
   // Log startup info (now inside main to ensure proper initialization order)
@@ -73,7 +73,7 @@ async function main() {
         "📤 OUT (Server -> Client)",
         typeof chunk === "string" ? chunk : chunk.toString(),
       );
-    } catch (e) {}
+    } catch (e) { }
 
     if (typeof encodingOrCallback === "function") {
       return originalStdoutWrite(chunk, encodingOrCallback);
@@ -96,7 +96,7 @@ async function main() {
   process.stdin.on("data", (chunk) => {
     try {
       trace("📥 IN (Client -> Server)", chunk.toString());
-    } catch (e) {}
+    } catch (e) { }
   });
 
   logger.info("");
@@ -109,25 +109,20 @@ async function main() {
   logger.info("  • Version: 0.1.0");
   logger.info("  • Transport: stdio (no HTTP port)");
   logger.info("  • Database: MongoDB Atlas M0 (Free Tier)");
-  logger.info("  • Vector Search: ✅ Enabled (768 dims)");
-  logger.info("  • Embeddings: Ollama (nomic-embed-text)");
+  logger.info("  • Vector Search: ✅ Enabled (via Atlas)");
   logger.info("");
   logger.info("Available Tools:");
-  logger.info("  🔐 Authentication:");
-  logger.info("    • API key is auto-generated on first run");
-  logger.info("    • Check logs for the key or query MongoDB directly");
+  logger.info("    • API key is auto-generated on first run or check MongoDB");
+  logger.info("    • Use the key in your client (Continue.dev, Cursor, etc.)");
   logger.info("");
   logger.info("  📚 Knowledge Management:");
-  logger.info("    5. store_knowledge - Store a new knowledge entry");
-  logger.info("    6. search_knowledge - Search knowledge entries (text)");
-  logger.info("    7. semantic_search - Search knowledge entries (AI/hybrid)");
-  logger.info("    8. list_knowledge - List all knowledge entries");
-  logger.info("    9. get_knowledge - Get a specific knowledge entry");
-  logger.info(
-    "   10. check_vector_search - Verify vector search configuration",
-  );
+  logger.info("    1. store_knowledge - Store a new knowledge entry");
+  logger.info("    2. search_knowledge - Search knowledge entries (text)");
+  logger.info("    3. semantic_search - Vector search (provide vector)");
+  logger.info("    4. list_knowledge - List all knowledge entries");
+  logger.info("    5. get_knowledge - Get a specific knowledge entry");
   logger.info("");
-  logger.info("📝 MCP Traffic Logs: mcp_traffic.log");
+  logger.info(`📝 MCP Traffic Logs: ${logPath}`);
   logger.info("");
 
   try {

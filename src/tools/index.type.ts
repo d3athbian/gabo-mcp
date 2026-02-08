@@ -9,9 +9,8 @@ import type { ToolResponse } from "../utils/tool-handler.js";
 
 /**
  * Tool handler function type
- * Includes userId for security filtering
  */
-export type ToolHandler<T> = (args: T, userId: string) => Promise<ToolResponse>;
+export type ToolHandler<T> = (args: T) => Promise<ToolResponse>;
 
 /**
  * Tool definition for registration
@@ -27,4 +26,4 @@ export type ToolDefinition<T> = {
 /**
  * Tool registrar function type
  */
-export type ToolRegistrar = (server: McpServer, userId: string) => void;
+export type ToolRegistrar = (server: McpServer) => void;

@@ -44,7 +44,6 @@ export type KnowledgeAttributes = {
 };
 
 export type KnowledgeWithMeta = KnowledgeAttributes & {
-  user_id: EntityId;
   visibility?: "private" | "archived";
   embedding?: number[];
   updated_at?: EntityTimestamp;
@@ -121,14 +120,6 @@ export type LoggerInterface = {
 export type ErrorCallback = (error?: Error | null) => void;
 
 export type WriteCallback = ErrorCallback;
-
-// ============================================================================
-// EMBEDDING TYPES
-// ============================================================================
-
-export type Embedding = number[];
-
-export type EmbeddingBatch = Embedding[];
 
 // ============================================================================
 // DATABASE GENERIC TYPES

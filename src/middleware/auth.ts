@@ -13,7 +13,7 @@ import { logger } from "../utils/logger.js";
 import type { ToolResponse } from "../utils/tool-handler.js";
 
 export type AuthResult =
-  | { success: true; keyId: string; name: string }
+  | { success: true; keyId: string }
   | { success: false; error: string };
 
 export async function isBootstrapAvailable(): Promise<boolean> {
@@ -42,12 +42,11 @@ export async function validateApiKey(apiKey: string): Promise<AuthResult> {
     return { success: false, error: "API key has been revoked" };
   }
 
-  logger.info(`API key validated: ${keyDoc.name}`);
+  logger.info(`API key validated: ${keyDoc.id}`);
 
   return {
     success: true,
     keyId: keyDoc.id,
-    name: keyDoc.name,
   };
 }
 
@@ -58,9 +57,10 @@ export async function ensureApiKeyExists(): Promise<string> {
     return "";
   }
 
-  const { key, preview } = generateApiKey();
-  await createApiKey(key, preview, "bootstrap", "bootstrap");
+  const key = generateApiKey();
+  await createApiKey(key);
 
+  const preview = `...${key.slice(-8)}`;
   logger.info(`🔑 First-time API key generated: ${preview}`);
   logger.warn("⚠️  SAVE THIS KEY - Add to your MCP config!");
 
@@ -101,7 +101,7 @@ export function createAuthErrorResponse(error: string): ToolResponse {
 export function withAuth<T extends { api_key: string }>(
   handler: (
     args: Omit<T, "api_key">,
-    auth: { keyId: string; name: string },
+    auth: { keyId: string },
   ) => Promise<ToolResponse>,
 ) {
   return async (args: T): Promise<ToolResponse> => {
@@ -114,7 +114,6 @@ export function withAuth<T extends { api_key: string }>(
 
     return handler(restArgs as Omit<T, "api_key">, {
       keyId: authResult.keyId,
-      name: authResult.name,
     });
   };
 }

@@ -11,5 +11,4 @@ export type {
   SearchKnowledgeInput,
   SearchResult,
   MCPToolResult,
-  EmbeddingResponse,
 } from "./schemas/index.schema.js";

@@ -1,41 +1,21 @@
-/**
- * Store Knowledge Tool - Sin validación
- */
-
 import { logger } from "../utils/logger.js";
 import { handleToolError, successResponse } from "../utils/tool-handler.js";
+import { withAuth } from "../middleware/auth.js";
 import { storeKnowledge } from "../db/queries.js";
-import { z } from "zod";
+import { StoreKnowledgeSchema } from "../schemas/index.schema.js";
+import type { StoreKnowledgeArgs } from "../schemas/index.schema.js";
 import type { ToolDefinition } from "./index.type.js";
 
-const StoreSchema = z.object({
-  type: z.enum([
-    "UI_REASONING",
-    "ARCH_DECISION",
-    "PROMPT",
-    "ERROR_CORRECTION",
-    "CODE_SNIPPET",
-    "DESIGN_DECISION",
-    "TECHNICAL_INSIGHT",
-    "REACT_PATTERN",
-  ]),
-  title: z.string().min(1),
-  content: z.string().min(1),
-  tags: z.array(z.string()).optional(),
-  source: z.string().optional(),
-});
+const handler = async (args: Omit<StoreKnowledgeArgs, "api_key">) => {
+  const { type, title, content, tags, source, embedding } = args;
 
-type StoreArgs = z.infer<typeof StoreSchema>;
-
-const handler = async (args: StoreArgs) => {
-  const { type, title, content, tags, source } = args;
-
-  const entry = await storeKnowledge("dev-user-123", {
+  const entry = await storeKnowledge({
     type,
     title,
     content,
     tags: tags || [],
     source,
+    embedding,
   });
 
   logger.info(`✅ Stored: ${title} (${entry.id})`);
@@ -46,16 +26,16 @@ const handler = async (args: StoreArgs) => {
   });
 };
 
-export const storeKnowledgeTool: ToolDefinition<StoreArgs> = {
+export const storeKnowledgeTool: ToolDefinition<StoreKnowledgeArgs> = {
   name: "store_knowledge",
   title: "Store Knowledge",
   description: "Store knowledge.",
-  inputSchema: StoreSchema,
-  handler: async (args, _userId) => {
+  inputSchema: StoreKnowledgeSchema,
+  handler: withAuth(async (args) => {
     try {
       return await handler(args);
     } catch (error) {
       return handleToolError(error, "Store");
     }
-  },
+  }),
 };

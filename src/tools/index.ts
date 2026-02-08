@@ -9,8 +9,6 @@ import { searchKnowledgeTool } from "./search-knowledge.js";
 import { listKnowledgeTool } from "./list-knowledge.js";
 import { getKnowledgeTool } from "./get-knowledge.js";
 import { semanticSearchTool } from "./semantic-search.js";
-import { checkVectorSearchTool } from "./check-vector-search.js";
-import { healthCheckTool } from "./health-check.js";
 
 export {
   storeKnowledgeTool,
@@ -18,8 +16,6 @@ export {
   listKnowledgeTool,
   getKnowledgeTool,
   semanticSearchTool,
-  checkVectorSearchTool,
-  healthCheckTool,
 };
 
 export type {
@@ -28,15 +24,13 @@ export type {
   ToolRegistrar,
 } from "./index.type.js";
 
-export function registerAllTools(server: McpServer, userId: string): void {
+export function registerAllTools(server: McpServer): void {
   const tools = [
     storeKnowledgeTool,
     searchKnowledgeTool,
     listKnowledgeTool,
     getKnowledgeTool,
     semanticSearchTool,
-    checkVectorSearchTool,
-    healthCheckTool,
   ];
 
   for (const tool of tools) {
@@ -48,7 +42,7 @@ export function registerAllTools(server: McpServer, userId: string): void {
         inputSchema: tool.inputSchema,
       },
       // @ts-ignore - SDK type inference issue
-      async (args: unknown) => tool.handler(args, userId),
+      async (args: unknown) => tool.handler(args),
     );
   }
 }

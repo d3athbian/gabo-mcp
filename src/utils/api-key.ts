@@ -7,17 +7,10 @@ import { randomBytes } from "crypto";
 
 const KEY_PREFIX = "gabo_";
 
-export function generateApiKey(): {
-  key: string;
-  hash: string;
-  preview: string;
-} {
+export function generateApiKey(): string {
   const timestamp = Date.now().toString(36);
   const randomPart = randomBytes(8).toString("hex").slice(0, 8);
-  const key = `${KEY_PREFIX}${timestamp}_${randomPart}`;
-  const preview = `...${key.slice(-8)}`;
-
-  return { key, hash: key, preview };
+  return `${KEY_PREFIX}${timestamp}_${randomPart}`;
 }
 
 export function isValidApiKeyFormat(key: string): boolean {
