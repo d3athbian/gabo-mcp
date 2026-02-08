@@ -15,7 +15,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 config({ path: join(__dirname, "../../.env") }); // Load .env from project root
 
 import { MongoClient, Db } from "mongodb";
-import { logger } from "../utils/logger.js";
+import { logger } from "../utils/logger/index.js";
 
 const MONGODB_URI = process.env.MONGODB_URI;
 

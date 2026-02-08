@@ -7,10 +7,10 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import * as fs from "fs";
-import { logger } from "./utils/logger.js";
+import { logger } from "./utils/logger/index.js";
 import { connectToDatabase, closeDatabase } from "./db/client.js";
 import { registerAllTools } from "./tools/index.js";
-import { ensureApiKeyExists } from "./middleware/auth.js";
+import { ensureApiKeyExists } from "./middleware/auth/index.js";
 
 process.title = "gabo-mcp-server";
 

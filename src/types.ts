@@ -11,4 +11,5 @@ export type {
   SearchKnowledgeInput,
   SearchResult,
   MCPToolResult,
+  StoredEntry,
 } from "./schemas/index.schema.js";

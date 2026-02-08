@@ -5,7 +5,7 @@
  */
 
 import { getKnowledgeEntriesCollection } from "./client.js";
-import { logger } from "../utils/logger.js";
+import { logger } from "../utils/logger/index.js";
 import type { SearchResult } from "../types.ts";
 
 /**

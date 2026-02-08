@@ -5,6 +5,10 @@
  */
 
 import { z } from "zod";
+import {
+  TimestampsSchema,
+  PaginationSchema,
+} from "./base.schema.js";
 
 // ============================================================================
 // ENUMS
@@ -28,36 +32,48 @@ export const VisibilityTypeSchema = z.enum(["private", "archived"]);
 export type VisibilityType = z.infer<typeof VisibilityTypeSchema>;
 
 // ============================================================================
+// DOMAIN-SPECIFIC BASES
+// ============================================================================
+
+export const BaseKnowledgeSchema = z.object({
+  type: KnowledgeTypeSchema,
+  title: z.string().min(1, "Title is required"),
+  content: z.string().min(1, "Content is required"),
+  tags: z.array(z.string()).default([]),
+  source: z.string().optional(),
+});
+
+// ============================================================================
 // DOMAIN TYPES
 // ============================================================================
 
-export const KnowledgeEntrySchema = z.object({
+export const KnowledgeEntrySchema = BaseKnowledgeSchema.extend({
   id: z.string(),
-  type: KnowledgeTypeSchema,
-  title: z.string(),
-  content: z.string(),
-  tags: z.array(z.string()),
-  source: z.string().optional(),
   visibility: VisibilityTypeSchema.optional(),
-  // NOTE: En Supabase Free Tier se almacena como JSONB[]
-  // Upgrade a Pro para usar VECTOR(768) nativo de pgvector
   embedding: z.array(z.number()).optional(),
-  created_at: z.string(),
-  updated_at: z.string().optional(),
-});
+}).merge(TimestampsSchema);
 
 export type KnowledgeEntry = z.infer<typeof KnowledgeEntrySchema>;
+
+// StoredEntry is a subset of KnowledgeEntry for external responses
+export const StoredEntrySchema = KnowledgeEntrySchema.pick({
+  id: true,
+  type: true,
+  title: true,
+  content: true,
+  tags: true,
+  source: true,
+  created_at: true,
+});
+
+export type StoredEntry = z.infer<typeof StoredEntrySchema>;
 
 // ============================================================================
 // INPUT TYPES
 // ============================================================================
 
-export const CreateKnowledgeInputSchema = z.object({
-  type: KnowledgeTypeSchema,
-  title: z.string(),
-  content: z.string(),
-  tags: z.array(z.string()).optional(),
-  source: z.string().optional(),
+export const CreateKnowledgeInputSchema = BaseKnowledgeSchema.partial({
+  tags: true,
 });
 
 export type CreateKnowledgeInput = z.infer<typeof CreateKnowledgeInputSchema>;
@@ -66,9 +82,7 @@ export const SearchKnowledgeInputSchema = z.object({
   query: z.string(),
   type: KnowledgeTypeSchema.optional(),
   similarityThreshold: z.number().optional(),
-  limit: z.number().positive().int().default(10),
-  offset: z.number().nonnegative().int().default(0),
-});
+}).merge(PaginationSchema);
 
 export type SearchKnowledgeInput = z.infer<typeof SearchKnowledgeInputSchema>;
 
@@ -85,8 +99,14 @@ export const SearchResultSchema = z.object({
 export type SearchResult = z.infer<typeof SearchResultSchema>;
 
 // ============================================================================
-// TOOL RESPONSE TYPES
+// TOOL INFRASTRUCTURE
 // ============================================================================
+
+export const AuthenticatedToolSchema = z.object({
+  api_key: z.string().min(1, "API key is required"),
+});
+
+export type AuthenticatedToolArgs = z.infer<typeof AuthenticatedToolSchema>;
 
 export const MCPToolResultSchema = z.object({
   success: z.boolean(),
@@ -96,36 +116,11 @@ export const MCPToolResultSchema = z.object({
 
 export type MCPToolResult = z.infer<typeof MCPToolResultSchema>;
 
-
-
 // ============================================================================
-// SERVER-SPECIFIC TYPES
+// TOOL ARGUMENT SCHEMAS
 // ============================================================================
 
-export const AuthenticatedToolSchema = z.object({
-  api_key: z.string().min(1, "API key is required"),
-});
-
-export type AuthenticatedToolArgs = z.infer<typeof AuthenticatedToolSchema>;
-
-export const StoredEntrySchema = z.object({
-  id: z.string(),
-  type: z.string(),
-  title: z.string(),
-  content: z.string(),
-  tags: z.array(z.string()),
-  source: z.string().optional(),
-  created_at: z.string(),
-});
-
-export type StoredEntry = z.infer<typeof StoredEntrySchema>;
-
-export const StoreKnowledgeSchema = z.object({
-  type: KnowledgeTypeSchema,
-  title: z.string().min(1, "Title is required"),
-  content: z.string().min(1, "Content is required"),
-  tags: z.array(z.string()).optional(),
-  source: z.string().optional(),
+export const StoreKnowledgeSchema = BaseKnowledgeSchema.extend({
   embedding: z.array(z.number()).optional(),
 }).merge(AuthenticatedToolSchema);
 
@@ -157,6 +152,10 @@ export const SemanticSearchSchema = z.object({
 }).merge(AuthenticatedToolSchema);
 
 export type SemanticSearchArgs = z.infer<typeof SemanticSearchSchema>;
+
+// ============================================================================
+// MCP RESPONSE SCHEMAS
+// ============================================================================
 
 export const MCPToolResponseSchema = z.object({
   content: z.array(
@@ -192,10 +191,8 @@ export type ToolResponseData = z.infer<typeof ToolResponseDataSchema>;
 export const ApiKeySchema = z.object({
   id: z.string(),
   key: z.string(),
-  created_at: z.string(),
   last_used: z.string().optional(),
   is_active: z.boolean(),
-});
+}).merge(TimestampsSchema.pick({ created_at: true }));
 
 export type ApiKey = z.infer<typeof ApiKeySchema>;
-

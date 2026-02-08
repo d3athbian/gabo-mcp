@@ -31,14 +31,6 @@ export async function storeKnowledge(
 ): Promise<KnowledgeEntry> {
   const { type, title, content, tags = [], source, embedding } = input;
 
-  // Validate input
-  if (!title || title.trim().length === 0) {
-    throw new Error("Title is required and cannot be empty");
-  }
-  if (!content || content.trim().length === 0) {
-    throw new Error("Content is required and cannot be empty");
-  }
-
   const collection = getKnowledgeEntriesCollection();
 
   const now = new Date().toISOString();
@@ -77,10 +69,6 @@ export async function searchKnowledge(
   input: SearchKnowledgeInput,
 ): Promise<SearchResult[]> {
   const { query, type, limit = 10 } = input;
-
-  if (!query || query.trim().length === 0) {
-    throw new Error("Search query is required");
-  }
 
   const collection = getKnowledgeEntriesCollection();
 

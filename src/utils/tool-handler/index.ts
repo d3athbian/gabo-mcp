@@ -1,0 +1,86 @@
+/**
+ * Tool Handler Utility
+ * Reusable error handling and response formatting for MCP tools
+ */
+
+import { logger } from "../logger/index.js";
+import type {
+    ContentBlock,
+    ErrorResponse,
+} from "../../base.type.js";
+import type { ToolResponse, HandleToolErrorOptions } from "./tool-handler.type.js";
+
+/**
+ * Handles errors in tool catch blocks
+ * Logs the error and returns a standardized MCP error response
+ */
+export function handleToolError(
+    error: unknown,
+    operationName: string,
+    options?: HandleToolErrorOptions,
+): ToolResponse {
+    const errorMessage =
+        options?.customMessage ??
+        (error instanceof Error ? error.message : String(error));
+
+    // Log based on level
+    if (options?.logLevel === "warn") {
+        logger.warn(`${operationName} failed: ${errorMessage}`);
+    } else {
+        logger.error(`${operationName} failed`, error);
+    }
+
+    // Create error response following ErrorResponse pattern
+    const errorData: ErrorResponse = {
+        success: false,
+        error: errorMessage,
+    };
+
+    const contentBlock: ContentBlock = {
+        type: "text",
+        text: JSON.stringify(errorData, null, 2),
+    };
+
+    return {
+        content: [contentBlock],
+        isError: true,
+    };
+}
+
+/**
+ * Creates a standardized success response
+ */
+export function successResponse<T extends Record<string, unknown>>(
+    data: T,
+): ToolResponse {
+    const successData = {
+        success: true,
+        ...data,
+    };
+
+    const contentBlock: ContentBlock = {
+        type: "text",
+        text: JSON.stringify(successData, null, 2),
+    };
+
+    return {
+        content: [contentBlock],
+    };
+}
+
+/**
+ * Middleware: Global Error Handling
+ * Wraps a handler with try/catch and standardized logging
+ */
+export function withErrorHandler(
+    operationName: string,
+    handler: (args: any) => Promise<ToolResponse>,
+) {
+    return async (args: any): Promise<ToolResponse> => {
+        try {
+            return await handler(args);
+        } catch (error) {
+            return handleToolError(error, operationName);
+        }
+    };
+}

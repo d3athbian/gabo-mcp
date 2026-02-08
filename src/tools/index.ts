@@ -4,11 +4,14 @@
  */
 
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { storeKnowledgeTool } from "./store-knowledge.js";
-import { searchKnowledgeTool } from "./search-knowledge.js";
-import { listKnowledgeTool } from "./list-knowledge.js";
-import { getKnowledgeTool } from "./get-knowledge.js";
-import { semanticSearchTool } from "./semantic-search.js";
+import { storeKnowledgeTool } from "./store-knowledge/index.js";
+import { searchKnowledgeTool } from "./search-knowledge/index.js";
+import { listKnowledgeTool } from "./list-knowledge/index.js";
+import { getKnowledgeTool } from "./get-knowledge/index.js";
+import { semanticSearchTool } from "./semantic-search/index.js";
+
+import { withAuth } from "../middleware/auth/index.js";
+import { withErrorHandler } from "../utils/tool-handler/index.js";
 
 export {
   storeKnowledgeTool,
@@ -20,7 +23,7 @@ export {
 
 export type {
   ToolDefinition,
-  ToolHandler,
+  BaseToolHandler,
   ToolRegistrar,
 } from "./index.type.js";
 
@@ -34,6 +37,18 @@ export function registerAllTools(server: McpServer): void {
   ];
 
   for (const tool of tools) {
+    // 1. Start with the core handler
+    let finalHandler: any = tool.handler;
+
+    // 2. Wrap with Auth (unless skipped)
+    if (!tool.skipAuth) {
+      finalHandler = withAuth(finalHandler);
+    }
+
+    // 3. Wrap with Global Error Handling
+    finalHandler = withErrorHandler(tool.name, finalHandler);
+
+    // 4. Register in MCP server
     server.registerTool(
       tool.name,
       {
@@ -41,8 +56,8 @@ export function registerAllTools(server: McpServer): void {
         description: tool.description,
         inputSchema: tool.inputSchema,
       },
-      // @ts-ignore - SDK type inference issue
-      async (args: unknown) => tool.handler(args),
+      // @ts-ignore - types are handled by our wrappers
+      async (args: any) => finalHandler(args),
     );
   }
 }
