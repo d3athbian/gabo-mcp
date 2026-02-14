@@ -22,46 +22,60 @@ Es el puente entre tus pensamientos técnicos y tus herramientas de IA. En lugar
 Aquí tienes cómo puedes interactuar con el servidor a través de prompts en tu entorno favorito:
 
 ### 1. Guardar Conocimiento (`store_knowledge`)
+
 Guarda fragmentos de código, decisiones de diseño o prompts que funcionan bien. También puedes guardar **Errores/Peligros**.
 
 **Ejemplo de Prompt:**
+
 > "Gabo, guarda esta lógica de validación como `PATTERN`. Título: 'Validación de tipos en Python'. Contenido: 'Usar Pydantic para...' con etiquetas `#python, #validation`."
 
 ### 2. Buscar por Texto (`search_knowledge`)
+
 Búsqueda tradicional por palabras clave en tus títulos y descripciones.
 
 **Ejemplo de Prompt:**
+
 > "Busca en mi base de conocimientos cualquier cosa relacionada con 'docker' en la categoría `INFRASTRUCTURE`."
 
 ### 3. Búsqueda Semántica (`semantic_search`)
+
 Encuentra conceptos similares aunque no compartan exactamente las mismas palabras.
-*Nota: Esta herramienta suele ser invocada automáticamente por agentes inteligentes cuando necesitan contexto profundo.*
+_Nota: Esta herramienta suele ser invocada automáticamente por agentes inteligentes cuando necesitan contexto profundo._
 
 **Ejemplo de Prompt:**
+
 > "Encuentra soluciones que he usado antes para problemas de concurrencia en bases de datos."
 
 ### 4. Listar Entradas (`list_knowledge`)
+
 Revisa qué tienes guardado en tu base de datos.
 
 **Ejemplo de Prompt:**
+
 > "Muéstrame las últimas 5 entradas de conocimiento que he guardado."
 
 ### 5. Obtener Detalle (`get_knowledge`)
+
 Recuperar el contenido completo de una entrada específica.
 
 **Ejemplo de Prompt:**
+
 > "Dame el detalle completo de la entrada con ID `65c2f...` para revisar el código que guardé ayer."
 
 ### 6. Sugerir Patrones (`suggest_patterns`)
+
 Analiza la tarea actual para sugerir categorías o detectar si algo similar ya existe.
 
 **Ejemplo de Prompt:**
+
 > "Analiza estos cambios y dime si encajan con algún patrón que ya tengamos en mi base de conocimientos."
 
 ### 7. Prevenir Errores (`get_pitfalls`)
+
 Genera un checklist preventivo basado en errores pasados para no repetirlos.
 
 **Ejemplo de Prompt:**
+
 > "Antes de empezar esta refactorización, dime si hay algún `PITFALL` conocido que deba evitar."
 
 ---
@@ -70,28 +84,30 @@ Genera un checklist preventivo basado en errores pasados para no repetirlos.
 
 El sistema organiza tu cerebro digital en estos tipos universales:
 
-| Tipo | Propósito |
-| :--- | :--- |
-| `UI_UX` | Decisiones de interfaz, experiencia de usuario y componentes visuales. |
-| `ARCH_DECISION` | Decisiones de arquitectura de alto nivel y sus trade-offs. |
-| `PROMPT` | Prompts refinados que dan resultados excelentes. |
-| `ERROR_CORRECTION` | Lecciones aprendidas tras corregir bugs complejos. |
-| `CODE_SNIPPET` | Fragmentos de código reutilizables (Cualquier lenguaje). |
-| `DESIGN_DECISION` | Principios y estándares de diseño de software. |
-| `TECHNICAL_INSIGHT` | Descubrimientos técnicos o "Aha!" moments. |
-| `PATTERN` | **Patrones Reutilizables**: Soluciones comunes a problemas (React, Python, Go, etc.). |
-| `PITFALL` | **"Qué NO hacer"**: Errores conocidos y checklists preventivos. |
-| `INFRASTRUCTURE` | Conocimiento sobre Docker, Cloud, CI/CD y bases de datos. |
-| `TESTING` | Estrategias de testing (Unit, E2E, QA) y patrones de prueba. |
+| Tipo                | Propósito                                                                             |
+| :------------------ | :------------------------------------------------------------------------------------ |
+| `UI_UX`             | Decisiones de interfaz, experiencia de usuario y componentes visuales.                |
+| `ARCH_DECISION`     | Decisiones de arquitectura de alto nivel y sus trade-offs.                            |
+| `PROMPT`            | Prompts refinados que dan resultados excelentes.                                      |
+| `ERROR_CORRECTION`  | Lecciones aprendidas tras corregir bugs complejos.                                    |
+| `CODE_SNIPPET`      | Fragmentos de código reutilizables (Cualquier lenguaje).                              |
+| `DESIGN_DECISION`   | Principios y estándares de diseño de software.                                        |
+| `TECHNICAL_INSIGHT` | Descubrimientos técnicos o "Aha!" moments.                                            |
+| `PATTERN`           | **Patrones Reutilizables**: Soluciones comunes a problemas (React, Python, Go, etc.). |
+| `PITFALL`           | **"Qué NO hacer"**: Errores conocidos y checklists preventivos.                       |
+| `INFRASTRUCTURE`    | Conocimiento sobre Docker, Cloud, CI/CD y bases de datos.                             |
+| `TESTING`           | Estrategias de testing (Unit, E2E, QA) y patrones de prueba.                          |
 
 ---
 
 ## 🔒 Características de Seguridad y Mantenimiento
 
 ### 🛡️ Sistema de Sanitización de Contenido
+
 El servidor incluye un **sistema de protección automática** que previene el almacenamiento accidental de información sensible:
 
 **Perfiles de Seguridad**:
+
 - **`work`**: Seguridad máxima para entornos profesionales
   - Bloquea: datos corporativos, información de usuarios/clientes, credenciales, PII, variables de entorno
   - Ideal para: código de empresa, proyectos de clientes, trabajo sensible
@@ -100,6 +116,7 @@ El servidor incluye un **sistema de protección automática** que previene el al
   - Ideal para: proyectos personales, contribuciones open-source, aprendizaje
 
 **Qué detecta y bloquea**:
+
 - ✅ Contraseñas y credenciales de autenticación
 - ✅ API keys (GitHub, OpenAI, AWS, etc.)
 - ✅ Tokens JWT y OAuth
@@ -113,19 +130,25 @@ El servidor incluye un **sistema de protección automática** que previene el al
 📖 **[Documentación completa del sistema de sanitización →](docs/SANITIZATION.md)**
 
 ### Deduplicación Semántica Automática
+
 El servidor incluye un sistema de **deduplicación inteligente** que previene guardar conocimiento redundante:
+
 - Antes de guardar una nueva entrada, el sistema verifica si ya existe contenido similar (> 92% de similitud semántica).
 - Funciona **independientemente del idioma**: detecta duplicados aunque estén en español, inglés u otros idiomas.
 - Si se detecta un duplicado, el sistema devuelve un error `KNOWLEDGE_DUPLICATE` con el ID y título de la entrada existente.
 
 ### Gestión Automática de Logs
+
 Para evitar que los logs consuman espacio en disco:
+
 - **Rotación Automática**: Los archivos de log se rotan cuando superan los 5MB.
 - **Limpieza Automática**: Al iniciar el servidor, se eliminan automáticamente logs con más de 3 días de antigüedad.
 - **Ubicación**: Los logs se guardan en `/tmp/gabo-mcp.log` y `/tmp/gabo-mcp-traffic.log`.
 
 ### Campo `source` Optimizado
+
 El campo `source` está diseñado para patrones y contextos reutilizables:
+
 - ✅ **Recomendado**: `"auth_flow_optimization"`, `"db_migration_pattern"`
 - ❌ **Evitar**: Rutas de archivos locales específicas (a menos que sea crítico)
 
@@ -138,9 +161,58 @@ El campo `source` está diseñado para patrones y contextos reutilizables:
 3.  **Variables de Entorno**: Configura tu `MONGODB_URI` en el archivo `.env`.
 4.  **Autenticación**: En el primer arranque, el servidor generará una **Master Key**. Cópiala y añádela a la configuración de tu cliente MCP (ej. `MCP_API_KEY=gabo_...`).
 
+### Configuración para OpenCode
+
+OpenCode ejecuta **binarios** directamente (no `tsx`, no `node dist/index.js`). Asegúrate de que `dist/index.js` sea ejecutable y tenga shebang:
+
+```bash
+chmod +x dist/index.js
+```
+
+Ejemplo de `opencode.json`:
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "gabo-mcp-local": {
+      "type": "local",
+      "command": ["/Users/gabo/Documents/GitHub/gabo-mcp/dist/index.js"],
+      "enabled": true,
+      "environment": {
+        "NODE_ENV": "production",
+        "MCP_API_KEY": "gabo_XXXX",
+        "MCP_HOST": "opencode"
+      },
+      "timeout": 15000
+    }
+  }
+}
+```
+
+Notas:
+
+- `MCP_HOST=opencode` activa compatibilidad para OpenCode sin romper otros hosts.
+- `MCP_API_KEY` se inyecta por `environment` y no se expone en el prompt.
+
 ---
 
-## 📖 Documentación Adicional
+## 📚 Documentación Completa
+
+### Manifesto y Filosofía
+
+- **[MANIFESTO.md](docs/MANIFESTO.md)** - Filosofía y principios del proyecto
+
+### Configuraciones por Cliente
+
+- **[OPENCODE_CONFIG.md](docs/OPENCODE_CONFIG.md)** - Configuración específica para OpenCode
+- **[ANTIGRAVITY_CONFIG.md](docs/ANTIGRAVITY_CONFIG.md)** - Configuración para Antigravity
+
+### Funcionalidades
+
+- **[FUNCIONALIDADES.md](docs/FUNCIONALIDADES.md)** - Documentación detallada de las 7 herramientas
+
+### Documentación Técnica
 
 - [Arquitectura Técnica](docs/ARCHITECTURE.md): Detalles sobre Zod SSOT, Middlewares y el diseño del sistema.
 - [Guía de Instalación](docs/SETUP_GUIDE.md): 3 formas de correr y probar el servidor.

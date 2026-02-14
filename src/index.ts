@@ -73,10 +73,6 @@ async function main() {
     } catch (e) { }
   });
 
-  const shouldHandshakeEarly =
-    process.env.MCP_HOST === "opencode" ||
-    process.env.MCP_EARLY_HANDSHAKE === "true";
-
   const startBackend = async () => {
     try {
       // Cleanup old logs on startup
@@ -97,15 +93,13 @@ async function main() {
 
   try {
     const transport = new StdioServerTransport();
-    if (shouldHandshakeEarly) {
-      await server.connect(transport);
-      logger.info("🚀 Gabo MCP Server connected and ready! (Transport: stdio)");
-      await startBackend();
-    } else {
-      await startBackend();
-      await server.connect(transport);
-      logger.info("🚀 Gabo MCP Server connected and ready! (Transport: stdio)");
-    }
+
+    // Always do handshake first for fast MCP client response
+    await server.connect(transport);
+    logger.info("🚀 Gabo MCP Server connected and ready! (Transport: stdio)");
+
+    // Then connect to MongoDB in background
+    await startBackend();
 
     if (isInspector) {
       logger.info("🌐 MCP Inspector ready at http://localhost:5173");
