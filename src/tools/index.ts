@@ -8,6 +8,7 @@ import { storeKnowledgeTool } from "./store-knowledge/index.js";
 import { searchKnowledgeTool } from "./search-knowledge/index.js";
 import { listKnowledgeTool } from "./list-knowledge/index.js";
 import { getKnowledgeTool } from "./get-knowledge/index.js";
+import { deleteKnowledgeTool } from "./delete-knowledge/index.js";
 import { semanticSearchTool } from "./semantic-search/index.js";
 import { suggestPatternsTool } from "./suggest-patterns/index.js";
 import { getPitfallsTool } from "./get-pitfalls/index.js";
@@ -20,6 +21,7 @@ export {
   searchKnowledgeTool,
   listKnowledgeTool,
   getKnowledgeTool,
+  deleteKnowledgeTool,
   semanticSearchTool,
   suggestPatternsTool,
   getPitfallsTool,
@@ -37,6 +39,7 @@ export function registerAllTools(server: McpServer): void {
     searchKnowledgeTool,
     listKnowledgeTool,
     getKnowledgeTool,
+    deleteKnowledgeTool,
     semanticSearchTool,
     suggestPatternsTool,
     getPitfallsTool,
