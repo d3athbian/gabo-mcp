@@ -1,19 +1,15 @@
-# Knowledge MCP - Atlas Vector Search Setup
+# Búsqueda Semántica
 
-Este servidor utiliza **MongoDB Atlas Vector Search** para realizar búsquedas semánticas. A diferencia de las versiones anteriores, este enfoque es "Pure Vector": el servidor no genera embeddings, sino que espera recibir el vector listo desde el cliente o guardarlo directamente.
+La herramienta `search` soporta búsqueda semántica mediante vectores.
 
-## Requisitos de Atlas
+## Índice de Vector Search
 
-Debes configurar un índice de búsqueda vectorial en tu cluster de MongoDB Atlas para que la herramienta `semantic_search` funcione.
+Configura en MongoDB Atlas:
 
-### Configuración del Índice
-
-1. Ve a tu cluster en [MongoDB Atlas](https://cloud.mongodb.com).
-2. Haz clic en la pestaña **"Search"**.
-3. Haz clic en **"Create Index"**.
-4. Selecciona **"Vector Search"** (JSON Editor).
-5. Selecciona la base de datos `knowledge_mcp` y la colección `knowledge_entries`.
-6. Pega la siguiente configuración (ajusta `dimensions` según el modelo que uses, ej. 1536 para OpenAI o 768 para Nomic):
+1. Ve a tu cluster → pestaña **"Search"**
+2. Crea un índice **Vector Search** (JSON Editor)
+3. Selecciona db `knowledge_mcp`, colección `knowledge_entries`
+4. Configuración:
 
 ```json
 {
@@ -28,26 +24,23 @@ Debes configurar un índice de búsqueda vectorial en tu cluster de MongoDB Atla
 }
 ```
 
-7. Haz clic en **"Next"** y luego en **"Create Search Index"**.
-8. **Nombre del Índice**: Debe llamarse exactamente `vector_index`.
+5. Nombre del índice: `vector_index`
 
-## Herramientas Vectoriales
+## Modelos de Embeddings
 
-### 1. store_knowledge
-Permite guardar una entrada con un vector pre-calculado.
+El cliente es responsable de generar embeddings. Modelos compatibles:
 
-**Argumentos:**
-- `type`: Categoría
-- `title`: Título
-- `content`: Contenido
-- `embedding`: (Opcional) Array de números `[0.1, 0.2, ...]`
+- **Nomic**: `nomic-embed-text` (768 dimensiones)
+- **OpenAI**: `text-embedding-3-small` (1536 dimensiones)
+- **Ollama**: `nomic-embed-text` (768 dimensiones)
 
-### 2. semantic_search
-Busca conocimiento comparando vectores.
+## Uso
 
-**Argumentos:**
-- `query_vector`: Array de números que representa la consulta.
-- `limit`: Cantidad de resultados.
-
-## Notas de Seguridad
-Todas las llamadas requieren el parámetro `api_key` que se genera al iniciar el servidor por primera vez.
+```typescript
+search({
+  query: "cómo manejar errores en python",
+  mode: "semantic",
+  query_vector: [0.1, 0.2, -0.5, ...],
+  limit: 5
+});
+```

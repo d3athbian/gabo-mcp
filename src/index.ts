@@ -17,8 +17,6 @@ const isInspector =
   process.env.MCP_INSPECTOR === "true" ||
   process.argv.some((arg) => arg.includes("inspector"));
 
-
-
 import { registerResources } from "./resources/index.js";
 import { registerPrompts } from "./prompts/index.js";
 
@@ -32,61 +30,19 @@ registerResources(server);
 registerPrompts(server);
 
 async function main() {
-  const trace = (direction: string, data: string) => {
-    logger.logTraffic(direction, data);
-  };
-
-  const originalStdoutWrite = process.stdout.write.bind(process.stdout);
-  process.stdout.write = function (
-    chunk: string | Uint8Array,
-    encodingOrCallback?: BufferEncoding | ((error?: Error | null) => void),
-    maybeCallback?: (error?: Error | null) => void,
-  ): boolean {
-    try {
-      trace(
-        "📤 OUT",
-        typeof chunk === "string" ? chunk : chunk.toString(),
-      );
-    } catch (e) { }
-
-    if (typeof encodingOrCallback === "function") {
-      return originalStdoutWrite(chunk, encodingOrCallback);
-    }
-
-    if (typeof maybeCallback === "function") {
-      return originalStdoutWrite(
-        chunk,
-        encodingOrCallback as BufferEncoding | undefined,
-        maybeCallback,
-      );
-    }
-
-    return originalStdoutWrite(
-      chunk,
-      encodingOrCallback as BufferEncoding | undefined,
-    );
-  };
-
-  process.stdin.on("data", (chunk) => {
-    try {
-      trace("📥 IN", chunk.toString());
-    } catch (e) { }
-  });
-
   const startBackend = async () => {
     try {
-      // Cleanup old logs on startup
       logger.cleanup();
 
       await connectToDatabase();
 
       const newKey = await ensureApiKeyExists();
       if (newKey) {
-        logger.info(`🔑 First-time API key generated: ${newKey}`);
-        logger.warn("⚠️  Add this key to your MCP config (e.g. Continue.dev or Cursor)");
+        logger.info(`First-time API key generated: ${newKey}`);
+        logger.warn("Add this key to your MCP config");
       }
     } catch (error) {
-      logger.error("❌ Failed to connect to MongoDB", error);
+      logger.error("Failed to connect to MongoDB", error);
       process.exit(1);
     }
   };
@@ -94,20 +50,17 @@ async function main() {
   try {
     const transport = new StdioServerTransport();
 
-    // Always do handshake first for fast MCP client response
     await server.connect(transport);
-    logger.info("🚀 Gabo MCP Server connected and ready! (Transport: stdio)");
+    logger.info("Gabo MCP Server connected and ready! (Transport: stdio)");
 
-    // Then connect to MongoDB in background
     await startBackend();
 
     if (isInspector) {
-      logger.info("🌐 MCP Inspector ready at http://localhost:5173");
+      logger.info("MCP Inspector ready at http://localhost:5173");
     }
 
-    // Graceful shutdown
     const shutdown = async (signal: string) => {
-      logger.info(`\n🛑 Received ${signal}, shutting down...`);
+      logger.info(`Received ${signal}, shutting down...`);
       await closeDatabase();
       process.exit(0);
     };
@@ -116,16 +69,14 @@ async function main() {
     process.on("SIGTERM", () => shutdown("SIGTERM"));
     process.on("SIGQUIT", () => shutdown("SIGQUIT"));
 
-    // Handle parent process disconnect (when VS Code closes)
     process.on("disconnect", async () => {
-      logger.info("\n👋 Parent process disconnected, shutting down...");
+      logger.info("Parent process disconnected, shutting down...");
       await closeDatabase();
       process.exit(0);
     });
 
-    // Handle stdin close
     process.stdin.on("end", async () => {
-      logger.info("\n👋 Input stream closed, shutting down...");
+      logger.info("Input stream closed, shutting down...");
       await closeDatabase();
       process.exit(0);
     });

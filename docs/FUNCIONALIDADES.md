@@ -1,10 +1,10 @@
 # Funcionalidades de Gabo MCP
 
-## 7 Herramientas Disponibles
+## 5 Herramientas Disponibles
 
-### 1. store_knowledge
+### 1. save
 
-Guarda conocimiento en la base de datos.
+Guarda conocimiento directamente en la base de datos. El sistema analiza el contenido y devuelve advertencias si detecta datos sensibles o entradas similares, pero el usuario decide si guardar.
 
 **Input:**
 
@@ -16,18 +16,14 @@ Guarda conocimiento en la base de datos.
   tags?: string[],
   source?: string,
   embedding?: number[],
-  metadata?: Record<string, unknown>
+  metadata?: Record<string, unknown>,
+  skip_sanitization?: boolean
 }
 ```
 
 **Ejemplo de uso:**
 
-```
-"Gabo, guarda este patrón de validación como PATTERN.
-Título: 'Validación de tipos en Python'.
-Contenido: 'Usar Pydantic para validación de tipos...'.
-Tags: #python, #validation"
-```
+> "Gabo, guarda este patrón como PATTERN. Título: 'Auth Flow'. Contenido: '...'"
 
 **Respuesta:**
 
@@ -35,31 +31,49 @@ Tags: #python, #validation"
 {
   "success": true,
   "id": "507f1f77bcf86cd799439011",
-  "message": "Stored"
+  "type": "PATTERN",
+  "title": "Auth Flow",
+  "created_at": "2024-01-15T10:00:00Z",
+  "warnings": ["CREDENTIALS: Possible API key detected"],
+  "similar_entries": [{ "id": "...", "title": "...", "similarity": 87 }],
+  "message": "Saved with 1 warning(s)"
 }
 ```
 
-**Sanitización:** El contenido se verifica contra el perfil de seguridad activo.
-
 ---
 
-### 2. search_knowledge
+### 2. search
 
-Búsqueda tradicional por palabras clave.
+Búsqueda unificada que combina texto, vectores y puede incluir pitfalls/patterns.
 
 **Input:**
 
 ```typescript
 {
   query: string,
-  type?: KnowledgeType  // Opcional
+  type?: KnowledgeType,
+  mode: "text" | "semantic" | "hybrid",
+  query_vector?: number[],
+  include_pitfalls?: boolean,
+  include_patterns?: boolean,
+  limit?: number
 }
 ```
+
+**Modos de búsqueda:**
+
+- `text`: Búsqueda por palabras clave
+- `semantic`: Búsqueda por vectores (requiere query_vector)
+- `hybrid`: Combina ambos métodos
 
 **Ejemplo de uso:**
 
 ```
 "Busca en mi base de conocimientos cualquier cosa relacionada con 'docker'"
+```
+
+```
+"Busca problemas de auth y busca también los pitfalls que tengo registrados"
 ```
 
 **Respuesta:**
@@ -68,46 +82,28 @@ Búsqueda tradicional por palabras clave.
 {
   "success": true,
   "query": "docker",
+  "mode": "hybrid",
   "results": [...],
-  "count": 5
+  "count": 5,
+  "pitfalls": [...],
+  "patterns": [...],
+  "vector_available": true
 }
 ```
 
 ---
 
-### 3. semantic_search
+### 3. list
 
-Búsqueda semántica usando vectores.
+Lista las entradas de conocimiento con paginación.
 
 **Input:**
 
 ```typescript
 {
-  query_vector: number[],  // Array de 768 dimensiones
   type?: KnowledgeType,
-  limit?: number  // Default: 10
-}
-```
-
-**Nota:** Requiere embeddings. El cliente debe generar los vectores.
-
-**Ejemplo de uso:**
-
-```
-"Encuentra soluciones similares a problemas de concurrencia en bases de datos"
-```
-
----
-
-### 4. list_knowledge
-
-Lista las entradas de conocimiento.
-
-**Input:**
-
-```typescript
-{
-  limit?: number  // Default: 10
+  limit?: number,
+  offset?: number
 }
 ```
 
@@ -129,15 +125,16 @@ Lista las entradas de conocimiento.
 
 ---
 
-### 5. get_knowledge
+### 4. get
 
-Obtiene el contenido completo de una entrada por ID.
+Obtiene el contenido completo de una entrada por ID. Soporta múltiples formatos de salida.
 
 **Input:**
 
 ```typescript
 {
-  id: string; // ObjectId de MongoDB
+  id: string,
+  format: "json" | "markdown" | "plain"
 }
 ```
 
@@ -147,104 +144,61 @@ Obtiene el contenido completo de una entrada por ID.
 "Dame el detalle completo de la entrada 507f1f77bcf86cd799439011"
 ```
 
+```
+"Dame el detalle en markdown de la entrada 507f1f77bcf86cd799439011"
+```
+
+**Respuesta en markdown:**
+
+```markdown
+## Mi Patrón de Auth
+
+**Tipo:** PATTERN | **Tags:** #auth #jwt
+
+Contenido del patrón...
+
 ---
 
-### 6. suggest_patterns
+_Creado: 15/01/2024_
+```
 
-Analiza el contexto y sugiere patrones similares.
+---
+
+### 5. delete
+
+Elimina una entrada de conocimiento.
 
 **Input:**
 
 ```typescript
 {
-  query: string,
-  context?: string
+  id: string;
 }
 ```
 
 **Ejemplo de uso:**
 
 ```
-"Analiza este código y dime si encaja con algún patrón existente"
-```
-
-**Respuesta:**
-
-```json
-{
-  "success": true,
-  "query": "mi código de auth",
-  "suggestions": [
-    {
-      "id": "...",
-      "title": "JWT Auth Pattern",
-      "type": "PATTERN",
-      "matchReason": "Similar keywords"
-    }
-  ],
-  "recommendation": "Review similar items to avoid duplicates"
-}
-```
-
----
-
-### 7. get_pitfalls
-
-Genera checklist preventivo basado en errores conocidos.
-
-**Input:**
-
-```typescript
-{
-  query: string,
-  context?: string
-}
-```
-
-**Ejemplo de uso:**
-
-```
-"Antes de hacer esta refactorización, dime qué pitfalls debo evitar"
-```
-
-**Respuesta:**
-
-```json
-{
-  "success": true,
-  "query": "refactorización database",
-  "pitfalls": [
-    {
-      "id": "...",
-      "title": "Always Search Knowledge Base Before Coding",
-      "type": "PITFALL",
-      "preventiveCheck": "Check: Always Search Knowledge Base Before Coding"
-    }
-  ],
-  "checklist": "- [ ] Check: Always Search Knowledge Base Before Coding",
-  "status": "⚠️ Attention: Known pitfalls detected"
-}
+"Elimina la entrada 507f1f77bcf86cd799439011"
 ```
 
 ---
 
 ## Sistema de Sanitización
 
-### Perfiles Disponibles
+El sistema detecta contenido sensible y devuelve advertencias:
 
-| Perfil     | Detecta                               | Bloquea                     |
-| ---------- | ------------------------------------- | --------------------------- |
-| `work`     | credentials, pii, corporate, env_vars | Todo + corporate + env vars |
-| `personal` | credentials, pii                      | Credenciales + PII crítico  |
+- **credentials**: Contraseñas, API keys, tokens
+- **PII**: Emails, teléfonos, datos personales
 
-### Detectores
+El usuario decide qué guardar. Para saltar la verificación:
 
-| Detector      | Detecta                       | Ejemplos                    |
-| ------------- | ----------------------------- | --------------------------- |
-| `credentials` | Passwords, API keys, tokens   | `password=secret`, `sk-xxx` |
-| `pii`         | Emails, phones, CC, SSN       | `test@example.com`          |
-| `corporate`   | Nombres de empresas, keywords | `Google`, `confidential`    |
-| `env_vars`    | Referencias a variables       | `process.env.API_KEY`       |
+```typescript
+save({
+  ...,
+  skip_sanitization: true
+})
+```
 
 ---
 
@@ -264,22 +218,6 @@ const KnowledgeTypeSchema = z.enum([
   "INFRASTRUCTURE",
   "TESTING",
 ]);
-```
-
----
-
-## Deduplicación
-
-El sistema detecta contenido semánticamente similar (>92% similitud) antes de guardar.
-
-**Respuesta si es duplicado:**
-
-```json
-{
-  "error": "KNOWLEDGE_DUPLICATE",
-  "existingId": "507f1f77bcf86cd799439011",
-  "existingTitle": "Patrón existente"
-}
 ```
 
 ---
@@ -310,8 +248,7 @@ En caso de error:
     type: "text",
     text: JSON.stringify({
       success: false,
-      error: "Mensaje de error",
-      code: "ERROR_CODE"
+      error: "Mensaje de error"
     })
   }],
   isError: true
@@ -322,10 +259,8 @@ En caso de error:
 
 ## Códigos de Error
 
-| Código                | Descripción                       |
-| --------------------- | --------------------------------- |
-| `AUTH_ERROR`          | API key inválida o faltante       |
-| `SANITIZATION_ERROR`  | Contenido bloqueado por seguridad |
-| `KNOWLEDGE_DUPLICATE` | Entrada muy similar ya existe     |
-| `NOT_FOUND`           | ID no encontrado                  |
-| `VALIDATION_ERROR`    | Schema inválido                   |
+| Código             | Descripción                 |
+| ------------------ | --------------------------- |
+| `AUTH_ERROR`       | API key inválida o faltante |
+| `NOT_FOUND`        | ID no encontrado            |
+| `VALIDATION_ERROR` | Schema inválido             |

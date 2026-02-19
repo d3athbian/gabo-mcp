@@ -11,7 +11,6 @@ import type {
   SearchKnowledgeInput,
   SearchResult,
 } from "../types.js";
-import { searchKnowledgeVector } from "./vector-search.js";
 
 /**
  * Convert string ID to ObjectId safely
@@ -41,18 +40,6 @@ export async function storeKnowledge(
   } = input;
 
   const collection = getKnowledgeEntriesCollection();
-
-  // Deduplication check (if embedding is provided)
-  if (embedding && embedding.length > 0) {
-    const similar = await searchKnowledgeVector(embedding, 1, type);
-    if (similar.length > 0) {
-      const bestMatch = similar[0];
-      // Similarity threshold: 0.92 (arbitrary high bar for "pretty much the same")
-      if (bestMatch.embedding_score && bestMatch.embedding_score > 0.92) {
-        throw new Error(`KNOWLEDGE_DUPLICATE: A very similar entry already exists (ID: ${bestMatch.id}, Title: "${bestMatch.title}")`);
-      }
-    }
-  }
 
   const now = new Date().toISOString();
   const doc = {

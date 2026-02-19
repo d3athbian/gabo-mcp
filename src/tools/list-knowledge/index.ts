@@ -1,21 +1,22 @@
 import { successResponse } from "../../utils/tool-handler/index.js";
 import { listKnowledge } from "../../db/queries.js";
-import { ListKnowledgeSchema } from "../../schemas/index.schema.js";
+import { ListKnowledgeSchema } from "./list-knowledge.type.js";
 import type { ToolDefinition } from "../index.type.js";
 import type { ListKnowledgeArgs } from "./list-knowledge.type.js";
 
 export const listKnowledgeTool: ToolDefinition<ListKnowledgeArgs> = {
-    name: "list_knowledge",
-    title: "List Knowledge",
-    description: "List knowledge entries.",
-    inputSchema: ListKnowledgeSchema,
-    handler: async (args) => {
-        const { limit } = args;
-        const { data: entries, count } = await listKnowledge(undefined, limit);
+  name: "list",
+  title: "List Knowledge",
+  description:
+    "List knowledge entries with pagination and optional type filter.",
+  inputSchema: ListKnowledgeSchema,
+  handler: async (args) => {
+    const { type, limit, offset } = args;
+    const { data: entries, count } = await listKnowledge(type, limit, offset);
 
-        return successResponse({
-            entries,
-            total: count,
-        });
-    },
+    return successResponse({
+      entries,
+      total: count,
+    });
+  },
 };

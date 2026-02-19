@@ -5,10 +5,7 @@
  */
 
 import { z } from "zod";
-import {
-  TimestampsSchema,
-  PaginationSchema,
-} from "./base.schema.js";
+import { TimestampsSchema, PaginationSchema } from "./base.schema.js";
 
 // ============================================================================
 // ENUMS
@@ -43,7 +40,12 @@ export const BaseKnowledgeSchema = z.object({
   title: z.string().min(1, "Title is required"),
   content: z.string().min(1, "Content is required"),
   tags: z.array(z.string()).default([]),
-  source: z.string().optional().describe("Context or pattern this knowledge applies to (e.g. 'auth_flow_optimization', 'db_migration_pattern'). Avoid specific local file paths unless critical."),
+  source: z
+    .string()
+    .optional()
+    .describe(
+      "Context or pattern this knowledge applies to (e.g. 'auth_flow_optimization', 'db_migration_pattern'). Avoid specific local file paths unless critical.",
+    ),
   metadata: z.record(z.any()).optional(),
 });
 
@@ -59,7 +61,6 @@ export const KnowledgeEntrySchema = BaseKnowledgeSchema.extend({
 
 export type KnowledgeEntry = z.infer<typeof KnowledgeEntrySchema>;
 
-// StoredEntry is a subset of KnowledgeEntry for external responses
 export const StoredEntrySchema = KnowledgeEntrySchema.pick({
   id: true,
   type: true,
@@ -82,11 +83,13 @@ export const CreateKnowledgeInputSchema = BaseKnowledgeSchema.partial({
 
 export type CreateKnowledgeInput = z.infer<typeof CreateKnowledgeInputSchema>;
 
-export const SearchKnowledgeInputSchema = z.object({
-  query: z.string(),
-  type: KnowledgeTypeSchema.optional(),
-  similarityThreshold: z.number().optional(),
-}).merge(PaginationSchema);
+export const SearchKnowledgeInputSchema = z
+  .object({
+    query: z.string(),
+    type: KnowledgeTypeSchema.optional(),
+    similarityThreshold: z.number().optional(),
+  })
+  .merge(PaginationSchema);
 
 export type SearchKnowledgeInput = z.infer<typeof SearchKnowledgeInputSchema>;
 
@@ -106,17 +109,8 @@ export type SearchResult = z.infer<typeof SearchResultSchema>;
 // TOOL INFRASTRUCTURE
 // ============================================================================
 
-const REQUIRE_ARG_API_KEY =
-  process.env.MCP_REQUIRE_ARG_KEY !== "false" &&
-  process.env.MCP_HOST !== "opencode";
-
-export const AuthenticatedToolSchema = z.object({
-  api_key: REQUIRE_ARG_API_KEY
-    ? z.string().min(1, "API key is required")
-    : z.string().min(1, "API key is required").optional(),
-});
-
-export type AuthenticatedToolArgs = z.infer<typeof AuthenticatedToolSchema>;
+// Authentication is now handled via process.env.MCP_API_KEY in middleware
+// No need for api_key in tool arguments
 
 export const MCPToolResultSchema = z.object({
   success: z.boolean(),
@@ -125,57 +119,6 @@ export const MCPToolResultSchema = z.object({
 });
 
 export type MCPToolResult = z.infer<typeof MCPToolResultSchema>;
-
-// ============================================================================
-// TOOL ARGUMENT SCHEMAS
-// ============================================================================
-
-export const StoreKnowledgeSchema = BaseKnowledgeSchema.extend({
-  embedding: z.array(z.number()).optional(),
-}).merge(AuthenticatedToolSchema);
-
-export type StoreKnowledgeArgs = z.infer<typeof StoreKnowledgeSchema>;
-
-export const SearchKnowledgeSchema = z.object({
-  query: z.string().min(1, "Query is required"),
-  type: KnowledgeTypeSchema.optional(),
-}).merge(AuthenticatedToolSchema);
-
-export type SearchKnowledgeArgs = z.infer<typeof SearchKnowledgeSchema>;
-
-export const ListKnowledgeSchema = z.object({
-  limit: z.number().positive().int().default(10),
-}).merge(AuthenticatedToolSchema);
-
-export type ListKnowledgeArgs = z.infer<typeof ListKnowledgeSchema>;
-
-export const GetKnowledgeSchema = z.object({
-  id: z.string().min(1, "ID is required"),
-}).merge(AuthenticatedToolSchema);
-
-export type GetKnowledgeArgs = z.infer<typeof GetKnowledgeSchema>;
-
-export const SemanticSearchSchema = z.object({
-  query_vector: z.array(z.number()).min(1, "Vector is required"),
-  type: KnowledgeTypeSchema.optional(),
-  limit: z.number().positive().int().default(10),
-}).merge(AuthenticatedToolSchema);
-
-export type SemanticSearchArgs = z.infer<typeof SemanticSearchSchema>;
-
-export const SuggestPatternsSchema = z.object({
-  query: z.string().min(1, "Query is required"),
-  context: z.string().optional(),
-}).merge(AuthenticatedToolSchema);
-
-export type SuggestPatternsArgs = z.infer<typeof SuggestPatternsSchema>;
-
-export const GetPitfallsSchema = z.object({
-  query: z.string().min(1, "Query is required"),
-  context: z.string().optional(),
-}).merge(AuthenticatedToolSchema);
-
-export type GetPitfallsArgs = z.infer<typeof GetPitfallsSchema>;
 
 // ============================================================================
 // MCP RESPONSE SCHEMAS
@@ -212,11 +155,13 @@ export type ToolResponseData = z.infer<typeof ToolResponseDataSchema>;
 // API KEY SCHEMAS
 // ============================================================================
 
-export const ApiKeySchema = z.object({
-  id: z.string(),
-  key: z.string(),
-  last_used: z.string().optional(),
-  is_active: z.boolean(),
-}).merge(TimestampsSchema.pick({ created_at: true }));
+export const ApiKeySchema = z
+  .object({
+    id: z.string(),
+    key: z.string(),
+    last_used: z.string().optional(),
+    is_active: z.boolean(),
+  })
+  .merge(TimestampsSchema.pick({ created_at: true }));
 
 export type ApiKey = z.infer<typeof ApiKeySchema>;

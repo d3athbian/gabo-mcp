@@ -8,7 +8,7 @@ import {
   ContentBlockSchema,
   ResponseContentSchema,
   ErrorResponseSchema,
-  LogLevelSchema
+  LogLevelSchema,
 } from "./schemas/base.schema.js";
 
 // ============================================================================
@@ -94,7 +94,6 @@ export type LoggerInterface = {
   warn: LogFn;
   error: LogErrorFn;
   debug: LogFn;
-  logTraffic: (direction: string, data: string) => void;
   cleanup: () => void;
 };
 

@@ -1,225 +1,187 @@
-# Gabo MCP (MongoDB Atlas Edition) 🚀
+# Gabo MCP (MongoDB Atlas Edition)
 
 Tu memoria personal de inteligencia artificial. **Gabo MCP** es un servidor de Model Context Protocol diseñado para capturar, estructurar y reutilizar conocimiento técnico de forma persistente.
 
 ---
 
-## 🧠 ¿Qué es Gabo MCP?
+## ¿Qué es Gabo MCP?
 
-Es el puente entre tus pensamientos técnicos y tus herramientas de IA. En lugar de explicar tus patrones de diseño o decisiones de arquitectura una y otra vez, Gabo MCP permite que tus agentes (como Cursor, Claude o Continue) **recuerden** cómo trabajas.
+Es el puente entre tus pensamientos técnicos y tus herramientas de IA. En lugar de explicar tus patrones de diseño o decisiones de arquitectura una y otra vez, Gabo MCP permite que tus agentes (como MiniMax, Gemini, Codex, Claude, Cursor o Continue) **recuerden** cómo trabajas.
 
-- 📝 **Captura**: Guarda razonamientos, decisiones y snippets refinados en el momento.
-- 🔍 **Recupera**: Encuentra información por palabras clave o por **significado semántico**.
-- 🔐 **Controla**: Tú decides qué se guarda y quién accede mediante una clave secreta.
-- 🔄 **Aprendizaje Automático**: Ayuda a los agentes a destilar lecciones y patrones automáticamente tras cada tarea.
-- ⚠️ **Prevención de Errores**: Sistema de "Checklist Preventivos" basado en errores pasados para evitar regresiones.
-- 🔄 **Bucle de Feedback Negativo**: Detección automática de fallos y proyecciones para atajar errores antes de que se repitan.
+- **Captura**: Guarda razonamientos, decisiones y snippets refinados en el momento.
+- **Recupera**: Encuentra información por palabras clave o por **significado semántico**.
+- **Controla**: Tú decides qué se guarda y quién accede mediante una clave secreta.
+- **Prevención de Errores**: Busca pitfalls y patrones automáticamente.
 
 ---
 
-## 🛠️ Herramientas y Ejemplos de Uso
+## Herramientas Disponibles
 
-Aquí tienes cómo puedes interactuar con el servidor a través de prompts en tu entorno favorito:
+Gabo MCP ofrece 5 herramientas simples:
 
-### 1. Guardar Conocimiento (`store_knowledge`)
+### 1. save - Guardar Conocimiento
 
-Guarda fragmentos de código, decisiones de diseño o prompts que funcionan bien. También puedes guardar **Errores/Peligros**.
+Guarda conocimiento directamente en la base de datos. El sistema advertirá sobre contenido sensible pero tú decides qué guardar.
 
-**Ejemplo de Prompt:**
-
-> "Gabo, guarda esta lógica de validación como `PATTERN`. Título: 'Validación de tipos en Python'. Contenido: 'Usar Pydantic para...' con etiquetas `#python, #validation`."
-
-### 2. Buscar por Texto (`search_knowledge`)
-
-Búsqueda tradicional por palabras clave en tus títulos y descripciones.
-
-**Ejemplo de Prompt:**
-
-> "Busca en mi base de conocimientos cualquier cosa relacionada con 'docker' en la categoría `INFRASTRUCTURE`."
-
-### 3. Búsqueda Semántica (`semantic_search`)
-
-Encuentra conceptos similares aunque no compartan exactamente las mismas palabras.
-_Nota: Esta herramienta suele ser invocada automáticamente por agentes inteligentes cuando necesitan contexto profundo._
-
-**Ejemplo de Prompt:**
-
-> "Encuentra soluciones que he usado antes para problemas de concurrencia en bases de datos."
-
-### 4. Listar Entradas (`list_knowledge`)
-
-Revisa qué tienes guardado en tu base de datos.
-
-**Ejemplo de Prompt:**
-
-> "Muéstrame las últimas 5 entradas de conocimiento que he guardado."
-
-### 5. Obtener Detalle (`get_knowledge`)
-
-Recuperar el contenido completo de una entrada específica.
-
-**Ejemplo de Prompt:**
-
-> "Dame el detalle completo de la entrada con ID `65c2f...` para revisar el código que guardé ayer."
-
-### 6. Sugerir Patrones (`suggest_patterns`)
-
-Analiza la tarea actual para sugerir categorías o detectar si algo similar ya existe.
-
-**Ejemplo de Prompt:**
-
-> "Analiza estos cambios y dime si encajan con algún patrón que ya tengamos en mi base de conocimientos."
-
-### 7. Prevenir Errores (`get_pitfalls`)
-
-Genera un checklist preventivo basado en errores pasados para no repetirlos.
-
-**Ejemplo de Prompt:**
-
-> "Antes de empezar esta refactorización, dime si hay algún `PITFALL` conocido que deba evitar."
-
----
-
-## 🏗️ Categorías de Conocimiento
-
-El sistema organiza tu cerebro digital en estos tipos universales:
-
-| Tipo                | Propósito                                                                             |
-| :------------------ | :------------------------------------------------------------------------------------ |
-| `UI_UX`             | Decisiones de interfaz, experiencia de usuario y componentes visuales.                |
-| `ARCH_DECISION`     | Decisiones de arquitectura de alto nivel y sus trade-offs.                            |
-| `PROMPT`            | Prompts refinados que dan resultados excelentes.                                      |
-| `ERROR_CORRECTION`  | Lecciones aprendidas tras corregir bugs complejos.                                    |
-| `CODE_SNIPPET`      | Fragmentos de código reutilizables (Cualquier lenguaje).                              |
-| `DESIGN_DECISION`   | Principios y estándares de diseño de software.                                        |
-| `TECHNICAL_INSIGHT` | Descubrimientos técnicos o "Aha!" moments.                                            |
-| `PATTERN`           | **Patrones Reutilizables**: Soluciones comunes a problemas (React, Python, Go, etc.). |
-| `PITFALL`           | **"Qué NO hacer"**: Errores conocidos y checklists preventivos.                       |
-| `INFRASTRUCTURE`    | Conocimiento sobre Docker, Cloud, CI/CD y bases de datos.                             |
-| `TESTING`           | Estrategias de testing (Unit, E2E, QA) y patrones de prueba.                          |
-
----
-
-## 🔒 Características de Seguridad y Mantenimiento
-
-### 🛡️ Sistema de Sanitización de Contenido
-
-El servidor incluye un **sistema de protección automática** que previene el almacenamiento accidental de información sensible:
-
-**Perfiles de Seguridad**:
-
-- **`work`**: Seguridad máxima para entornos profesionales
-  - Bloquea: datos corporativos, información de usuarios/clientes, credenciales, PII, variables de entorno
-  - Ideal para: código de empresa, proyectos de clientes, trabajo sensible
-- **`personal`**: Seguridad estándar para proyectos personales
-  - Bloquea: credenciales, tokens, API keys, PII crítico
-  - Ideal para: proyectos personales, contribuciones open-source, aprendizaje
-
-**Qué detecta y bloquea**:
-
-- ✅ Contraseñas y credenciales de autenticación
-- ✅ API keys (GitHub, OpenAI, AWS, etc.)
-- ✅ Tokens JWT y OAuth
-- ✅ Strings de conexión a bases de datos
-- ✅ Emails, teléfonos, tarjetas de crédito
-- ✅ Nombres de empresas y dominios corporativos (perfil `work`)
-- ✅ Referencias a variables de entorno (perfil `work`)
-
-**Configuración**: Establece `SECURITY_PROFILE=work` o `personal` en tu `.env`
-
-📖 **[Documentación completa del sistema de sanitización →](docs/SANITIZATION.md)**
-
-### Deduplicación Semántica Automática
-
-El servidor incluye un sistema de **deduplicación inteligente** que previene guardar conocimiento redundante:
-
-- Antes de guardar una nueva entrada, el sistema verifica si ya existe contenido similar (> 92% de similitud semántica).
-- Funciona **independientemente del idioma**: detecta duplicados aunque estén en español, inglés u otros idiomas.
-- Si se detecta un duplicado, el sistema devuelve un error `KNOWLEDGE_DUPLICATE` con el ID y título de la entrada existente.
-
-### Gestión Automática de Logs
-
-Para evitar que los logs consuman espacio en disco:
-
-- **Rotación Automática**: Los archivos de log se rotan cuando superan los 5MB.
-- **Limpieza Automática**: Al iniciar el servidor, se eliminan automáticamente logs con más de 3 días de antigüedad.
-- **Ubicación**: Los logs se guardan en `/tmp/gabo-mcp.log` y `/tmp/gabo-mcp-traffic.log`.
-
-### Campo `source` Optimizado
-
-El campo `source` está diseñado para patrones y contextos reutilizables:
-
-- ✅ **Recomendado**: `"auth_flow_optimization"`, `"db_migration_pattern"`
-- ❌ **Evitar**: Rutas de archivos locales específicas (a menos que sea crítico)
-
----
-
-## ⚙️ Configuración Rápida
-
-1.  **Requisitos**: Node.js 20+ y una instancia de MongoDB Atlas.
-2.  **Instalación**: `npm install && npm run build`.
-3.  **Variables de Entorno**: Configura tu `MONGODB_URI` en el archivo `.env`.
-4.  **Autenticación**: En el primer arranque, el servidor generará una **Master Key**. Cópiala y añádela a la configuración de tu cliente MCP (ej. `MCP_API_KEY=gabo_...`).
-
-### Configuración para OpenCode
-
-OpenCode ejecuta **binarios** directamente (no `tsx`, no `node dist/index.js`). Asegúrate de que `dist/index.js` sea ejecutable y tenga shebang:
-
-```bash
-chmod +x dist/index.js
+```typescript
+save({
+  type: "PATTERN",
+  title: "Validación de tipos en Python",
+  content: "Usar Pydantic para validación...",
+  tags: ["python", "validation"],
+  embedding: [
+    /* vector opcional */
+  ],
+});
 ```
 
-Ejemplo de `opencode.json`:
+**Ejemplo de prompt:**
+
+> "Gabo, guarda esta lógica de validación como PATTERN. Título: 'Validación de tipos en Python'. Contenido: 'Usar Pydantic para...' con etiquetas #python, #validation"
+
+---
+
+### 2. search - Buscar Conocimiento
+
+Búsqueda unificada que combina texto, vectores y puede incluir pitfalls/patterns.
+
+```typescript
+search({
+  query: "docker",
+  type: "INFRASTRUCTURE",        // opcional
+  mode: "hybrid",                // text | semantic | hybrid
+  query_vector: [...],           // opcional para semantic/hybrid
+  include_pitfalls: true,        // incluir errores conocidos
+  include_patterns: true,        // incluir patrones
+  limit: 10
+})
+```
+
+**Ejemplo de prompt:**
+
+> "Busca en mi base de conocimientos cualquier cosa relacionada con 'docker'"
+
+> "Busca en mi base de conocimientos problemas de concurrencia en bases de datos y busca también los pitfalls que he registrado"
+
+---
+
+### 3. list - Listar Entradas
+
+Lista las entradas de conocimiento con paginación.
+
+```typescript
+list({
+  type: "PATTERN", // opcional
+  limit: 10,
+  offset: 0,
+});
+```
+
+**Ejemplo de prompt:**
+
+> "Muéstrame las últimas 5 entradas de conocimiento que he guardado"
+
+---
+
+### 4. get - Obtener Detalle
+
+Recupera el contenido completo de una entrada específica.
+
+```typescript
+get({
+  id: "65c2f...",
+  format: "json" | "markdown" | "plain",
+});
+```
+
+**Ejemplo de prompt:**
+
+> "Dame el detalle completo de la entrada con ID 65c2f... en formato markdown"
+
+---
+
+### 5. delete - Eliminar Entrada
+
+Elimina una entrada de conocimiento.
+
+```typescript
+delete {
+  id: "65c2f...",
+};
+```
+
+---
+
+## Categorías de Conocimiento
+
+El sistema organiza tu conocimiento en estos tipos:
+
+| Tipo                | Propósito                                       |
+| ------------------- | ----------------------------------------------- |
+| `UI_UX`             | Decisiones de interfaz y experiencia de usuario |
+| `ARCH_DECISION`     | Decisiones de arquitectura de alto nivel        |
+| `PROMPT`            | Prompts refinados que dan buenos resultados     |
+| `ERROR_CORRECTION`  | Lecciones de bugs corregidos                    |
+| `CODE_SNIPPET`      | Fragmentos de código reutilizables              |
+| `DESIGN_DECISION`   | Principios y estándares de diseño               |
+| `TECHNICAL_INSIGHT` | Descubrimientos técnicos                        |
+| `PATTERN`           | Patrones reutilizables                          |
+| `PITFALL`           | Errores conocidos a evitar                      |
+| `INFRASTRUCTURE`    | Docker, Cloud, CI/CD                            |
+| `TESTING`           | Estrategias de testing                          |
+
+---
+
+## Sistema de Sanitización
+
+El servidor incluye un sistema de detección de contenido sensible que **advierte pero no bloquea**:
+
+- Contraseñas y credenciales
+- API keys y tokens
+- Emails y datos personales
+
+El usuario decide qué guardar.
+
+---
+
+## Configuración Rápida
+
+1. **Requisitos**: Node.js 20+ y MongoDB Atlas
+2. **Instalación**: `npm install && npm run build`
+3. **Variables**: Configura `MONGODB_URI` en `.env`
+4. **API Key**: Configura `MCP_API_KEY` en tu cliente MCP
+
+### Configuración en Antigravity
 
 ```json
 {
-  "$schema": "https://opencode.ai/config.json",
-  "mcp": {
-    "gabo-mcp-local": {
-      "type": "local",
-      "command": ["/Users/gabo/Documents/GitHub/gabo-mcp/dist/index.js"],
-      "enabled": true,
-      "environment": {
-        "NODE_ENV": "production",
-        "MCP_API_KEY": "gabo_XXXX",
-        "MCP_HOST": "opencode"
-      },
-      "timeout": 15000
+  "mcpServers": {
+    "gabo-mcp": {
+      "command": "npx",
+      "args": ["-y", "tsx", "/path/to/gabo-mcp/src/index.ts"],
+      "env": {
+        "MONGODB_URI": "mongodb+srv://...",
+        "MCP_API_KEY": "gabo_tu_key_aqui"
+      }
     }
   }
 }
 ```
 
-Notas:
-
-- `MCP_HOST=opencode` activa compatibilidad para OpenCode sin romper otros hosts.
-- `MCP_API_KEY` se inyecta por `environment` y no se expone en el prompt.
+La API key se valida en cada llamada contra MongoDB. Ver [docs/API_KEY_AUTH.md](docs/API_KEY_AUTH.md) para más detalles.
 
 ---
 
-## 📚 Documentación Completa
+## Documentación
 
-### Manifesto y Filosofía
-
-- **[MANIFESTO.md](docs/MANIFESTO.md)** - Filosofía y principios del proyecto
-
-### Configuraciones por Cliente
-
-- **[OPENCODE_CONFIG.md](docs/OPENCODE_CONFIG.md)** - Configuración específica para OpenCode
-- **[ANTIGRAVITY_CONFIG.md](docs/ANTIGRAVITY_CONFIG.md)** - Configuración para Antigravity
-
-### Funcionalidades
-
-- **[FUNCIONALIDADES.md](docs/FUNCIONALIDADES.md)** - Documentación detallada de las 7 herramientas
-
-### Documentación Técnica
-
-- [Arquitectura Técnica](docs/ARCHITECTURE.md): Detalles sobre Zod SSOT, Middlewares y el diseño del sistema.
-- [Guía de Instalación](docs/SETUP_GUIDE.md): 3 formas de correr y probar el servidor.
-- [Vector Search](docs/VECTOR_SEARCH_SETUP.md): Cómo configurar los índices en MongoDB Atlas.
-- [Autenticación](docs/API_KEY_AUTH.md): Detalles sobre el sistema de seguridad basado en llaves.
-- **[Sistema de Sanitización](docs/SANITIZATION.md): Protección contra almacenamiento de datos sensibles.**
+- [MANIFESTO.md](docs/MANIFESTO.md) - Filosofía del proyecto
+- [FUNCIONALIDADES.md](docs/FUNCIONALIDADES.md) - Detalle de herramientas
+- [SETUP_GUIDE.md](docs/SETUP_GUIDE.md) - Configuración y ejecución
+- [ARCHITECTURE.md](docs/ARCHITECTURE.md) - Arquitectura técnica
+- [SANITIZATION.md](docs/SANITIZATION.md) - Sistema de sanitización
+- [VECTOR_SEARCH_SETUP.md](docs/VECTOR_SEARCH_SETUP.md) - Búsqueda semántica
+- [MEJORAS_USABILIDAD.md](docs/MEJORAS_USABILIDAD.md) - Propuestas de evolución
 
 ---
 
-**Desarrollado por @gabo** | Inspirado en el Advanced Agentic Coding de DeepMind.
+**Desarrollado por @gabo**

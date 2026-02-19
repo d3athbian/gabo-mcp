@@ -5,42 +5,43 @@
 export type SecurityProfileName = "work" | "personal";
 
 export type DetectionCategory =
-    | "credentials"
-    | "pii"
-    | "corporate"
-    | "env_vars";
+  | "credentials"
+  | "pii"
+  | "corporate"
+  | "env_vars";
 
 export type DetectionResult = {
-    detected: boolean;
-    category: DetectionCategory;
-    matches: string[];
-    message?: string;
+  detected: boolean;
+  category: DetectionCategory;
+  matches: string[];
+  message?: string;
 };
 
 export type DetectorFunction = (
-    content: string,
-    title: string,
+  content: string,
+  title: string,
 ) => DetectionResult;
 
 export type SecurityProfile = {
-    name: SecurityProfileName;
-    description: string;
-    detectors: {
-        credentials: boolean;
-        pii: boolean;
-        corporate: boolean;
-        envVars: boolean;
-    };
+  name: SecurityProfileName;
+  description: string;
+  detectors: {
+    credentials: boolean;
+    pii: boolean;
+    corporate: boolean;
+    envVars: boolean;
+  };
 };
 
 export type SanitizationResult = {
-    allowed: boolean;
-    violations: DetectionResult[];
-    errorMessage?: string;
+  allowed: boolean;
+  violations: DetectionResult[];
+  errorMessage?: string;
+  warningMessage?: string;
 };
 
 export type SanitizationConfig = {
-    blacklistedCompanies: string[];
-    blacklistedDomains: string[];
-    blacklistedKeywords: string[];
+  blacklistedCompanies: string[];
+  blacklistedDomains: string[];
+  blacklistedKeywords: string[];
 };

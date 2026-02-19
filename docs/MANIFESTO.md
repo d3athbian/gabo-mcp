@@ -4,13 +4,13 @@
 
 ## Filosofía
 
-Gabo MCP es el puente entre tus pensamientos técnicos y tus herramientas de IA. En lugar de explicar tus patrones de diseño o decisiones de arquitectura una y otra vez, Gabo MCP permite que tus agentes (Cursor, Claude, Continue, OpenCode) **recuerden** cómo trabajas.
+Gabo MCP es el puente entre tus pensamientos técnicos y tus herramientas de IA. En lugar de explicar tus patrones de diseño o decisiones de arquitectura una y otra vez, Gabo MCP permite que tus agentes (MiniMax, Gemini, Codex, Claude, Cursor, Continue, OpenCode) **recuerden** cómo trabajas.
 
 ## Principios Fundamentales
 
 ### 1. Captura Continua
 
-Cada solución que descubres, cada error que corriges, cada patrón que refinas merece ser guardado. No relies en tu memoria.
+Cada solución que descubres, cada error que corriges, cada patrón que refinas merece ser guardado.
 
 ### 2. Reutilización Inteligente
 
@@ -20,30 +20,29 @@ El conocimiento sin acceso es conocimiento perdido. Búsqueda semántica y por k
 
 Tu conocimiento es privado. Sanitización automática previene accidentes. Autenticación protege el acceso.
 
-### 4. Aprendizaje Automático
+### 4. Simplicidad
 
-Los agentes no solo consultan, también destilan. Después de cada tarea, pueden capturar lecciones aprendidas.
+Una forma de guardar, una forma de buscar, una forma de listar. El usuario decide qué guardar.
 
 ## Arquitectura
 
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                      Cliente IA                          │
-│         (Cursor, Claude, Continue, OpenCode)             │
+│         (MiniMax, Gemini, Codex, Claude, etc.)          │
 └─────────────────────┬───────────────────────────────────┘
                       │
                       ▼
 ┌─────────────────────────────────────────────────────────┐
 │                    MCP Protocol                          │
-│              (Model Context Protocol)                     │
 └─────────────────────┬───────────────────────────────────┘
                       │
                       ▼
 ┌─────────────────────────────────────────────────────────┐
 │                   Gabo MCP Server                        │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────────┐ │
-│  │   Tools      │  │  Middleware  │  │  Sanitization   │ │
-│  │ 7 funciones │  │  Auth + Auth │  │  Content Guard  │ │
+│  │   Tools      │  │  Middleware │  │  Sanitization   │ │
+│  │ 5 funciones │  │  Auth       │  │  Warnings Only  │ │
 │  └─────────────┘  └─────────────┘  └─────────────────┘ │
 └─────────────────────┬───────────────────────────────────┘
                       │
@@ -54,27 +53,13 @@ Los agentes no solo consultan, también destilan. Después de cada tarea, pueden
 └─────────────────────────────────────────────────────────┘
 ```
 
-## Componentes
+## Herramientas (5)
 
-### Herramientas (Tools)
-
-1. **store_knowledge** - Guardar conocimiento
-2. **search_knowledge** - Búsqueda por keywords
-3. **semantic_search** - Búsqueda por vectores
-4. **list_knowledge** - Listar entradas
-5. **get_knowledge** - Obtener por ID
-6. **suggest_patterns** - Sugerir patrones similares
-7. **get_pitfalls** - Checklist preventivo
-
-### Middleware
-
-- **Auth**: Validación de API keys contra MongoDB
-- **Sanitization**: Detección de datos sensibles
-
-### Base de Datos
-
-- MongoDB Atlas (M0 Free Tier compatible)
-- Vector Search para búsqueda semántica
+1. **save** - Guardar conocimiento
+2. **search** - Buscar (texto, semántica o híbrido)
+3. **list** - Listar entradas
+4. **get** - Obtener por ID
+5. **delete** - Eliminar entrada
 
 ## Tipos de Conocimiento
 
@@ -92,16 +77,6 @@ Los agentes no solo consultan, también destilan. Después de cada tarea, pueden
 | `INFRASTRUCTURE`    | Docker, Cloud, CI/CD                            |
 | `TESTING`           | Estrategias y patrones de testing               |
 
-## Perfiles de Seguridad
-
-### `work` (Máxima seguridad)
-
-Bloquea: credenciales, PII, datos corporativos, variables de entorno.
-
-### `personal` (Seguridad estándar)
-
-Bloquea: credenciales, PII crítico.
-
 ## Contribución
 
 1. Fork del repositorio
@@ -116,4 +91,4 @@ MIT - Feel free to use, modify, distribute.
 
 ---
 
-**Desarrollado por @gabo** | Inspirado en Advanced Agentic Coding de DeepMind
+**Desarrollado por @gabo**

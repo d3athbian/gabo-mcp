@@ -5,7 +5,7 @@ import type { ToolDefinition } from "../index.type.js";
 import type { DeleteKnowledgeArgs } from "./delete-knowledge.type.js";
 
 export const deleteKnowledgeTool: ToolDefinition<DeleteKnowledgeArgs> = {
-  name: "delete_knowledge",
+  name: "delete",
   title: "Delete Knowledge",
   description: "Delete a knowledge entry by ID.",
   inputSchema: DeleteKnowledgeSchema,
