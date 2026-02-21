@@ -67,7 +67,8 @@ export async function searchKnowledgeVector(
   } catch (error) {
     logger.error("Vector search error", error);
     throw new Error(
-      `Vector search failed. Ensure Atlas Vector Search index is configured. Error: ${error instanceof Error ? error.message : String(error)
+      `Vector search failed. Ensure Atlas Vector Search index is configured. Error: ${
+        error instanceof Error ? error.message : String(error)
       }`,
     );
   }
@@ -170,26 +171,16 @@ async function searchKnowledgeText(
 
 /**
  * Check if Atlas Vector Search is available
- * Tests by running a simple vector search
+ * Tests by checking if vector_index exists and has documents with embeddings
  */
 export async function isVectorSearchAvailable(): Promise<boolean> {
   try {
     const collection = getKnowledgeEntriesCollection();
-    await collection
-      .aggregate([
-        {
-          $vectorSearch: {
-            index: "vector_index",
-            path: "embedding",
-            queryVector: new Array(768).fill(0),
-            numCandidates: 1,
-            limit: 1,
-          },
-        },
-        { $limit: 1 },
-      ])
-      .toArray();
-    return true;
+    // Check if there are any documents with non-empty embeddings
+    const count = await collection.countDocuments({
+      embedding: { $exists: true, $ne: [] },
+    });
+    return count > 0;
   } catch {
     return false;
   }

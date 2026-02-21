@@ -194,24 +194,75 @@ export async function setupIndexes(): Promise<void> {
 
     logger.info("✅ All indexes created successfully");
 
-    // Note about vector search index
-    logger.info("");
-    logger.info("⚠️  IMPORTANT: Vector Search Index");
-    logger.info(
-      "   For vector search, you need to create a vector index manually in MongoDB Atlas:",
-    );
-    logger.info("   1. Go to: https://cloud.mongodb.com");
-    logger.info("   2. Select your cluster → Search → Create Index");
-    logger.info("   3. Choose: Vector Search");
-    logger.info("   4. Collection: knowledge_entries");
-    logger.info("   5. Index name: vector_index");
-    logger.info("   6. Path: embedding");
-    logger.info("   7. Dimensions: 768 (for nomic-embed-text)");
-    logger.info("   8. Similarity: cosine");
-    logger.info("");
+    await setupVectorIndex();
   } catch (error) {
     logger.error("❌ Failed to create indexes", error);
     // Don't throw - indexes might already exist
+  }
+}
+
+/**
+ * Setup vector search index automatically
+ * Creates the vector index if it doesn't exist
+ */
+async function setupVectorIndex(): Promise<void> {
+  try {
+    const entriesCollection = getKnowledgeEntriesCollection();
+
+    // Get model dimensions from config (default 768 for nomic-embed-text)
+    const embeddingDimensions = parseInt(
+      process.env.EMBED_DIMENSIONS || "768",
+      10,
+    );
+
+    // Check if vector index already exists
+    const existingIndexes = await entriesCollection.indexes();
+    const vectorIndexExists = existingIndexes.some(
+      (idx: any) => idx.name === "vector_index",
+    );
+
+    if (vectorIndexExists) {
+      logger.info("   ✓ Vector index already exists");
+      return;
+    }
+
+    logger.info("   🔬 Creating vector search index...");
+
+    // Create vector search index (MongoDB Atlas Search)
+    await entriesCollection.createSearchIndex({
+      name: "vector_index",
+      definition: {
+        analyzer: "lucene.standard",
+        searchAnalyzer: "lucene.standard",
+        mappings: {
+          dynamic: false,
+          fields: {
+            embedding: {
+              type: "knnVector",
+              dimensions: embeddingDimensions,
+              similarity: "cosine",
+            },
+          },
+        },
+      },
+    });
+
+    logger.info("   ✓ Vector index created successfully");
+    logger.info(`     - Dimensions: ${embeddingDimensions}`);
+    logger.info("     - Similarity: cosine");
+    logger.info("");
+  } catch (error) {
+    const err = error as any;
+    // Ignore error if vector search is not available (e.g., M0 free tier limitations)
+    if (
+      err.message?.includes("atlas") ||
+      err.codeName === "AtlasSearchDisabled"
+    ) {
+      logger.warn("   ⚠️  Vector search not available on this tier");
+      logger.warn("     Upgrade to M10+ for vector search support");
+    } else {
+      logger.warn(`   ⚠️  Could not create vector index: ${err.message}`);
+    }
   }
 }
 
