@@ -2,6 +2,7 @@ import { successResponse } from "../../utils/tool-handler/index.js";
 import { storeKnowledge } from "../../db/queries.js";
 import { sanitizeContent } from "../../middleware/sanitization/index.js";
 import { searchKnowledgeVector } from "../../db/vector-search.js";
+import { generateEmbedding } from "../../embeddings/index.js";
 import { SaveKnowledgeSchema } from "./save.type.js";
 import type { ToolDefinition } from "../index.type.js";
 import type { SaveKnowledgeArgs } from "./save.type.js";
@@ -19,7 +20,7 @@ export const saveKnowledgeTool: ToolDefinition<SaveKnowledgeArgs> = {
       content,
       tags,
       source,
-      embedding,
+      embedding: providedEmbedding,
       metadata,
       skip_sanitization,
     } = args;
@@ -35,6 +36,22 @@ export const saveKnowledgeTool: ToolDefinition<SaveKnowledgeArgs> = {
           );
         }
       }
+    }
+
+    let embedding = providedEmbedding;
+    let embeddingWarning: string | undefined;
+
+    if (!embedding) {
+      const embeddingResult = await generateEmbedding(title, content);
+      if (embeddingResult.warning) {
+        embeddingWarning = embeddingResult.warning;
+      } else {
+        embedding = embeddingResult.embedding;
+      }
+    }
+
+    if (embeddingWarning) {
+      warnings.push(embeddingWarning);
     }
 
     const similarEntries: Array<{

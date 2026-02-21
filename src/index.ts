@@ -8,8 +8,11 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { logger } from "./utils/logger/index.js";
 import { connectToDatabase, closeDatabase } from "./db/client.js";
+import { startHealthMonitor, stopHealthMonitor } from "./db/health-monitor.js";
+import { initializeEmbeddingService } from "./embeddings/index.js";
 import { registerAllTools } from "./tools/index.js";
 import { ensureApiKeyExists } from "./middleware/auth/index.js";
+import { config } from "./config/config.js";
 
 process.title = "gabo-mcp-server";
 
@@ -34,7 +37,36 @@ async function main() {
     try {
       logger.cleanup();
 
+      logger.info("Initializing embedding service...");
+      const { status: embeddingStatus } = await initializeEmbeddingService({
+        enabled: config.embedding.enabled,
+        provider: config.embedding.provider,
+        model: config.embedding.model,
+        ollamaUrl: config.embedding.ollamaUrl,
+        autoStart: config.embedding.autoStart,
+        timeout: config.embedding.timeout,
+        cacheEnabled: config.embedding.cacheEnabled,
+        cacheTTL: config.embedding.cacheTTL,
+      });
+
+      if (embeddingStatus.available) {
+        logger.info(`Embedding service ready: ${embeddingStatus.model}`);
+      } else {
+        logger.warn(`Embedding service: ${embeddingStatus.error}`);
+      }
+
       await connectToDatabase();
+
+      if (config.healthCheck.enabled) {
+        startHealthMonitor({
+          enabled: config.healthCheck.enabled,
+          intervalMs: config.healthCheck.intervalMs,
+          timeoutMs: config.healthCheck.timeoutMs,
+        });
+        logger.info(
+          `Health check enabled: every ${config.healthCheck.intervalMs}ms`,
+        );
+      }
 
       const newKey = await ensureApiKeyExists();
       if (newKey) {
@@ -42,7 +74,7 @@ async function main() {
         logger.warn("Add this key to your MCP config");
       }
     } catch (error) {
-      logger.error("Failed to connect to MongoDB", error);
+      logger.error("Failed to start backend services", error);
       process.exit(1);
     }
   };
@@ -61,6 +93,7 @@ async function main() {
 
     const shutdown = async (signal: string) => {
       logger.info(`Received ${signal}, shutting down...`);
+      stopHealthMonitor();
       await closeDatabase();
       process.exit(0);
     };

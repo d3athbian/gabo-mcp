@@ -40,6 +40,23 @@ export const config: Config = {
     enableAuditLog: process.env.ENABLE_AUDIT_LOG === "true",
   },
 
+  embedding: {
+    enabled: process.env.EMBED_ENABLED !== "false",
+    provider: (process.env.EMBED_PROVIDER || "ollama") as "ollama" | "openai",
+    model: process.env.EMBED_MODEL || "nomic-embed-text",
+    ollamaUrl: process.env.EMBED_OLLAMA_URL || "http://localhost:11434",
+    autoStart: process.env.EMBED_AUTO_START !== "false",
+    timeout: parseInt(process.env.EMBED_TIMEOUT || "30000", 10),
+    cacheEnabled: process.env.EMBED_CACHE_ENABLED !== "false",
+    cacheTTL: parseInt(process.env.EMBED_CACHE_TTL || "3600", 10),
+  },
+
+  healthCheck: {
+    enabled: process.env.HEALTH_CHECK_ENABLED !== "false",
+    intervalMs: parseInt(process.env.HEALTH_CHECK_INTERVAL_MS || "900000", 10),
+    timeoutMs: parseInt(process.env.HEALTH_CHECK_TIMEOUT_MS || "5000", 10),
+  },
+
   debug: process.env.DEBUG === "true",
   prettyLogs: process.env.PRETTY_LOGS === "true",
 };

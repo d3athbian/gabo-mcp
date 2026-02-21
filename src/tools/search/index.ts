@@ -2,6 +2,7 @@ import { successResponse } from "../../utils/tool-handler/index.js";
 import { searchKnowledge } from "../../db/queries.js";
 import { searchKnowledgeVector } from "../../db/vector-search.js";
 import { isVectorSearchAvailable } from "../../db/vector-search.js";
+import { generateQueryEmbedding } from "../../embeddings/index.js";
 import { SearchSchema } from "./search.type.js";
 import type { ToolDefinition } from "../index.type.js";
 import type { SearchArgs } from "./search.type.js";
@@ -19,7 +20,7 @@ export const searchTool: ToolDefinition<SearchArgs> = {
       query,
       type,
       mode,
-      query_vector,
+      query_vector: providedQueryVector,
       include_pitfalls,
       include_patterns,
       limit,
@@ -28,12 +29,24 @@ export const searchTool: ToolDefinition<SearchArgs> = {
     const results: any[] = [];
     const pitfalls: any[] = [];
     const patterns: any[] = [];
+    const warnings: string[] = [];
 
     const vectorAvailable = await isVectorSearchAvailable();
 
-    if (mode === "semantic" || (mode === "hybrid" && query_vector)) {
+    let queryVector = providedQueryVector;
+
+    if (!queryVector && (mode === "semantic" || mode === "hybrid")) {
+      const embeddingResult = await generateQueryEmbedding(query);
+      if (embeddingResult.warning) {
+        warnings.push(embeddingResult.warning);
+      } else {
+        queryVector = embeddingResult.embedding;
+      }
+    }
+
+    if (mode === "semantic" || (mode === "hybrid" && queryVector)) {
       const vectorResults = await searchKnowledgeVector(
-        query_vector!,
+        queryVector!,
         limit * 2,
         type,
       );
@@ -88,6 +101,7 @@ export const searchTool: ToolDefinition<SearchArgs> = {
       mode,
       results: finalResults,
       count: finalResults.length,
+      warnings: warnings.length > 0 ? warnings : undefined,
       pitfalls: include_pitfalls ? pitfalls : undefined,
       patterns: include_patterns ? patterns : undefined,
       vector_available: vectorAvailable,

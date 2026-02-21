@@ -19,10 +19,13 @@ import { logger } from "../utils/logger/index.js";
 
 const MONGODB_URI = process.env.MONGODB_URI;
 
+const MONGO_WAKE_RETRY = parseInt(process.env.MONGO_WAKE_RETRY || "3", 10);
+const MONGO_WAKE_DELAY = parseInt(process.env.MONGO_WAKE_DELAY || "5000", 10);
+
 if (!MONGODB_URI) {
   throw new Error(
     "MONGODB_URI environment variable is required. " +
-    "Get it from MongoDB Atlas: https://cloud.mongodb.com",
+      "Get it from MongoDB Atlas: https://cloud.mongodb.com",
   );
 }
 
@@ -34,45 +37,71 @@ let client: MongoClient | null = null;
 let db: Db | null = null;
 
 /**
- * Connect to MongoDB Atlas
- * Should be called once at server startup
+ * Connect to MongoDB Atlas with retry logic for serverless instances
+ * Serverless instances may need a "wake" ping to start
  */
 export async function connectToDatabase(): Promise<Db> {
   if (db) {
     return db;
   }
 
-  try {
-    logger.info("🔗 Connecting to MongoDB Atlas...");
+  let lastError: Error | null = null;
 
-    client = new MongoClient(MONGODB_URI!, {
-      maxPoolSize: 10,
-      serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 45000,
-    });
+  for (let attempt = 1; attempt <= MONGO_WAKE_RETRY; attempt++) {
+    try {
+      logger.info(
+        `Connecting to MongoDB Atlas (attempt ${attempt}/${MONGO_WAKE_RETRY})...`,
+      );
 
-    await client.connect();
+      client = new MongoClient(MONGODB_URI!, {
+        maxPoolSize: 10,
+        serverSelectionTimeoutMS: 10000,
+        socketTimeoutMS: 45000,
+        connectTimeoutMS: 30000,
+      });
 
-    // Use default database from connection string
-    db = client.db();
+      await client.connect();
 
-    logger.info("✅ Connected to MongoDB Atlas successfully");
-    logger.info(`   Database: ${db.databaseName}`);
+      db = client.db();
 
-    // Verify connection with ping
-    await db.command({ ping: 1 });
-    logger.info("   Ping: OK");
+      await db.command({ ping: 1 });
 
-    // Setup indexes for optimal performance
-    await setupIndexes();
+      logger.info("Connected to MongoDB Atlas successfully");
+      logger.info(`   Database: ${db.databaseName}`);
+      logger.info("   Ping: OK");
 
-    return db;
-  } catch (error) {
-    logger.error("❌ Failed to connect to MongoDB Atlas", error);
-    throw new Error(
-      `MongoDB connection failed: ${error instanceof Error ? error.message : String(error)}`,
-    );
+      await setupIndexes();
+
+      return db;
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+
+      if (client) {
+        try {
+          await client.close();
+        } catch {
+          // Ignore close errors
+        }
+        client = null;
+        db = null;
+      }
+
+      if (attempt < MONGO_WAKE_RETRY) {
+        logger.warn(
+          `Connection attempt ${attempt} failed. Retrying in ${MONGO_WAKE_DELAY}ms...`,
+        );
+        await new Promise((resolve) => setTimeout(resolve, MONGO_WAKE_DELAY));
+      }
+    }
   }
+
+  logger.error(
+    `Failed to connect to MongoDB after ${MONGO_WAKE_RETRY} attempts`,
+    lastError,
+  );
+  throw new Error(
+    `MongoDB connection failed after ${MONGO_WAKE_RETRY} attempts: ${lastError?.message}`,
+  );
 }
 
 /**
@@ -133,8 +162,6 @@ export async function setupIndexes(): Promise<void> {
     // Index for type queries
     await entriesCollection.createIndex({ type: 1 });
     logger.info("   ✓ Index: type");
-
-
 
     // Index for sorting by creation date
     await entriesCollection.createIndex({ created_at: -1 });
