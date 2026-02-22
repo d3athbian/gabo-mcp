@@ -26,6 +26,36 @@ src/
 └── types.ts            # Tipos de dominio re-exportados
 ```
 
+## 🧪 Estrategia de Testing
+
+El proyecto cuenta con dos tipos de tests:
+
+### Unit Tests (`npm run test`)
+
+- Ubicación: `src/__tests__/`
+- Configuración: `vitest.config.ts`
+- Cubren: sanitización, autenticación, queries, utils
+- **180+ tests** pasando
+
+### Integration Tests
+
+- Ubicación: `src/__tests__/integration/`
+- Configuración: `vitest.integration.config.ts`
+- Mocks: Base de datos, embeddings, vector search
+- Patrón: Mocks con estado compartido (`mocks.ts`)
+- Flujos probados: save → search → get → delete
+
+```bash
+# Unit tests
+npm run test
+
+# Integration tests
+npx vitest run --config vitest.integration.config.ts
+
+# Coverage
+npm run test:coverage
+```
+
 ## 🛡️ Sistema de Tipos (Single Source of Truth)
 
 Utilizamos **Zod** como la única fuente de verdad para el tipado y la validación:
@@ -37,10 +67,9 @@ Utilizamos **Zod** como la única fuente de verdad para el tipado y la validaci�
 ## 🔐 Seguridad y Autenticación
 
 - **Global Secret Key**: El servidor requiere una clave secreta (`gabo_...`) para todas las operaciones.
-- **Middleware Componible**: La autenticación se maneja mediante un middleware `withAuth` que extrae y valida la clave antes de permitir la ejecución de cualquier herramienta.
+- **Middleware Composable**: La autenticación se maneja mediante un middleware `withAuth` que extrae y valida la clave antes de permitir la ejecución de cualquier herramienta.
 - **Bootstrap Automático**: En la primera ejecución, si no hay claves registradas en MongoDB, el servidor genera una clave maestra inicial.
-- **Content Sanitization**: Sistema de detección que advierte sobre contenido sensible durante el guardado (`save`). No bloquea, solo retorna advertencias para que el usuario decida.
-  les completos.
+- **Content Sanitization**: Sistema de detección que bloquea contenido sensible durante el guardado (`save`). No permite guardar credenciales, PII o datos corporativos en perfiles "work".
 
 ## 🛠️ Gestión de Errores y Middlewares
 

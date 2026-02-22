@@ -1,6 +1,6 @@
 # Manifesto Gabo MCP
 
-> Tu memoria personal de inteligencia artificial.
+> Memoria técnica personal impulsada por IA.
 
 ## Filosofía
 
@@ -42,7 +42,7 @@ Una forma de guardar, una forma de buscar, una forma de listar. El usuario decid
 │                   Gabo MCP Server                        │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────────┐ │
 │  │   Tools      │  │  Middleware │  │  Sanitization   │ │
-│  │ 5 funciones │  │  Auth       │  │  Warnings Only  │ │
+│  │ 6 funciones │  │  Auth       │  │  Blocking       │ │
 │  └─────────────┘  └─────────────┘  └─────────────────┘ │
 └─────────────────────┬───────────────────────────────────┘
                       │
@@ -53,13 +53,14 @@ Una forma de guardar, una forma de buscar, una forma de listar. El usuario decid
 └─────────────────────────────────────────────────────────┘
 ```
 
-## Herramientas (5)
+## Herramientas (6)
 
 1. **save** - Guardar conocimiento
 2. **search** - Buscar (texto, semántica o híbrido)
 3. **list** - Listar entradas
 4. **get** - Obtener por ID
 5. **delete** - Eliminar entrada
+6. **get_audit_logs** - Ver logs de auditoría
 
 ## Tipos de Conocimiento
 

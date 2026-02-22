@@ -2,7 +2,7 @@
 
 > Tu memoria técnica personal impulsada por IA.
 
-Gabo MCP es un servidor MCP (Model Context Protocol) que actúa como tu **memoria técnica personal**. Cada decisión de diseño, patrón emergente, error corregido y snippet valioso queda registrado y disponible para cualquier agente de IA que trabaje contigo.
+Servidor MCP (Model Context Protocol) que actúa como **memoria técnica personal**. Cada decisión de diseño, patrón, error corregido y snippet queda registrado y disponible para cualquier agente de IA que trabaje contigo.
 
 ---
 
@@ -20,7 +20,7 @@ Si has trabajado con IA sabe que cada nuevo proyecto requiere repetir las mismas
 
 ## Decisiones Técnicas
 
-Acá cuento por qué tomé ciertas decisiones. No son dogma, son el resultado de probar cosas y aprender en el camino.
+Decisiones arquitectónicas y técnicos que Tomé constructión Gabo MCP.
 
 → Ver [docs/DECISIONES.md](docs/DECISIONES.md)
 
@@ -64,12 +64,26 @@ npm run dev:local
 
 # Build
 npm run build
-
-# Tests
-npm run test
 ```
 
-### Variables requeridas
+---
+
+## Tests
+
+```bash
+# Unit tests (180+ tests)
+npm run test
+
+# Integration tests (9 tests)
+npx vitest run --config vitest.integration.config.ts
+
+# Coverage
+npm run test:coverage
+```
+
+---
+
+## Variables requeridas
 
 ```bash
 MONGODB_URI=mongodb+srv://...
@@ -78,7 +92,7 @@ MCP_API_KEY=gabo_xxx  # Genera con: npm run generate:key
 
 ---
 
-## Configuración
+## Configuración MCP
 
 ```json
 {

@@ -1,6 +1,6 @@
 # Decisiones Técnicas
 
-Acá te cuento por qué tomé ciertas decisiones al construir Gabo MCP. No son dogma, son el resultado de probar cosas y aprender en el camino.
+Decisiones arquitectónicas y de diseño tomadas constructión Gabo MCP.
 
 ---
 
@@ -57,3 +57,13 @@ Por eso ahora, antes de guardar algo, el sistema busca si ya existe algo muy sim
 No quería repetir código de autenticación en cada herramienta. Además, quería que sea fácil agregar o quitar validación sin tocar la lógica de negocio.
 
 Por eso implementé un `withAuth()` que envuelve cualquier función. Así, si mañana quiero agregar un nuevo endpoint, solo le paso el wrapper y ya tiene autenticación. La clave se valida contra MongoDB, no está hardcodeada en ningún lado.
+
+---
+
+## Tests con mocks de base de datos
+
+Al principio intenté hacer tests de integración conectando a una MongoDB real. Era lento, flaky, y requería infraestructura.
+
+La solución fue usar mocks con estado compartido. Las funciones mockeadas se definen fuera del describe, y se pasan a los módulos mockeados. Así cada test puede configurar su comportamiento específico sin crear mocks nuevos.
+
+El error común es definir mocks dentro del describe - se ejecutan una sola vez y no mantienen estado. La clave es usar `vi.fn()` externas y pasarlas como callback a vi.mock().
