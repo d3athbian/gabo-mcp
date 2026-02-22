@@ -26,6 +26,7 @@ export const getKnowledgeTool: ToolDefinition<GetKnowledgeArgs> = {
   description:
     "Get knowledge entry by ID. Supports json, markdown, or plain output format.",
   inputSchema: GetKnowledgeSchema,
+  auditAction: "get_knowledge",
   handler: async (args) => {
     const { id, format } = args;
     const entry = await getKnowledge(id);

@@ -25,7 +25,7 @@ const MONGO_WAKE_DELAY = parseInt(process.env.MONGO_WAKE_DELAY || "5000", 10);
 if (!MONGODB_URI) {
   throw new Error(
     "MONGODB_URI environment variable is required. " +
-      "Get it from MongoDB Atlas: https://cloud.mongodb.com",
+    "Get it from MongoDB Atlas: https://cloud.mongodb.com",
   );
 }
 
@@ -191,6 +191,11 @@ export async function setupIndexes(): Promise<void> {
 
     await apiKeysCollection.createIndex({ is_active: 1, created_at: -1 });
     logger.info("   ✓ Index: api_keys.is_active + created_at");
+
+    // Audit Log setup
+    const { setupAuditLogIndex } = await import("./audit-log.js");
+    const retentionDays = parseInt(process.env.MCP_AUDIT_RETENTION_DAYS || "90", 10);
+    await setupAuditLogIndex(retentionDays);
 
     logger.info("✅ All indexes created successfully");
 

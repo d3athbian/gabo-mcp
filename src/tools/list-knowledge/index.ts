@@ -10,6 +10,7 @@ export const listKnowledgeTool: ToolDefinition<ListKnowledgeArgs> = {
   description:
     "List knowledge entries with pagination and optional type filter.",
   inputSchema: ListKnowledgeSchema,
+  auditAction: "list_knowledge",
   handler: async (args) => {
     const { type, limit, offset } = args;
     const { data: entries, count } = await listKnowledge(type, limit, offset);

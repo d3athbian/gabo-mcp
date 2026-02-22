@@ -21,58 +21,7 @@
 
 ## Recomendaciones de Seguridad
 
-### 1. Generación de API Keys
 
-**Problema actual**: La clave se genera pero no se asegura que el usuario la copie/guarde correctamente.
-
-**Recomendaciones**:
-
-- [x] Guardar la API key en `.env` automáticamente al generarse (bootstrap automático)
-- [x] Generar `MCP_KEY_PEPPER` (pepper bcrypt) y guardarlo en `.env` en primer inicio
-- [ ] Mostrar warning claro si la key no fue guardada antes de cerrar sesión
-- [x] Implementar método de recuperación: generar nueva key y revocar antigua
-- [x] Script npm: `npm run generate:key` → revoca DB + limpia .env + genera nueva key
-
-### 2. Almacenamiento de Credenciales
-
-**Problema actual**: Las API keys se almacenan en texto plano en MongoDB.
-
-**Recomendaciones**:
-
-- [x] Hashear las API keys usando bcrypt + pepper antes de guardar
-- [x] Usar campo separado `key_hash` (no guardar key real en DB)
-- [x] Implementar salting automático via bcrypt (rounds=10)
-- [x] NEVER guardar la key original en MongoDB, solo el hash para validación
-
-```typescript
-// Mejor práctica
-import { hash, verify } from "@node-rs/argon2";
-
-const hash = await hash(apiKey);
-// Guardar hash en DB
-const valid = await verify(storedHash, providedKey);
-```
-
-### 3. Rate Limiting
-
-**Problema actual**: Sin límites de uso.
-
-**Recomendaciones**:
-
-- [ ] Implementar rate limiting por API key
-- [ ] Limitar requests por minuto/hora/día
-- [ ] Añadir headers: `X-RateLimit-Limit`, `X-RateLimit-Remaining`
-- [ ] Bloquear keys que excedan límites temporalmente
-
-```typescript
-// Estructura en MongoDB
-{
-  key_id: "...",
-  requests_today: 150,
-  last_request: ISODate,
-  is_rate_limited: false
-}
-```
 
 ### 4. Auditoría (Audit Log)
 
@@ -129,7 +78,7 @@ const valid = await verify(storedHash, providedKey);
 
 ### High
 
-- [ ] Audit logging completo
+- [x] Audit logging completo
 - [x] Rotación de keys (`npm run generate:key`)
 - [ ] Alertas de seguridad (key comprometida, rate limit excedido)
 

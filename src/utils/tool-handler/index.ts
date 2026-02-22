@@ -9,6 +9,8 @@ import type {
     ErrorResponse,
 } from "../../base.type.js";
 import type { ToolResponse, HandleToolErrorOptions } from "./tool-handler.type.js";
+import { recordAuditLog } from "../../db/audit-log.js";
+import type { AuditAction } from "../../db/audit-log.type.js";
 
 /**
  * Handles errors in tool catch blocks
@@ -82,5 +84,29 @@ export function withErrorHandler(
         } catch (error) {
             return handleToolError(error, operationName);
         }
+    };
+}
+
+/**
+ * Middleware: Audit Logging
+ * Records tool execution in the audit log collection
+ */
+export function withAudit(
+    operationName: string,
+    action: AuditAction,
+    handler: (args: any) => Promise<ToolResponse>,
+) {
+    return async (args: any): Promise<ToolResponse> => {
+        const response = await handler(args);
+
+        await recordAuditLog({
+            action,
+            success: !response.isError,
+            metadata: {
+                tool: operationName,
+            },
+        });
+
+        return response;
     };
 }

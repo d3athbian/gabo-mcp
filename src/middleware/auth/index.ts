@@ -23,6 +23,7 @@ import {
 import { logger } from "../../utils/logger/index.js";
 import { type ToolResponse } from "../../utils/tool-handler/tool-handler.type.js";
 import type { AuthResult } from "./auth.type.js";
+import { recordAuditLog } from "../../db/audit-log.js";
 
 export async function isBootstrapAvailable(): Promise<boolean> {
   return !(await hasAnyApiKeys());
@@ -38,6 +39,11 @@ export async function validateApiKey(apiKey: string): Promise<AuthResult> {
 
   if (!isValidApiKeyFormat(apiKey)) {
     logger.warn(`Invalid API key format`);
+    await recordAuditLog({
+      action: "auth_failed",
+      success: false,
+      metadata: { reason: "invalid_format", key_preview: apiKey.substring(0, 8) },
+    });
     return {
       success: false,
       error: "Invalid API key format. Key should start with 'gabo_'.",
@@ -48,6 +54,11 @@ export async function validateApiKey(apiKey: string): Promise<AuthResult> {
 
   if (!keyDoc) {
     logger.warn(`API key not found in MongoDB`);
+    await recordAuditLog({
+      action: "auth_failed",
+      success: false,
+      metadata: { reason: "key_not_found", key_preview: apiKey.substring(0, 8) },
+    });
     return {
       success: false,
       error: "Invalid API key. Key not found in database.",
@@ -56,8 +67,22 @@ export async function validateApiKey(apiKey: string): Promise<AuthResult> {
 
   if (!keyDoc.is_active) {
     logger.warn(`Revoked API key attempted`);
+    await recordAuditLog({
+      key_id: keyDoc.id,
+      action: "auth_failed",
+      success: false,
+      metadata: { reason: "key_revoked" },
+    });
     return { success: false, error: "API key has been revoked." };
   }
+
+  // Record SUCCESSFUL auth periodically or on every request
+  // For security research, every request is better unless traffic is extreme
+  await recordAuditLog({
+    key_id: keyDoc.id,
+    action: "auth_success",
+    success: true,
+  });
 
   return {
     success: true,
@@ -104,6 +129,12 @@ export async function ensureApiKeyExists(): Promise<string> {
   logger.info(`  Key preview: ...${key.slice(-8)}`);
   logger.warn("  MongoDB stores only the bcrypt hash — the .env holds the key");
   logger.warn("  NEVER commit your .env file to version control");
+
+  await recordAuditLog({
+    action: "key_created",
+    success: true,
+    metadata: { is_bootstrap: true },
+  });
 
   return key;
 }

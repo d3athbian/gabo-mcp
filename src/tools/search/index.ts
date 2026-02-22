@@ -15,6 +15,7 @@ export const searchTool: ToolDefinition<SearchArgs> = {
   description:
     "Search knowledge using text, semantic vectors, or hybrid mode. Supports filtering by type and including pitfalls/patterns in results.",
   inputSchema: SearchSchema,
+  auditAction: "search_knowledge",
   handler: async (args) => {
     const {
       query,

@@ -13,6 +13,7 @@ export const saveKnowledgeTool: ToolDefinition<SaveKnowledgeArgs> = {
   description:
     "Save knowledge directly to the database. Sanitization warnings will be returned but the user decides whether to proceed.",
   inputSchema: SaveKnowledgeSchema,
+  auditAction: "store_knowledge",
   handler: async (args) => {
     const {
       type,

@@ -9,9 +9,10 @@ import { searchTool } from "./search/index.js";
 import { listKnowledgeTool } from "./list-knowledge/index.js";
 import { getKnowledgeTool } from "./get-knowledge/index.js";
 import { deleteKnowledgeTool } from "./delete-knowledge/index.js";
+import { getAuditLogsTool } from "./get-audit-logs/index.js";
 
 import { withAuth } from "../middleware/auth/index.js";
-import { withErrorHandler } from "../utils/tool-handler/index.js";
+import { withErrorHandler, withAudit } from "../utils/tool-handler/index.js";
 
 export {
   saveKnowledgeTool,
@@ -34,6 +35,7 @@ export function registerAllTools(server: McpServer): void {
     listKnowledgeTool,
     getKnowledgeTool,
     deleteKnowledgeTool,
+    getAuditLogsTool,
   ];
 
   for (const tool of tools) {
@@ -41,6 +43,10 @@ export function registerAllTools(server: McpServer): void {
 
     if (!tool.skipAuth) {
       finalHandler = withAuth(finalHandler);
+    }
+
+    if (tool.auditAction) {
+      finalHandler = withAudit(tool.name, tool.auditAction, finalHandler);
     }
 
     finalHandler = withErrorHandler(tool.name, finalHandler);

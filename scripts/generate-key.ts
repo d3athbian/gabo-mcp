@@ -38,6 +38,7 @@ import {
     writeEnvVariable,
 } from "../src/utils/api-key/index.js";
 import { createApiKey } from "../src/db/api-keys.js";
+import { recordAuditLog } from "../src/db/audit-log.js";
 
 // ── Colour helpers (no external deps) ────────────────────────────────────────
 const RED = "\x1b[31m";
@@ -77,6 +78,14 @@ async function rotateKey(): Promise<void> {
     const deleted = await revokeAllApiKeys();
     log.ok(`Revoked ${deleted} key(s) from the database.`);
 
+    if (deleted > 0) {
+        await recordAuditLog({
+            action: "key_revoked",
+            success: true,
+            metadata: { count: deleted, reason: "rotation_script" }
+        });
+    }
+
     // 4. Clear MCP_API_KEY from .env
     log.info("Removing MCP_API_KEY from .env...");
     removeEnvVariable("MCP_API_KEY");
@@ -104,6 +113,12 @@ async function rotateKey(): Promise<void> {
     process.env.MCP_API_KEY = newKey;
 
     log.ok("New key created and saved to .env.");
+
+    await recordAuditLog({
+        action: "key_rotated",
+        success: true,
+        metadata: { reason: "rotation_script" }
+    });
 
     // 7. Print results
     log.box("╔══════════════════════════════════════════════╗\n" +

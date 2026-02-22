@@ -9,6 +9,7 @@ export const deleteKnowledgeTool: ToolDefinition<DeleteKnowledgeArgs> = {
   title: "Delete Knowledge",
   description: "Delete a knowledge entry by ID.",
   inputSchema: DeleteKnowledgeSchema,
+  auditAction: "delete_knowledge",
   handler: async (args) => {
     await deleteKnowledge(args.id);
     return successResponse({
