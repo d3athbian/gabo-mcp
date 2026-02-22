@@ -5,7 +5,7 @@
 
 import type { SanitizationResult } from "./sanitization.type.js";
 import { detectCredentials } from "./detectors/credentials.js";
-import { detectPII } from "./detectors/pii.js";
+import { detectPII } from "./detectors/pii/index.js";
 import { logger } from "../../utils/logger/index.js";
 
 export function sanitizeContent(

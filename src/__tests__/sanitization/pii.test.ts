@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { detectPII } from "../../middleware/sanitization/detectors/pii.js";
+import { detectPII } from "../../middleware/sanitization/detectors/pii/index.js";
 
 describe("detectPII", () => {
   describe("should detect email addresses", () => {

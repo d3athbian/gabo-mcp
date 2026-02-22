@@ -12,7 +12,7 @@ import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-config({ path: join(__dirname, "../../.env") }); // Load .env from project root
+config({ path: join(__dirname, "../../.env"), override: true }); // Load .env from project root and force override any existing vars
 
 import { MongoClient, Db } from "mongodb";
 import { logger } from "../utils/logger/index.js";
