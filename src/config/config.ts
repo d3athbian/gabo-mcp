@@ -60,6 +60,7 @@ export const config: Config = {
 
   debug: process.env.DEBUG === 'true',
   prettyLogs: process.env.PRETTY_LOGS === 'true',
+  isInspector: process.env.MCP_INSPECTOR === 'true' || process.argv.some((arg) => arg.includes('inspector')),
 };
 
 // Validate critical config

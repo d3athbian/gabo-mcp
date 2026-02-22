@@ -49,4 +49,5 @@ export type Config = {
   readonly healthCheck: HealthCheckConfig;
   readonly debug: boolean;
   readonly prettyLogs: boolean;
+  readonly isInspector: boolean;
 };
