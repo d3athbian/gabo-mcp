@@ -18,7 +18,8 @@
     "lint": "eslint src --fix",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "generate:key": "tsx scripts/generate-key.ts"
   },
   "keywords": [
     "mcp",

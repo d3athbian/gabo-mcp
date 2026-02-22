@@ -119,6 +119,17 @@ export function writeEnvVariable(key: string, value: string): void {
 }
 
 /**
+ * Removes a key=value line from the .env file entirely.
+ * If the key is not present, this is a no-op.
+ */
+export function removeEnvVariable(key: string): void {
+    let content = readEnvFile();
+    const lineRegex = new RegExp(`^${key}=.*$\\n?`, "m");
+    content = content.replace(lineRegex, "");
+    writeFileSync(ENV_PATH, content, "utf-8");
+}
+
+/**
  * Ensures MCP_KEY_PEPPER exists in .env.
  * If it does not exist, generates one and writes it.
  * Returns the pepper value (whether new or existing).

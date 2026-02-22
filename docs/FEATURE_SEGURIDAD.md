@@ -30,9 +30,8 @@
 - [x] Guardar la API key en `.env` automáticamente al generarse (bootstrap automático)
 - [x] Generar `MCP_KEY_PEPPER` (pepper bcrypt) y guardarlo en `.env` en primer inicio
 - [ ] Mostrar warning claro si la key no fue guardada antes de cerrar sesión
-- [ ] Implementar método de recuperación: generar nueva key y revocar antigua
-- [ ] Añadir fecha de expiración opcional a las keys (descartado — uso personal)
-- [ ] Crear CLI command: `gabo-mcp key rotate`
+- [x] Implementar método de recuperación: generar nueva key y revocar antigua
+- [x] Script npm: `npm run generate:key` → revoca DB + limpia .env + genera nueva key
 
 ### 2. Almacenamiento de Credenciales
 
@@ -131,7 +130,7 @@ const valid = await verify(storedHash, providedKey);
 ### High
 
 - [ ] Audit logging completo
-- [ ] Rotación de keys
+- [x] Rotación de keys (`npm run generate:key`)
 - [ ] Alertas de seguridad (key comprometida, rate limit excedido)
 
 ### Medium

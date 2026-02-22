@@ -75,6 +75,17 @@ export async function findApiKeyByKey(key: string): Promise<ApiKey | null> {
   return null;
 }
 
+/**
+ * Deletes ALL API key records from the database.
+ * Used by the key-rotation script — after this, a new bootstrap is required.
+ * Returns the number of documents deleted.
+ */
+export async function revokeAllApiKeys(): Promise<number> {
+  const collection = getApiKeysCollection();
+  const result = await collection.deleteMany({});
+  return result.deletedCount;
+}
+
 export async function listApiKeys(): Promise<Omit<ApiKey, "key_hash">[]> {
   const collection = getApiKeysCollection();
   const docs = await collection.find({}).sort({ created_at: -1 }).toArray();
