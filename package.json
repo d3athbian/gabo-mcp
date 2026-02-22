@@ -19,7 +19,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "generate:key": "tsx scripts/generate-key.ts"
+    "generate:key": "tsx scripts/generate-key.ts",
+    "db:backup": "tsx scripts/backup-db.ts --force"
   },
   "keywords": [
     "mcp",
