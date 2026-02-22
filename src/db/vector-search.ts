@@ -2,6 +2,11 @@
  * MongoDB Atlas Vector Search Utilities
  * Uses Atlas Vector Search with $vectorSearch aggregation pipeline
  * Requires Atlas Vector Search index to be configured in MongoDB Atlas UI
+ * Falls back to text search automatically when vector search is unavailable
+ *
+ * Note: No caching of availability. Each request attempts vector search first,
+ * falling back to text search only if vector search genuinely fails.
+ * This handles Atlas serverless "cold start" correctly.
  */
 
 import { getKnowledgeEntriesCollection } from "./client.js";
@@ -65,12 +70,16 @@ export async function searchKnowledgeVector(
       embedding_score: doc.score,
     }));
   } catch (error) {
-    logger.error("Vector search error", error);
-    throw new Error(
-      `Vector search failed. Ensure Atlas Vector Search index is configured. Error: ${
-        error instanceof Error ? error.message : String(error)
-      }`,
-    );
+    const err = error as any;
+    if (
+      err.codeName === "AtlasSearchDisabled" ||
+      err.message?.includes("atlas")
+    ) {
+      logger.debug("Vector search not available on this Atlas tier");
+    } else {
+      logger.debug(`Vector search error: ${err.message}`);
+    }
+    throw error;
   }
 }
 
@@ -171,12 +180,11 @@ async function searchKnowledgeText(
 
 /**
  * Check if Atlas Vector Search is available
- * Tests by checking if vector_index exists and has documents with embeddings
+ * Performs real-time check (no caching) to handle Atlas cold start
  */
 export async function isVectorSearchAvailable(): Promise<boolean> {
   try {
     const collection = getKnowledgeEntriesCollection();
-    // Check if there are any documents with non-empty embeddings
     const count = await collection.countDocuments({
       embedding: { $exists: true, $ne: [] },
     });

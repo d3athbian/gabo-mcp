@@ -3,7 +3,7 @@
 
 import type { Config } from "./config.type";
 
-const requiredVars = ["NODE_ENV", "MONGODB_URI"];
+const requiredVars = ["MONGODB_URI"];
 
 const missingVars = requiredVars.filter((v) => !process.env[v]);
 
@@ -44,6 +44,7 @@ export const config: Config = {
     enabled: process.env.EMBED_ENABLED !== "false",
     provider: (process.env.EMBED_PROVIDER || "ollama") as "ollama" | "openai",
     model: process.env.EMBED_MODEL || "nomic-embed-text",
+    dimensions: parseInt(process.env.EMBED_DIMENSIONS || "768", 10),
     ollamaUrl: process.env.EMBED_OLLAMA_URL || "http://localhost:11434",
     autoStart: process.env.EMBED_AUTO_START !== "false",
     timeout: parseInt(process.env.EMBED_TIMEOUT || "30000", 10),

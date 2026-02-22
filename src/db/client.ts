@@ -209,11 +209,8 @@ async function setupVectorIndex(): Promise<void> {
   try {
     const entriesCollection = getKnowledgeEntriesCollection();
 
-    // Get model dimensions from config (default 768 for nomic-embed-text)
-    const embeddingDimensions = parseInt(
-      process.env.EMBED_DIMENSIONS || "768",
-      10,
-    );
+    const { config } = await import("../config/config.js");
+    const embeddingDimensions = config.embedding.dimensions;
 
     // Check if vector index already exists
     const existingIndexes = await entriesCollection.indexes();

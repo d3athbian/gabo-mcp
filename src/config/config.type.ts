@@ -25,6 +25,7 @@ export type EmbeddingConfig = {
   enabled: boolean;
   provider: "ollama" | "openai";
   model: string;
+  dimensions: number;
   ollamaUrl: string;
   autoStart: boolean;
   timeout: number;
