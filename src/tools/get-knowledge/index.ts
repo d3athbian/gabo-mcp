@@ -5,16 +5,50 @@ import type { GetKnowledgeArgs } from './get-knowledge.type.js';
 import { GetKnowledgeSchema } from './get-knowledge.type.js';
 
 function formatAsMarkdown(entry: any): string {
-  const tags = entry.tags?.length > 0 ? entry.tags.map((t: string) => `#${t}`).join(' ') : '';
+  const tags =
+    entry.tags?.length > 0 ? entry.tags.map((t: string) => `\`${t}\``).join(' ') : '_None_';
+  const typeBadge = `\`${entry.type}\``;
+  const createdDate = new Date(entry.created_at).toLocaleDateString('es-ES', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+  const updatedDate = entry.updated_at
+    ? new Date(entry.updated_at).toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
+    : null;
 
-  return `## ${entry.title}
+  let metadataSection = '';
+  if (entry.source || entry.metadata || updatedDate) {
+    const metadataRows: string[] = [];
+    if (entry.source) metadataRows.push(`| **Source** | ${entry.source} |`);
+    if (updatedDate) metadataRows.push(`| **Actualizado** | ${updatedDate} |`);
+    if (entry.metadata && Object.keys(entry.metadata).length > 0) {
+      for (const [key, value] of Object.entries(entry.metadata)) {
+        const displayValue = typeof value === 'string' ? value : JSON.stringify(value);
+        metadataRows.push(`| **${key}** | ${displayValue.slice(0, 100)} |`);
+      }
+    }
+    if (metadataRows.length > 0) {
+      metadataSection = `\n### Metadata\n\n${metadataRows.join('\n')}\n`;
+    }
+  }
 
-**Tipo:** ${entry.type} ${tags ? `| ${tags}` : ''}
+  return `# ${entry.title}
+
+> **Tipo:** ${typeBadge} | **Tags:** ${tags} | **Creado:** ${createdDate}
+
+---
 
 ${entry.content}
 
 ---
-*Creado: ${new Date(entry.created_at).toLocaleDateString()}*`;
+
+${metadataSection}
+_Fuente: ${entry.source || 'No especificada'}_`;
 }
 
 export const getKnowledgeTool: ToolDefinition<GetKnowledgeArgs> = {
