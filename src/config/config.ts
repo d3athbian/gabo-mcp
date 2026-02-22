@@ -1,7 +1,16 @@
-// Environment variables are loaded natively by Node 24 via --env-file flag
-// No dotenv dependency needed!
-
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { config as loadDotenv } from 'dotenv';
 import type { Config } from './config.type';
+
+// Suppress dotenv output to prevent breaking MCP protocol on stdout
+process.env.DOTENV_CONFIG_QUIET = 'true';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+// Fallback: Load .env if MONGODB_URI is missing (for Node < 20.6 or if --env-file is omitted)
+if (!process.env.MONGODB_URI) {
+  loadDotenv({ path: join(__dirname, '../../.env') });
+}
 
 const requiredVars = ['MONGODB_URI'];
 

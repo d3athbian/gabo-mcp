@@ -74,12 +74,37 @@ npm run build
 # Unit tests (180+ tests)
 npm run test
 
-# Integration tests (9 tests)
-npx vitest run --config vitest.integration.config.ts
+# Integration tests (CRUD flow)
+npx vitest run test/integration/bootstrap.test.ts
 
 # Coverage
 npm run test:coverage
 ```
+
+### Cómo ejecutar tests de integración
+
+Los tests de integración requieren conexión a MongoDB Atlas y una API key válida.
+
+```bash
+# 1. Copiar configuración de ejemplo
+cp env.example .env
+
+# 2. Editar .env con tus credenciales
+#    - MONGODB_URI: Tu connection string de MongoDB Atlas
+#    - MCP_API_KEY: Genera una key con npm run generate:key
+
+# 3. Ejecutar tests de integración
+npx vitest run test/integration/bootstrap.test.ts
+```
+
+Los tests de integración cubren:
+
+- ✅ Bootstrapping de API key
+- ✅ Save (crear documentos)
+- ✅ List (listar con paginación)
+- ✅ Get (obtener por ID)
+- ✅ Search (búsqueda por texto)
+- ✅ Delete (eliminar documentos)
 
 ---
 
