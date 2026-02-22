@@ -18,111 +18,67 @@ Si has trabajado con IA sabe que cada nuevo proyecto requiere repetir las mismas
 
 ---
 
-## ¿Qué hace por ti?
+## Decisiones Técnicas
 
-### 🧠 Memoria eterna
+Acá cuento por qué tomé ciertas decisiones. No son dogma, son el resultado de probar cosas y aprender en el camino.
 
-Cada patrón, decisión y corrección se guarda automáticamente. No más pierde-escucha-busca en Slack.
-
-### 🔍 Búsqueda inteligente
-
-Encuentra lo que necesitas por **palabras clave** o por **significado**. "¿Dónde guardé eso de los tipos en TypeScript?" → encuentra exactamente eso.
-
-### 🛡️ Tu conocimiento, seguro
-
-Sistema de sanitización automático. Advierte sobre credenciales pero tú decides qué guardar.
-
-### ⚡ Búsqueda semántica
-
-Vector embeddings con Ollama + MongoDB Atlas. Encuentra conceptos similares, no solo palabras coincidentes.
-
----
-
-## Uso rápido
-
-```bash
-# Ejecutar el servidor
-npm run dev:local
-```
-
-### Guardar algo nuevo
-
-```json
-{
-  "name": "save",
-  "arguments": {
-    "type": "PATTERN",
-    "title": "Validación de tipos con Zod",
-    "content": "Usar Zod para validación en tiempo de ejecución...",
-    "tags": ["typescript", "zod", "validation"]
-  }
-}
-```
-
-O simplemente en texto:
-
-> "Gabo, guarda este patrón de validación con Zod"
-
-### Buscar
-
-```json
-{
-  "name": "search",
-  "arguments": {
-    "query": "validación typescript",
-    "mode": "hybrid",
-    "limit": 5
-  }
-}
-```
+→ Ver [docs/DECISIONES.md](docs/DECISIONES.md)
 
 ---
 
 ## Tecnologías
 
-- **Runtime**: Node.js 24+ (ES Modules)
-- **Protocolo**: Model Context Protocol (MCP)
-- **Base de datos**: MongoDB Atlas (persistencia + vector search)
-- **Embeddings**: Ollama (modelo `nomic-embed-text`)
-- **Lenguaje**: TypeScript
+| Categoría     | Tecnología    | Versión mínima |
+| ------------- | ------------- | -------------- |
+| Runtime       | Node.js       | 24.0.0         |
+| Lenguaje      | TypeScript    | 5.6.0          |
+| Protocolo     | MCP SDK       | 1.25.3         |
+| Base de datos | MongoDB Atlas | -              |
+| Embeddings    | Ollama        | -              |
+| Validación    | Zod           | 3.22.0         |
+| Testing       | Vitest        | 2.1.0          |
+| Linting       | Biome         | 2.4.4          |
 
 ---
 
-## Categorías de conocimiento
+## Herramientas Disponibles
 
-| Tipo                | Para qué                   |
-| ------------------- | -------------------------- |
-| `PATTERN`           | Patrones reutilizables     |
-| `PITFALL`           | Errores a evitar           |
-| `ERROR_CORRECTION`  | Lecciones de bugs          |
-| `CODE_SNIPPET`      | Snippets valiosos          |
-| `PROMPT`            | Prompts que funcionan      |
-| `ARCH_DECISION`     | Decisiones de arquitectura |
-| `TECHNICAL_INSIGHT` | Descubrimientos técnicos   |
+| Herramienta | Propósito                                          |
+| ----------- | -------------------------------------------------- |
+| `save`      | Guardar conocimiento con validación + sanitización |
+| `search`    | Búsqueda text, semantic o hybrid                   |
+| `list`      | Listar entradas con paginación                     |
+| `get`       | Obtener detalle por ID                             |
+| `delete`    | Eliminar entrada                                   |
 
 ---
 
-## Setup
+## Uso
 
 ```bash
-# Instalar dependencias
-npm install
+# Desarrollo con watch
+npm run dev
 
-# Compilar
+# Desarrollo local
+npm run dev:local
+
+# Build
 npm run build
 
-# Ejecutar
-npm run dev:local
+# Tests
+npm run test
 ```
 
 ### Variables requeridas
 
 ```bash
 MONGODB_URI=mongodb+srv://...
-MCP_API_KEY=tu_api_key_aqui
+MCP_API_KEY=gabo_xxx  # Genera con: npm run generate:key
 ```
 
-### Configuración en Cursor/Claude Desktop
+---
+
+## Configuración
 
 ```json
 {
@@ -141,25 +97,13 @@ MCP_API_KEY=tu_api_key_aqui
 
 ---
 
-## Built with AI
-
-Este proyecto fue diseñado y construido **íntegramente con asistencia de IA**. Cada componente, desde la arquitectura hasta los tests, fue desarrollado usando modelos de lenguaje.
-
-> "La IA no solo escribe código: diseña sistemas, propone arquitecturas y construye aplicaciones completas."
-
-- Integración de APIs de IA
-- Patrones de diseño modernos
-- Protocolos emergentes (MCP)
-- Vector search y embeddings
-- Arquitectura cloud-native
-
----
-
 ## Documentación
 
-- [FUNCIONALIDADES.md](docs/FUNCIONALIDADES.md) - Herramientas disponibles
+- [DECISIONES.md](docs/DECISIONES.md) - Por qué tomé estas decisiones
+- [FUNCIONALIDADES.md](docs/FUNCIONALIDADES.md) - Detalle de herramientas
+- [ARCHITECTURE.md](docs/ARCHITECTURE.md) - Arquitectura técnica
+- [SANITIZATION.md](docs/SANITIZATION.md) - Sistema de seguridad
 - [SETUP_GUIDE.md](docs/SETUP_GUIDE.md) - Guía de instalación
-- [VECTOR_SEARCH_SETUP.md](docs/VECTOR_SEARCH_SETUP.md) - Búsqueda semántica
 
 ---
 
