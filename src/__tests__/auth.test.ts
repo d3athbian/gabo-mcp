@@ -4,13 +4,13 @@
 
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as apiKeysDb from '../db/api-keys.js';
-import type { AuthResult } from '../middleware/auth/auth.type.js';
 import {
   createAuthErrorResponse,
   isBootstrapAvailable,
   validateApiKey,
   withAuth,
 } from '../middleware/auth/index.js';
+import type { AuthResult } from '../types.js';
 
 vi.mock('../db/client.js', () => ({
   getDatabase: vi.fn().mockReturnValue({

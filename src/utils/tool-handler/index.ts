@@ -5,7 +5,7 @@
 
 import type { ContentBlock, ErrorResponse } from '../../base.type.js';
 import { recordAuditLog } from '../../db/audit-log.js';
-import type { AuditAction } from '../../db/audit-log.type.js';
+import type { AuditAction } from '../../types.js';
 import { logger } from '../logger/index.js';
 import type { HandleToolErrorOptions, ToolResponse } from './tool-handler.type.js';
 

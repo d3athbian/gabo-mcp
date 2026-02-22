@@ -23,7 +23,7 @@ export type ToolDefinition<T> = {
   inputSchema: ZodTypeAny;
   handler: BaseToolHandler<Omit<T, 'api_key'>>;
   skipAuth?: boolean; // Optional flag to bypass authentication
-  auditAction?: import('../db/audit-log.type.js').AuditAction;
+  auditAction?: import('../types.js').AuditAction;
 };
 
 /**

@@ -4,8 +4,8 @@
  * Includes automatic cleanup via MongoDB TTL index.
  */
 
+import type { AuditLogEntry } from '../types.js';
 import { logger } from '../utils/logger/index.js';
-import type { AuditLogEntry } from './audit-log.type.js';
 import { getKnowledgeAuditLogCollection } from './client.js';
 
 /**

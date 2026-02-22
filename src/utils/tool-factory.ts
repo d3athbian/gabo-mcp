@@ -4,8 +4,8 @@
  */
 
 import type { ZodTypeAny } from 'zod';
-import type { AuditAction } from '../db/audit-log.type.js';
 import type { ToolDefinition } from '../tools/index.type.js';
+import type { AuditAction } from '../types.js';
 import { type successResponse, withAudit, withErrorHandler } from './tool-handler/index.js';
 
 export interface ToolConfig {

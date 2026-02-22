@@ -1,8 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import type { LogErrorFn, LogFn } from '../../base.type.js';
+import type { LogErrorFn, LogFn, Logger } from '../../base.type.js';
 import { LOGGING } from '../../config/constants.js';
-import type { Logger } from './logger.type.js';
 
 const LOG_DIR = LOGGING.DIR;
 const LOG_FILE = LOGGING.FILE;

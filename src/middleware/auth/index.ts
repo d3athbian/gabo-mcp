@@ -10,6 +10,7 @@
 
 import { createApiKey, findApiKeyByKey, hasAnyApiKeys } from '../../db/api-keys.js';
 import { recordAuditLog } from '../../db/audit-log.js';
+import type { AuthResult } from '../../types.js';
 import {
   ensurePepperExists,
   generateApiKey,
@@ -19,7 +20,6 @@ import {
 } from '../../utils/api-key/index.js';
 import { logger } from '../../utils/logger/index.js';
 import type { ToolResponse } from '../../utils/tool-handler/tool-handler.type.js';
-import type { AuthResult } from './auth.type.js';
 
 export async function isBootstrapAvailable(): Promise<boolean> {
   return !(await hasAnyApiKeys());
@@ -38,7 +38,10 @@ export async function validateApiKey(apiKey: string): Promise<AuthResult> {
     await recordAuditLog({
       action: 'auth_failed',
       success: false,
-      metadata: { reason: 'invalid_format', key_preview: apiKey.substring(0, 8) },
+      metadata: {
+        reason: 'invalid_format',
+        key_preview: apiKey.substring(0, 8),
+      },
     });
     return {
       success: false,
@@ -53,7 +56,10 @@ export async function validateApiKey(apiKey: string): Promise<AuthResult> {
     await recordAuditLog({
       action: 'auth_failed',
       success: false,
-      metadata: { reason: 'key_not_found', key_preview: apiKey.substring(0, 8) },
+      metadata: {
+        reason: 'key_not_found',
+        key_preview: apiKey.substring(0, 8),
+      },
     });
     return {
       success: false,
