@@ -1,6 +1,11 @@
 /**
  * Authentication Middleware
- * Validates API key from process.env.MCP_API_KEY against MongoDB record
+ * Validates API key from process.env.MCP_API_KEY against MongoDB record.
+ *
+ * Security model:
+ *  - MCP_KEY_PEPPER lives ONLY in .env (auto-generated on first boot)
+ *  - MCP_API_KEY lives ONLY in .env (auto-generated on first boot)
+ *  - MongoDB stores ONLY the bcrypt hash of (key + pepper)
  */
 
 import {
@@ -11,6 +16,9 @@ import {
 import {
   generateApiKey,
   isValidApiKeyFormat,
+  hashApiKey,
+  ensurePepperExists,
+  writeEnvVariable,
 } from "../../utils/api-key/index.js";
 import { logger } from "../../utils/logger/index.js";
 import { type ToolResponse } from "../../utils/tool-handler/tool-handler.type.js";
@@ -57,19 +65,45 @@ export async function validateApiKey(apiKey: string): Promise<AuthResult> {
   };
 }
 
+/**
+ * Bootstrap: ensures both MCP_KEY_PEPPER and a hashed API key exist.
+ *
+ * Order of operations:
+ *  1. Ensure pepper exists in .env (generate if absent)
+ *  2. Check if any API key hash exists in MongoDB
+ *  3. If none: generate key → hash with pepper → save hash to DB → save plain key to .env
+ *
+ * Returns the plain-text key if one was just created, empty string otherwise.
+ */
 export async function ensureApiKeyExists(): Promise<string> {
-  const hasExistingKey = await hasAnyApiKeys();
+  // Step 1: Bootstrap the pepper first — must exist before any hashing
+  const isNewPepper = !process.env.MCP_KEY_PEPPER;
+  ensurePepperExists();
 
+  if (isNewPepper) {
+    logger.info("First-time setup: MCP_KEY_PEPPER generated and saved to .env");
+  }
+
+  // Step 2: Check if we already have a key in DB
+  const hasExistingKey = await hasAnyApiKeys();
   if (hasExistingKey) {
     return "";
   }
 
+  // Step 3: Generate key, hash it, store hash in DB, write plain key to .env
   const key = generateApiKey();
-  await createApiKey(key);
+  const keyHash = await hashApiKey(key);
 
-  const preview = `...${key.slice(-8)}`;
-  logger.info(`First-time API key generated: ${preview}`);
-  logger.warn("SAVE THIS KEY - Add to your MCP config env!");
+  await createApiKey(keyHash);
+
+  writeEnvVariable("MCP_API_KEY", key);
+  // Make it immediately available in this process
+  process.env.MCP_API_KEY = key;
+
+  logger.info(`First-time API key created and saved to .env`);
+  logger.info(`  Key preview: ...${key.slice(-8)}`);
+  logger.warn("  MongoDB stores only the bcrypt hash — the .env holds the key");
+  logger.warn("  NEVER commit your .env file to version control");
 
   return key;
 }

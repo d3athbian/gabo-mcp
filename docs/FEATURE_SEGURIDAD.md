@@ -27,10 +27,11 @@
 
 **Recomendaciones**:
 
-- [ ] Guardar la API key en un secure vault (Keychain/Windows Credential Manager) al generarse
+- [x] Guardar la API key en `.env` automáticamente al generarse (bootstrap automático)
+- [x] Generar `MCP_KEY_PEPPER` (pepper bcrypt) y guardarlo en `.env` en primer inicio
 - [ ] Mostrar warning claro si la key no fue guardada antes de cerrar sesión
 - [ ] Implementar método de recuperación: generar nueva key y revocar antigua
-- [ ] Añadir fecha de expiración opcional a las keys
+- [ ] Añadir fecha de expiración opcional a las keys (descartado — uso personal)
 - [ ] Crear CLI command: `gabo-mcp key rotate`
 
 ### 2. Almacenamiento de Credenciales
@@ -39,10 +40,10 @@
 
 **Recomendaciones**:
 
-- [ ] Hashear las API keys usando bcrypt/argon2 antes de guardar
-- [ ] Usar campo separado para hash: `key_hash` (no guardar key real)
-- [ ] Implementar salting por usuario/instancia
-- [ ] NEVER guardar la key original, solo el hash para validación
+- [x] Hashear las API keys usando bcrypt + pepper antes de guardar
+- [x] Usar campo separado `key_hash` (no guardar key real en DB)
+- [x] Implementar salting automático via bcrypt (rounds=10)
+- [x] NEVER guardar la key original en MongoDB, solo el hash para validación
 
 ```typescript
 // Mejor práctica
@@ -123,7 +124,7 @@ const valid = await verify(storedHash, providedKey);
 
 ### Critical (Alta Prioridad)
 
-- [ ] Hashear API keys (no storing plaintext)
+- [x] Hashear API keys (no storing plaintext) — bcrypt + pepper implementado
 - [ ] Implementar rate limiting
 - [x] Crear índice vectorial automáticamente en setup
 

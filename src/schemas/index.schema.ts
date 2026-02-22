@@ -158,7 +158,8 @@ export type ToolResponseData = z.infer<typeof ToolResponseDataSchema>;
 export const ApiKeySchema = z
   .object({
     id: z.string(),
-    key: z.string(),
+    /** bcrypt hash of (plainTextKey + pepper). The plain-text key is NEVER stored. */
+    key_hash: z.string(),
     last_used: z.string().optional(),
     is_active: z.boolean(),
   })
