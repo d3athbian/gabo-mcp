@@ -14,6 +14,24 @@ export const EntityTimestampSchema = z.string(); // ISO 8601
 export const EntityTypeSchema = z.string();
 
 // ============================================================================
+// KNOWLEDGE TYPES
+// ============================================================================
+
+export const KnowledgeTypeSchema = z.enum([
+  'UI_UX',
+  'ARCH_DECISION',
+  'PROMPT',
+  'ERROR_CORRECTION',
+  'CODE_SNIPPET',
+  'DESIGN_DECISION',
+  'TECHNICAL_INSIGHT',
+  'PATTERN',
+  'PITFALL',
+  'INFRASTRUCTURE',
+  'TESTING',
+]);
+
+// ============================================================================
 // HELPERS
 // ============================================================================
 

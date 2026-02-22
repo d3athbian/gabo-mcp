@@ -1,6 +1,6 @@
 import { getKnowledge } from '../../db/queries.js';
+import { createTool } from '../../utils/tool-factory.js';
 import { successResponse } from '../../utils/tool-handler/index.js';
-import type { ToolDefinition } from '../index.type.js';
 import type { GetKnowledgeArgs } from './get-knowledge.type.js';
 import { GetKnowledgeSchema } from './get-knowledge.type.js';
 
@@ -51,14 +51,16 @@ ${metadataSection}
 _Fuente: ${entry.source || 'No especificada'}_`;
 }
 
-export const getKnowledgeTool: ToolDefinition<GetKnowledgeArgs> = {
-  name: 'get',
-  title: 'Get Knowledge',
-  description: 'Get knowledge entry by ID. Supports json, markdown, or plain output format.',
-  inputSchema: GetKnowledgeSchema,
-  auditAction: 'get_knowledge',
-  handler: async (args) => {
-    const { id, format } = args;
+export const getKnowledgeTool = createTool(
+  {
+    name: 'get',
+    title: 'Get Knowledge',
+    description: 'Get knowledge entry by ID. Supports json, markdown, or plain output format.',
+    inputSchema: GetKnowledgeSchema,
+    auditAction: 'get_knowledge',
+  },
+  async (args) => {
+    const { id, format } = args as GetKnowledgeArgs;
     const entry = await getKnowledge(id);
 
     if (format === 'markdown') {
@@ -78,5 +80,5 @@ export const getKnowledgeTool: ToolDefinition<GetKnowledgeArgs> = {
     }
 
     return successResponse({ entry });
-  },
-};
+  }
+);
