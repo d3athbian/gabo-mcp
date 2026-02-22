@@ -140,6 +140,23 @@ Los logs se escriben en `/tmp/gabo-mcp.log`.
 - [ARCHITECTURE.md](docs/ARCHITECTURE.md) - Arquitectura técnica
 - [SANITIZATION.md](docs/SANITIZATION.md) - Sistema de seguridad
 - [BACKUP_PLAN.md](docs/BACKUP_PLAN.md) - Respaldo de base de datos
+- [PROFILE.md](PROFILE.md) - Perfil para reclutadores/IA
+
+---
+
+## Estructura
+
+```
+src/
+├── config/          # Configuración centralizada (constants.ts)
+├── db/              # MongoDB client, queries, vector search
+├── middleware/      # Auth, sanitization
+├── tools/           # MCP tools (save, search, list, get, delete)
+├── embeddings/      # Ollama/OpenAI integration
+├── schemas/         # Zod schemas (fuente de verdad)
+├── utils/           # Logger, API, tool-handler keys
+└── types.ts        # Tipos centralizados
+```
 
 ---
 
