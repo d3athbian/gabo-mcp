@@ -6,10 +6,20 @@
 
 - **API Key**: Sistema basado en claves con prefijo `gabo_`
 - **Generación**: Automática en primer inicio via `ensureApiKeyExists()`
+- **Rotación**: Script `npm run generate:key` para revocar y generar nuevas keys
 - **Validación**: Middleware `withAuth` en cada request
-- **Almacenamiento**: MongoDB (texto plano)
+- **Almacenamiento**: MongoDB (bcrypt hash + pepper - nunca texto plano)
 
-### Infraestrutura de Seguridad
+### Auditoría (Audit Log)
+
+- Colección `audit_logs` con TTL de 90 días
+- Eventos auditados:
+  - `auth_success` / `auth_failed` - Validación de API keys
+  - `key_created` / `key_rotated` / `key_revoked` - Ciclo de vida de keys
+  - Acciones de herramientas
+- Herramienta MCP: `get_audit_logs` para consultar logs
+
+### Infraestructura de Seguridad
 
 - Sanitización de datos (PII, credenciales, variables de entorno)
 - Health monitor para conexión a DB
@@ -19,92 +29,33 @@
 
 ---
 
-## Recomendaciones de Seguridad
+## Pendientes
 
+### High Priority
 
+- [ ] Rate limiting
 
-### 4. Auditoría (Audit Log)
+### Medium Priority
 
-**Problema actual**: Solo logging básico.
-
-**Recomendaciones**:
-
-- [ ] Crear colección `audit_logs` con:
-  - `key_id`, `action`, `timestamp`, `ip`, `user_agent`, `success`
-- [ ] Eventos a auditar:
-  - Login/validación de key
-  - Creación/rotación/revocación de keys
-  - Acceso a herramientas
-  - Errores de autenticación
-- [ ] Retention policy: 90 días mínimo
-- [ ] Exports para compliance
-
-### 5. Seguridad de Datos
-
-**Recomendaciones**:
-
-- [ ] Encriptar datos sensibles en MongoDB (field-level encryption)
-- [ ] Validar tamaño máximo de payloads
-- [ ] Sanitizar TODAS las inputs del usuario
-- [ ] Usar HTTPS para todas las conexiones externas
-- [ ] Implementar CSP headers si hay UI
-
-### 6. Rotación de Keys
-
-**Recomendaciones**:
-
-- [ ] Implementar rotación automática cada 90 días
-- [ ] Grace period: permitir key vieja 7 días después de rotación
-- [ ] Notificar al usuario antes de expiración
-- [ ] CLI: `gabo-mcp key list`, `gabo-mcp key revoke <id>`
-
-### 7. Autenticación Multifactor (MFA)
-
-**Recomendaciones**:
-
-- [ ] Para operaciones sensibles (delete, revoke key): requerir MFA
-- [ ] Integrar con TOTP (Google Authenticator, etc.)
-- [ ] Opcional: hardware keys (YubiKey)
-
----
-
-## Checklist de Implementación
-
-### Critical (Alta Prioridad)
-
-- [x] Hashear API keys (no storing plaintext) — bcrypt + pepper implementado
-- [ ] Implementar rate limiting
-- [x] Crear índice vectorial automáticamente en setup
-
-### High
-
-- [x] Audit logging completo
-- [x] Rotación de keys (`npm run generate:key`)
-- [ ] Alertas de seguridad (key comprometida, rate limit excedido)
-
-### Medium
-
+- [ ] Rotación automática de keys (actualmente manual con `npm run generate:key`)
+- [ ] Notificaciones antes de expiración
 - [ ] MFA para operaciones sensibles
-- [ ] Encriptación field-level en MongoDB
+- [ ] Encriptación field-level en MongoDB (datos sensibles)
+
+### Low Priority
+
 - [ ] Dashboard de seguridad
-
-### Low
-
 - [ ] Integración con SIEM
 - [ ] Compliance reports automáticos
 
 ---
 
-## Variables de Entorno de Seguridad
+## Variables de Entorno
 
 ```bash
-# Seguridad
-MCP_API_KEY=                    # Tu API key
-MCP_API_KEY_ROTATION_DAYS=90    # Días hasta rotación
-MCP_RATE_LIMIT_RPM=60           # Requests por minuto
-MCP_AUDIT_LOG_ENABLED=true     # Habilitar audit log
-MCP_AUDIT_RETENTION_DAYS=90     # Retención de logs
-MCP_ALERT_EMAIL=                # Email para alertas
+MCP_API_KEY=                    # Tu API key (auto-generada)
+MCP_KEY_PEPPER=                # Pepper para hashing (auto-generado)
+MCP_AUDIT_RETENTION_DAYS=90    # Retención de logs
 ```
 
 ---
