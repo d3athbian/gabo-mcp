@@ -4,30 +4,30 @@
  * Types are generated using z.infer<typeof Schema>
  */
 
-import { z } from "zod";
-import { TimestampsSchema, PaginationSchema } from "./base.schema.js";
+import { z } from 'zod';
+import { PaginationSchema, TimestampsSchema } from './base.schema.js';
 
 // ============================================================================
 // ENUMS
 // ============================================================================
 
 export const KnowledgeTypeSchema = z.enum([
-  "UI_UX",
-  "ARCH_DECISION",
-  "PROMPT",
-  "ERROR_CORRECTION",
-  "CODE_SNIPPET",
-  "DESIGN_DECISION",
-  "TECHNICAL_INSIGHT",
-  "PATTERN",
-  "PITFALL",
-  "INFRASTRUCTURE",
-  "TESTING",
+  'UI_UX',
+  'ARCH_DECISION',
+  'PROMPT',
+  'ERROR_CORRECTION',
+  'CODE_SNIPPET',
+  'DESIGN_DECISION',
+  'TECHNICAL_INSIGHT',
+  'PATTERN',
+  'PITFALL',
+  'INFRASTRUCTURE',
+  'TESTING',
 ]);
 
 export type KnowledgeType = z.infer<typeof KnowledgeTypeSchema>;
 
-export const VisibilityTypeSchema = z.enum(["private", "archived"]);
+export const VisibilityTypeSchema = z.enum(['private', 'archived']);
 
 export type VisibilityType = z.infer<typeof VisibilityTypeSchema>;
 
@@ -37,14 +37,14 @@ export type VisibilityType = z.infer<typeof VisibilityTypeSchema>;
 
 export const BaseKnowledgeSchema = z.object({
   type: KnowledgeTypeSchema,
-  title: z.string().min(1, "Title is required"),
-  content: z.string().min(1, "Content is required"),
+  title: z.string().min(1, 'Title is required'),
+  content: z.string().min(1, 'Content is required'),
   tags: z.array(z.string()).default([]),
   source: z
     .string()
     .optional()
     .describe(
-      "Context or pattern this knowledge applies to (e.g. 'auth_flow_optimization', 'db_migration_pattern'). Avoid specific local file paths unless critical.",
+      "Context or pattern this knowledge applies to (e.g. 'auth_flow_optimization', 'db_migration_pattern'). Avoid specific local file paths unless critical."
     ),
   metadata: z.record(z.any()).optional(),
 });
@@ -127,9 +127,9 @@ export type MCPToolResult = z.infer<typeof MCPToolResultSchema>;
 export const MCPToolResponseSchema = z.object({
   content: z.array(
     z.object({
-      type: z.literal("text"),
+      type: z.literal('text'),
       text: z.string(),
-    }),
+    })
   ),
   isError: z.boolean().optional(),
 });

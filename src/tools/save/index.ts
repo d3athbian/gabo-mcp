@@ -1,32 +1,21 @@
-import {
-  successResponse,
-  errorResponse,
-} from "../../utils/tool-handler/index.js";
-import { storeKnowledge } from "../../db/queries.js";
-import { sanitizeAllFields } from "../../middleware/sanitization/index.js";
-import { searchKnowledgeVector } from "../../db/vector-search.js";
-import { generateEmbedding } from "../../embeddings/index.js";
-import { SaveKnowledgeSchema } from "./save.type.js";
-import type { ToolDefinition } from "../index.type.js";
-import type { SaveKnowledgeArgs } from "./save.type.js";
+import { storeKnowledge } from '../../db/queries.js';
+import { searchKnowledgeVector } from '../../db/vector-search.js';
+import { generateEmbedding } from '../../embeddings/index.js';
+import { sanitizeAllFields } from '../../middleware/sanitization/index.js';
+import { errorResponse, successResponse } from '../../utils/tool-handler/index.js';
+import type { ToolDefinition } from '../index.type.js';
+import type { SaveKnowledgeArgs } from './save.type.js';
+import { SaveKnowledgeSchema } from './save.type.js';
 
 export const saveKnowledgeTool: ToolDefinition<SaveKnowledgeArgs> = {
-  name: "save",
-  title: "Save Knowledge",
+  name: 'save',
+  title: 'Save Knowledge',
   description:
-    "Save knowledge to the database. Automatically blocks PII (emails, phones, IPs, etc.) and credentials (passwords, API keys, tokens). No exceptions allowed.",
+    'Save knowledge to the database. Automatically blocks PII (emails, phones, IPs, etc.) and credentials (passwords, API keys, tokens). No exceptions allowed.',
   inputSchema: SaveKnowledgeSchema,
-  auditAction: "store_knowledge",
+  auditAction: 'store_knowledge',
   handler: async (args) => {
-    const {
-      type,
-      title,
-      content,
-      tags,
-      source,
-      embedding: providedEmbedding,
-      metadata,
-    } = args;
+    const { type, title, content, tags, source, embedding: providedEmbedding, metadata } = args;
 
     const sanitizationResult = sanitizeAllFields({
       title,
@@ -38,9 +27,8 @@ export const saveKnowledgeTool: ToolDefinition<SaveKnowledgeArgs> = {
 
     if (!sanitizationResult.allowed) {
       return errorResponse(
-        sanitizationResult.errorMessage ||
-          "Blocked: Sensitive data detected. Cannot save.",
-        "SANITIZATION_ERROR",
+        sanitizationResult.errorMessage || 'Blocked: Sensitive data detected. Cannot save.',
+        'SANITIZATION_ERROR'
       );
     }
 
@@ -89,7 +77,7 @@ export const saveKnowledgeTool: ToolDefinition<SaveKnowledgeArgs> = {
       title: entry.title,
       created_at: entry.created_at,
       similar_entries: similarEntries.length > 0 ? similarEntries : undefined,
-      message: "Knowledge saved successfully",
+      message: 'Knowledge saved successfully',
     });
   },
 };

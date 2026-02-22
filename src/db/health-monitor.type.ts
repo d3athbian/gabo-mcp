@@ -1,5 +1,5 @@
 export type HealthCheckConfig = {
-    enabled: boolean;
-    intervalMs: number;
-    timeoutMs: number;
+  enabled: boolean;
+  intervalMs: number;
+  timeoutMs: number;
 };

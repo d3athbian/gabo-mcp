@@ -1,12 +1,12 @@
-import { spawn } from "child_process";
-import { OllamaClient } from "./ollama-client.js";
-import type { LauncherConfig } from "./launcher.type.js";
+import { spawn } from 'node:child_process';
+import type { LauncherConfig } from './launcher.type.js';
+import { OllamaClient } from './ollama-client.js';
 
 let ollamaProcess: ReturnType<typeof spawn> | null = null;
 let isStarting = false;
 
 export async function ensureOllamaRunning(
-  config: LauncherConfig,
+  config: LauncherConfig
 ): Promise<{ available: boolean; message: string }> {
   const client = new OllamaClient({
     baseUrl: config.ollamaUrl,
@@ -18,22 +18,21 @@ export async function ensureOllamaRunning(
   if (available) {
     return {
       available: true,
-      message: "Ollama is running",
+      message: 'Ollama is running',
     };
   }
 
   if (!config.autoStart) {
     return {
       available: false,
-      message:
-        "Ollama is not running and auto-start is disabled. Start with: ollama serve",
+      message: 'Ollama is not running and auto-start is disabled. Start with: ollama serve',
     };
   }
 
   if (isStarting) {
     return {
       available: false,
-      message: "Ollama is starting...",
+      message: 'Ollama is starting...',
     };
   }
 
@@ -68,30 +67,27 @@ export async function ensureOllamaRunning(
 
 async function startOllamaService(): Promise<void> {
   return new Promise((resolve, reject) => {
-    ollamaProcess = spawn("ollama", ["serve"], {
+    ollamaProcess = spawn('ollama', ['serve'], {
       detached: true,
-      stdio: "ignore",
+      stdio: 'ignore',
     });
 
-    ollamaProcess.on("error", (error) => {
+    ollamaProcess.on('error', (error) => {
       reject(error);
     });
 
-    ollamaProcess.on("spawn", () => {
+    ollamaProcess.on('spawn', () => {
       ollamaProcess?.unref();
       resolve();
     });
 
     setTimeout(() => {
-      reject(new Error("Ollama spawn timeout"));
+      reject(new Error('Ollama spawn timeout'));
     }, 5000);
   });
 }
 
-export async function checkOllamaStatus(
-  ollamaUrl: string,
-  timeout: number,
-): Promise<boolean> {
+export async function checkOllamaStatus(ollamaUrl: string, timeout: number): Promise<boolean> {
   const client = new OllamaClient({
     baseUrl: ollamaUrl,
     timeout,

@@ -4,26 +4,26 @@
  * Includes automatic cleanup via MongoDB TTL index.
  */
 
-import { getKnowledgeAuditLogCollection } from "./client.js";
-import type { AuditLogEntry } from "./audit-log.type.js";
-import { logger } from "../utils/logger/index.js";
+import { logger } from '../utils/logger/index.js';
+import type { AuditLogEntry } from './audit-log.type.js';
+import { getKnowledgeAuditLogCollection } from './client.js';
 
 /**
  * Record a security or tool event.
  */
-export async function recordAuditLog(entry: Omit<AuditLogEntry, "timestamp">): Promise<void> {
-    const collection = getKnowledgeAuditLogCollection();
+export async function recordAuditLog(entry: Omit<AuditLogEntry, 'timestamp'>): Promise<void> {
+  const collection = getKnowledgeAuditLogCollection();
 
-    const fullEntry: AuditLogEntry = {
-        ...entry,
-        timestamp: new Date(),
-    };
+  const fullEntry: AuditLogEntry = {
+    ...entry,
+    timestamp: new Date(),
+  };
 
-    try {
-        await collection.insertOne(fullEntry);
-    } catch (error) {
-        logger.error("Failed to write audit log", error);
-    }
+  try {
+    await collection.insertOne(fullEntry);
+  } catch (error) {
+    logger.error('Failed to write audit log', error);
+  }
 }
 
 /**
@@ -31,22 +31,22 @@ export async function recordAuditLog(entry: Omit<AuditLogEntry, "timestamp">): P
  * Logs are automatically deleted after 'days' days.
  */
 export async function setupAuditLogIndex(days: number = 90): Promise<void> {
-    const collection = getKnowledgeAuditLogCollection();
+  const collection = getKnowledgeAuditLogCollection();
 
-    try {
-        // TTL index on 'timestamp' field
-        const expireAfterSeconds = days * 24 * 60 * 60;
+  try {
+    // TTL index on 'timestamp' field
+    const expireAfterSeconds = days * 24 * 60 * 60;
 
-        await collection.createIndex(
-            { timestamp: 1 },
-            {
-                expireAfterSeconds,
-                name: "audit_log_ttl_index"
-            }
-        );
+    await collection.createIndex(
+      { timestamp: 1 },
+      {
+        expireAfterSeconds,
+        name: 'audit_log_ttl_index',
+      }
+    );
 
-        logger.info(`   ✓ Audit Log: TTL index set to ${days} days`);
-    } catch (error) {
-        logger.error("Failed to setup audit log TTL index", error);
-    }
+    logger.info(`   ✓ Audit Log: TTL index set to ${days} days`);
+  } catch (error) {
+    logger.error('Failed to setup audit log TTL index', error);
+  }
 }

@@ -1,12 +1,12 @@
-import type { EmbeddingResult } from "./embeddings.type.js";
-import type { OllamaClientConfig } from "./ollama-client.type.js";
+import type { EmbeddingResult } from './embeddings.type.js';
+import type { OllamaClientConfig } from './ollama-client.type.js';
 
 export class OllamaClient {
   private baseUrl: string;
   private timeout: number;
 
   constructor(config: OllamaClientConfig) {
-    this.baseUrl = config.baseUrl.replace(/\/$/, "");
+    this.baseUrl = config.baseUrl.replace(/\/$/, '');
     this.timeout = config.timeout;
   }
 
@@ -26,18 +26,15 @@ export class OllamaClient {
     }
   }
 
-  async generateEmbedding(
-    text: string,
-    model: string,
-  ): Promise<EmbeddingResult> {
+  async generateEmbedding(text: string, model: string): Promise<EmbeddingResult> {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.timeout);
 
     try {
       const response = await fetch(`${this.baseUrl}/api/embeddings`, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           model,
@@ -60,7 +57,7 @@ export class OllamaClient {
         model,
       };
     } catch (error) {
-      if (error instanceof Error && error.name === "AbortError") {
+      if (error instanceof Error && error.name === 'AbortError') {
         throw new Error(`Ollama request timeout after ${this.timeout}ms`);
       }
       throw error;

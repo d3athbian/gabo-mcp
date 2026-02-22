@@ -3,14 +3,14 @@
  * All queries are global for the instance (Autenticación via Secret Key)
  */
 
-import { ObjectId } from "mongodb";
-import { getKnowledgeEntriesCollection } from "./client.js";
+import { ObjectId } from 'mongodb';
 import type {
-  KnowledgeEntry,
   CreateKnowledgeInput,
+  KnowledgeEntry,
   SearchKnowledgeInput,
   SearchResult,
-} from "../types.js";
+} from '../types.js';
+import { getKnowledgeEntriesCollection } from './client.js';
 
 /**
  * Convert string ID to ObjectId safely
@@ -27,17 +27,9 @@ function toObjectId(id: string): ObjectId {
  * Store a new knowledge entry
  */
 export async function storeKnowledge(
-  input: CreateKnowledgeInput & { embedding?: number[] },
+  input: CreateKnowledgeInput & { embedding?: number[] }
 ): Promise<KnowledgeEntry> {
-  const {
-    type,
-    title,
-    content,
-    tags = [],
-    source,
-    embedding,
-    metadata,
-  } = input;
+  const { type, title, content, tags = [], source, embedding, metadata } = input;
 
   const collection = getKnowledgeEntriesCollection();
 
@@ -49,7 +41,7 @@ export async function storeKnowledge(
     tags,
     source,
     metadata,
-    visibility: "private" as const,
+    visibility: 'private' as const,
     embedding: embedding || [],
     created_at: now,
     updated_at: now,
@@ -65,7 +57,7 @@ export async function storeKnowledge(
     tags,
     source,
     metadata,
-    visibility: "private",
+    visibility: 'private',
     embedding: embedding || [],
     created_at: now,
     updated_at: now,
@@ -75,28 +67,20 @@ export async function storeKnowledge(
 /**
  * Search knowledge entries by keyword (Text search)
  */
-export async function searchKnowledge(
-  input: SearchKnowledgeInput,
-): Promise<SearchResult[]> {
+export async function searchKnowledge(input: SearchKnowledgeInput): Promise<SearchResult[]> {
   const { query, type, limit = 10 } = input;
 
   const collection = getKnowledgeEntriesCollection();
 
   const filter = {
     $or: [
-      { title: { $regex: query, $options: "i" } },
-      { content: { $regex: query, $options: "i" } },
+      { title: { $regex: query, $options: 'i' } },
+      { content: { $regex: query, $options: 'i' } },
     ],
-    ...Object.fromEntries(
-      Object.entries({ type }).filter(([_, v]) => v !== undefined)
-    ),
+    ...Object.fromEntries(Object.entries({ type }).filter(([_, v]) => v !== undefined)),
   };
 
-  const results = await collection
-    .find(filter)
-    .sort({ created_at: -1 })
-    .limit(limit)
-    .toArray();
+  const results = await collection.find(filter).sort({ created_at: -1 }).limit(limit).toArray();
 
   return results.map((doc) => ({
     id: doc._id.toString(),
@@ -112,9 +96,7 @@ export async function searchKnowledge(
 /**
  * Get a single knowledge entry by ID
  */
-export async function getKnowledge(
-  entryId: string,
-): Promise<KnowledgeEntry> {
+export async function getKnowledge(entryId: string): Promise<KnowledgeEntry> {
   const collection = getKnowledgeEntriesCollection();
 
   const doc = await collection.findOne({
@@ -122,7 +104,7 @@ export async function getKnowledge(
   });
 
   if (!doc) {
-    throw new Error("Knowledge entry not found");
+    throw new Error('Knowledge entry not found');
   }
 
   return {
@@ -145,21 +127,14 @@ export async function getKnowledge(
 export async function listKnowledge(
   type?: string,
   limit = 10,
-  offset = 0,
+  offset = 0
 ): Promise<{ data: KnowledgeEntry[]; count: number }> {
   const collection = getKnowledgeEntriesCollection();
 
-  const filter = Object.fromEntries(
-    Object.entries({ type }).filter(([_, v]) => v !== undefined)
-  );
+  const filter = Object.fromEntries(Object.entries({ type }).filter(([_, v]) => v !== undefined));
 
   const [results, count] = await Promise.all([
-    collection
-      .find(filter)
-      .sort({ created_at: -1 })
-      .skip(offset)
-      .limit(limit)
-      .toArray(),
+    collection.find(filter).sort({ created_at: -1 }).skip(offset).limit(limit).toArray(),
     collection.countDocuments(filter),
   ]);
 
@@ -185,7 +160,7 @@ export async function listKnowledge(
  */
 export async function updateKnowledge(
   entryId: string,
-  updates: Partial<CreateKnowledgeInput>,
+  updates: Partial<CreateKnowledgeInput>
 ): Promise<KnowledgeEntry> {
   const collection = getKnowledgeEntriesCollection();
 
@@ -206,11 +181,11 @@ export async function updateKnowledge(
   const result = await collection.findOneAndUpdate(
     { _id: toObjectId(entryId) },
     { $set: updateData },
-    { returnDocument: "after" },
+    { returnDocument: 'after' }
   );
 
   if (!result) {
-    throw new Error("Knowledge entry not found");
+    throw new Error('Knowledge entry not found');
   }
 
   return {
@@ -230,9 +205,7 @@ export async function updateKnowledge(
 /**
  * Delete a knowledge entry
  */
-export async function deleteKnowledge(
-  entryId: string,
-): Promise<void> {
+export async function deleteKnowledge(entryId: string): Promise<void> {
   const collection = getKnowledgeEntriesCollection();
 
   const result = await collection.deleteOne({
@@ -240,7 +213,7 @@ export async function deleteKnowledge(
   });
 
   if (result.deletedCount === 0) {
-    throw new Error("Knowledge entry not found");
+    throw new Error('Knowledge entry not found');
   }
 }
 
@@ -251,7 +224,7 @@ export async function getUserTags(): Promise<string[]> {
   const collection = getKnowledgeEntriesCollection();
 
   const results = await collection
-    .distinct("tags", {})
+    .distinct('tags', {})
     .then((tags) => tags.flat().filter((tag, i, arr) => arr.indexOf(tag) === i))
     .then((tags) => tags.sort());
 

@@ -2,9 +2,9 @@
  * Utils Aggregator
  */
 
-export { redactValue } from "./redaction.js";
+export { redactValue } from './redaction.js';
 export {
-  passesLuhnCheck,
-  isValidSSN,
   isLikelyFalsePositive,
-} from "./validation.js";
+  isValidSSN,
+  passesLuhnCheck,
+} from './validation.js';

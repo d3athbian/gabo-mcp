@@ -3,18 +3,15 @@
  * Blocks writing if sensitive data (PII, credentials) is detected
  */
 
-import type { SanitizationResult } from "./sanitization.type.js";
-import { detectCredentials } from "./detectors/credentials.js";
-import { detectPII } from "./detectors/pii/index.js";
-import { logger } from "../../utils/logger/index.js";
+import { logger } from '../../utils/logger/index.js';
+import { detectCredentials } from './detectors/credentials.js';
+import { detectPII } from './detectors/pii/index.js';
+import type { SanitizationResult } from './sanitization.type.js';
 
-export function sanitizeContent(
-  title: string,
-  content: string,
-): SanitizationResult {
+export function sanitizeContent(title: string, content: string): SanitizationResult {
   const detectors = [
-    { name: "credentials", fn: detectCredentials },
-    { name: "pii", fn: detectPII },
+    { name: 'credentials', fn: detectCredentials },
+    { name: 'pii', fn: detectPII },
   ];
 
   const violations = detectors
@@ -45,17 +42,15 @@ export function sanitizeAllFields(params: {
 }): SanitizationResult {
   const fieldsToCheck: Array<{ name: string; value: string }> = [];
 
-  if (params.title) fieldsToCheck.push({ name: "title", value: params.title });
-  if (params.content)
-    fieldsToCheck.push({ name: "content", value: params.content });
-  if (params.source)
-    fieldsToCheck.push({ name: "source", value: params.source });
+  if (params.title) fieldsToCheck.push({ name: 'title', value: params.title });
+  if (params.content) fieldsToCheck.push({ name: 'content', value: params.content });
+  if (params.source) fieldsToCheck.push({ name: 'source', value: params.source });
   if (params.tags?.length) {
-    fieldsToCheck.push({ name: "tags", value: params.tags.join(" ") });
+    fieldsToCheck.push({ name: 'tags', value: params.tags.join(' ') });
   }
   if (params.metadata) {
     const metadataString = JSON.stringify(params.metadata);
-    fieldsToCheck.push({ name: "metadata", value: metadataString });
+    fieldsToCheck.push({ name: 'metadata', value: metadataString });
   }
 
   const allViolations: Array<{
@@ -69,7 +64,7 @@ export function sanitizeAllFields(params: {
     if (piiResult.detected) {
       allViolations.push({
         category: piiResult.category,
-        message: piiResult.message || "PII detected",
+        message: piiResult.message || 'PII detected',
         field: field.name,
       });
     }
@@ -78,16 +73,14 @@ export function sanitizeAllFields(params: {
     if (credResult.detected) {
       allViolations.push({
         category: credResult.category,
-        message: credResult.message || "Credentials detected",
+        message: credResult.message || 'Credentials detected',
         field: field.name,
       });
     }
   }
 
   if (allViolations.length > 0) {
-    logger.warn(
-      `Sanitization BLOCKED: ${allViolations.length} issue(s) detected across fields`,
-    );
+    logger.warn(`Sanitization BLOCKED: ${allViolations.length} issue(s) detected across fields`);
     return {
       allowed: false,
       violations: allViolations.map((v) => ({
@@ -107,25 +100,23 @@ export function sanitizeAllFields(params: {
 }
 
 function buildErrorMessage(violations: any[]): string {
-  const lines = ["Blocked: Sensitive data detected. Cannot save."];
+  const lines = ['Blocked: Sensitive data detected. Cannot save.'];
   for (const violation of violations) {
     lines.push(`- ${violation.category.toUpperCase()}: ${violation.message}`);
   }
-  lines.push("");
-  lines.push("Remove sensitive data and try again.");
-  return lines.join("\n");
+  lines.push('');
+  lines.push('Remove sensitive data and try again.');
+  return lines.join('\n');
 }
 
 function buildBlockMessage(
-  violations: Array<{ category: string; message: string; field: string }>,
+  violations: Array<{ category: string; message: string; field: string }>
 ): string {
-  const lines = ["Blocked: Sensitive data detected in the following fields:"];
+  const lines = ['Blocked: Sensitive data detected in the following fields:'];
   for (const violation of violations) {
-    lines.push(
-      `- ${violation.field}: ${violation.category.toUpperCase()} (${violation.message})`,
-    );
+    lines.push(`- ${violation.field}: ${violation.category.toUpperCase()} (${violation.message})`);
   }
-  lines.push("");
-  lines.push("Remove sensitive data and try again.");
-  return lines.join("\n");
+  lines.push('');
+  lines.push('Remove sensitive data and try again.');
+  return lines.join('\n');
 }

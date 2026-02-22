@@ -4,9 +4,9 @@
  * Keys are stored as bcrypt hashes — the plain-text key NEVER lives in the DB.
  */
 
-import { getApiKeysCollection } from "./client.js";
-import { verifyApiKey } from "../utils/api-key/index.js";
-import type { ApiKey } from "../schemas/index.schema.js";
+import type { ApiKey } from '../schemas/index.schema.js';
+import { verifyApiKey } from '../utils/api-key/index.js';
+import { getApiKeysCollection } from './client.js';
 
 export async function hasAnyApiKeys(): Promise<boolean> {
   const collection = getApiKeysCollection();
@@ -52,9 +52,7 @@ export async function findApiKeyByKey(key: string): Promise<ApiKey | null> {
   const collection = getApiKeysCollection();
 
   // Only check active keys to short-circuit early
-  const activeDocs = await collection
-    .find({ is_active: true })
-    .toArray();
+  const activeDocs = await collection.find({ is_active: true }).toArray();
 
   for (const doc of activeDocs) {
     const hash = doc.key_hash as string;
@@ -86,7 +84,7 @@ export async function revokeAllApiKeys(): Promise<number> {
   return result.deletedCount;
 }
 
-export async function listApiKeys(): Promise<Omit<ApiKey, "key_hash">[]> {
+export async function listApiKeys(): Promise<Omit<ApiKey, 'key_hash'>[]> {
   const collection = getApiKeysCollection();
   const docs = await collection.find({}).sort({ created_at: -1 }).toArray();
 

@@ -1,14 +1,14 @@
-import { ensureOllamaRunning, checkOllamaStatus } from "./launcher.js";
-import { OllamaClient } from "./ollama-client.js";
-import { Embedder } from "./embedder.js";
-import type { EmbedderConfig, ServiceStatus } from "./embeddings.type.js";
-import type { EmbeddingServiceConfig } from "./services.type.js";
+import { Embedder } from './embedder.js';
+import type { EmbedderConfig, ServiceStatus } from './embeddings.type.js';
+import { checkOllamaStatus, ensureOllamaRunning } from './launcher.js';
+import { OllamaClient } from './ollama-client.js';
+import type { EmbeddingServiceConfig } from './services.type.js';
 
 let embedder: Embedder | null = null;
 let config: EmbedderConfig | null = null;
 
 export async function initializeEmbeddingService(
-  cfg: EmbeddingServiceConfig,
+  cfg: EmbeddingServiceConfig
 ): Promise<{ embedder: Embedder; status: ServiceStatus }> {
   config = {
     enabled: cfg.enabled,
@@ -24,7 +24,7 @@ export async function initializeEmbeddingService(
   if (!cfg.enabled) {
     return {
       embedder: null as any,
-      status: { available: false, error: "Embedding service disabled" },
+      status: { available: false, error: 'Embedding service disabled' },
     };
   }
 
@@ -58,11 +58,11 @@ export async function initializeEmbeddingService(
 
 export async function generateEmbedding(
   title: string,
-  content: string,
+  content: string
 ): Promise<{ embedding?: number[]; warning?: string }> {
   if (!embedder || !config?.enabled) {
     return {
-      warning: "Embedding service unavailable - semantic features disabled",
+      warning: 'Embedding service unavailable - semantic features disabled',
     };
   }
 
@@ -79,11 +79,11 @@ export async function generateEmbedding(
 }
 
 export async function generateQueryEmbedding(
-  query: string,
+  query: string
 ): Promise<{ embedding?: number[]; warning?: string }> {
   if (!embedder || !config?.enabled) {
     return {
-      warning: "Embedding service unavailable - semantic search disabled",
+      warning: 'Embedding service unavailable - semantic search disabled',
     };
   }
 
@@ -100,11 +100,11 @@ export async function generateQueryEmbedding(
 
 export async function getEmbeddingStatus(): Promise<ServiceStatus> {
   if (!config?.enabled) {
-    return { available: false, error: "Embedding service disabled" };
+    return { available: false, error: 'Embedding service disabled' };
   }
 
   if (!embedder) {
-    return { available: false, error: "Embedder not initialized" };
+    return { available: false, error: 'Embedder not initialized' };
   }
 
   const available = await checkOllamaStatus(config.ollamaUrl, 5000);
@@ -112,7 +112,7 @@ export async function getEmbeddingStatus(): Promise<ServiceStatus> {
   return {
     available,
     model: config.model,
-    error: available ? undefined : "Ollama is not responding",
+    error: available ? undefined : 'Ollama is not responding',
   };
 }
 

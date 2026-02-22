@@ -1,10 +1,10 @@
-import * as fs from "fs";
-import * as path from "path";
-import type { LogFn, LogErrorFn } from "../../base.type.js";
-import type { Logger } from "./logger.type.js";
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import type { LogErrorFn, LogFn } from '../../base.type.js';
+import type { Logger } from './logger.type.js';
 
-const LOG_DIR = "/tmp";
-const LOG_FILE = "gabo-mcp.log";
+const LOG_DIR = '/tmp';
+const LOG_FILE = 'gabo-mcp.log';
 const MAX_LOG_SIZE = 5 * 1024 * 1024;
 const MAX_LOG_AGE_DAYS = 3;
 
@@ -26,7 +26,7 @@ export function createLogger(): Logger {
           fs.renameSync(filePath, oldPath);
         }
       }
-    } catch (e) {}
+    } catch (_e) {}
   };
 
   const writeLog = (message: string) => {
@@ -34,7 +34,7 @@ export function createLogger(): Logger {
     const filePath = getLogPath();
     try {
       fs.appendFileSync(filePath, `${message}\n`);
-    } catch (error) {}
+    } catch (_error) {}
   };
 
   const formatMessage = (msg: string): string => {
@@ -56,7 +56,7 @@ export function createLogger(): Logger {
   };
 
   const debug: LogFn = (msg: string) => {
-    if (process.env.MCP_DEBUG === "true") {
+    if (process.env.MCP_DEBUG === 'true') {
       writeLog(formatMessage(`DEBUG: ${msg}`));
     }
   };
@@ -68,7 +68,7 @@ export function createLogger(): Logger {
       const files = fs.readdirSync(LOG_DIR);
 
       for (const file of files) {
-        if (file.startsWith("gabo-mcp")) {
+        if (file.startsWith('gabo-mcp')) {
           const filePath = path.join(LOG_DIR, file);
           const stats = fs.statSync(filePath);
           const ageInDays = (now - stats.mtime.getTime()) / msPerDay;
@@ -78,7 +78,7 @@ export function createLogger(): Logger {
           }
         }
       }
-    } catch (e) {}
+    } catch (_e) {}
   };
 
   return { info, warn, error, debug, cleanup };

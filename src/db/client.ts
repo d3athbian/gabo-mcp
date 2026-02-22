@@ -5,27 +5,27 @@
  */
 
 // Suppress dotenv output to prevent breaking MCP protocol on stdout
-process.env.DOTENV_CONFIG_QUIET = "true";
+process.env.DOTENV_CONFIG_QUIET = 'true';
 
-import { config } from "dotenv";
-import { join, dirname } from "path";
-import { fileURLToPath } from "url";
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { config } from 'dotenv';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-config({ path: join(__dirname, "../../.env"), override: true }); // Load .env from project root and force override any existing vars
+config({ path: join(__dirname, '../../.env'), override: true }); // Load .env from project root and force override any existing vars
 
-import { MongoClient, Db } from "mongodb";
-import { logger } from "../utils/logger/index.js";
+import { type Db, MongoClient } from 'mongodb';
+import { logger } from '../utils/logger/index.js';
 
 const MONGODB_URI = process.env.MONGODB_URI;
 
-const MONGO_WAKE_RETRY = parseInt(process.env.MONGO_WAKE_RETRY || "3", 10);
-const MONGO_WAKE_DELAY = parseInt(process.env.MONGO_WAKE_DELAY || "5000", 10);
+const MONGO_WAKE_RETRY = parseInt(process.env.MONGO_WAKE_RETRY || '3', 10);
+const MONGO_WAKE_DELAY = parseInt(process.env.MONGO_WAKE_DELAY || '5000', 10);
 
 if (!MONGODB_URI) {
   throw new Error(
-    "MONGODB_URI environment variable is required. " +
-    "Get it from MongoDB Atlas: https://cloud.mongodb.com",
+    'MONGODB_URI environment variable is required. ' +
+      'Get it from MongoDB Atlas: https://cloud.mongodb.com'
   );
 }
 
@@ -49,9 +49,7 @@ export async function connectToDatabase(): Promise<Db> {
 
   for (let attempt = 1; attempt <= MONGO_WAKE_RETRY; attempt++) {
     try {
-      logger.info(
-        `Connecting to MongoDB Atlas (attempt ${attempt}/${MONGO_WAKE_RETRY})...`,
-      );
+      logger.info(`Connecting to MongoDB Atlas (attempt ${attempt}/${MONGO_WAKE_RETRY})...`);
 
       client = new MongoClient(MONGODB_URI!, {
         maxPoolSize: 10,
@@ -66,9 +64,9 @@ export async function connectToDatabase(): Promise<Db> {
 
       await db.command({ ping: 1 });
 
-      logger.info("Connected to MongoDB Atlas successfully");
+      logger.info('Connected to MongoDB Atlas successfully');
       logger.info(`   Database: ${db.databaseName}`);
-      logger.info("   Ping: OK");
+      logger.info('   Ping: OK');
 
       await setupIndexes();
 
@@ -87,20 +85,15 @@ export async function connectToDatabase(): Promise<Db> {
       }
 
       if (attempt < MONGO_WAKE_RETRY) {
-        logger.warn(
-          `Connection attempt ${attempt} failed. Retrying in ${MONGO_WAKE_DELAY}ms...`,
-        );
+        logger.warn(`Connection attempt ${attempt} failed. Retrying in ${MONGO_WAKE_DELAY}ms...`);
         await new Promise((resolve) => setTimeout(resolve, MONGO_WAKE_DELAY));
       }
     }
   }
 
-  logger.error(
-    `Failed to connect to MongoDB after ${MONGO_WAKE_RETRY} attempts`,
-    lastError,
-  );
+  logger.error(`Failed to connect to MongoDB after ${MONGO_WAKE_RETRY} attempts`, lastError);
   throw new Error(
-    `MongoDB connection failed after ${MONGO_WAKE_RETRY} attempts: ${lastError?.message}`,
+    `MongoDB connection failed after ${MONGO_WAKE_RETRY} attempts: ${lastError?.message}`
   );
 }
 
@@ -110,7 +103,7 @@ export async function connectToDatabase(): Promise<Db> {
  */
 export function getDatabase(): Db {
   if (!db) {
-    throw new Error("Database not connected. Call connectToDatabase() first.");
+    throw new Error('Database not connected. Call connectToDatabase() first.');
   }
   return db;
 }
@@ -124,7 +117,7 @@ export async function closeDatabase(): Promise<void> {
     await client.close();
     client = null;
     db = null;
-    logger.info("📴 MongoDB connection closed");
+    logger.info('📴 MongoDB connection closed');
   }
 }
 
@@ -133,19 +126,19 @@ export async function closeDatabase(): Promise<void> {
  * These ensure we have type-safe access to collections
  */
 export function getKnowledgeEntriesCollection() {
-  return getDatabase().collection("knowledge_entries");
+  return getDatabase().collection('knowledge_entries');
 }
 
 export function getKnowledgeTagsCollection() {
-  return getDatabase().collection("knowledge_tags");
+  return getDatabase().collection('knowledge_tags');
 }
 
 export function getKnowledgeAuditLogCollection() {
-  return getDatabase().collection("knowledge_audit_log");
+  return getDatabase().collection('knowledge_audit_log');
 }
 
 export function getApiKeysCollection() {
-  return getDatabase().collection("api_keys");
+  return getDatabase().collection('api_keys');
 }
 
 /**
@@ -157,51 +150,51 @@ export async function setupIndexes(): Promise<void> {
   try {
     const entriesCollection = getKnowledgeEntriesCollection();
 
-    logger.info("🔧 Setting up database indexes...");
+    logger.info('🔧 Setting up database indexes...');
 
     // Index for type queries
     await entriesCollection.createIndex({ type: 1 });
-    logger.info("   ✓ Index: type");
+    logger.info('   ✓ Index: type');
 
     // Index for sorting by creation date
     await entriesCollection.createIndex({ created_at: -1 });
-    logger.info("   ✓ Index: created_at");
+    logger.info('   ✓ Index: created_at');
 
     // Index for tags (allows efficient tag filtering)
     await entriesCollection.createIndex({ tags: 1 });
-    logger.info("   ✓ Index: tags");
+    logger.info('   ✓ Index: tags');
 
     // Text index for full-text search on title and content
     await entriesCollection.createIndex(
-      { title: "text", content: "text" },
+      { title: 'text', content: 'text' },
       {
         weights: {
           title: 10, // Title matches are more important
           content: 1,
         },
-        name: "text_search_index",
-      },
+        name: 'text_search_index',
+      }
     );
-    logger.info("   ✓ Text index: title + content");
+    logger.info('   ✓ Text index: title + content');
 
     // API Keys indexes
     const apiKeysCollection = getApiKeysCollection();
     await apiKeysCollection.createIndex({ key: 1 }, { unique: true });
-    logger.info("   ✓ Index: api_keys.key (unique)");
+    logger.info('   ✓ Index: api_keys.key (unique)');
 
     await apiKeysCollection.createIndex({ is_active: 1, created_at: -1 });
-    logger.info("   ✓ Index: api_keys.is_active + created_at");
+    logger.info('   ✓ Index: api_keys.is_active + created_at');
 
     // Audit Log setup
-    const { setupAuditLogIndex } = await import("./audit-log.js");
-    const retentionDays = parseInt(process.env.MCP_AUDIT_RETENTION_DAYS || "90", 10);
+    const { setupAuditLogIndex } = await import('./audit-log.js');
+    const retentionDays = parseInt(process.env.MCP_AUDIT_RETENTION_DAYS || '90', 10);
     await setupAuditLogIndex(retentionDays);
 
-    logger.info("✅ All indexes created successfully");
+    logger.info('✅ All indexes created successfully');
 
     await setupVectorIndex();
   } catch (error) {
-    logger.error("❌ Failed to create indexes", error);
+    logger.error('❌ Failed to create indexes', error);
     // Don't throw - indexes might already exist
   }
 }
@@ -214,54 +207,49 @@ async function setupVectorIndex(): Promise<void> {
   try {
     const entriesCollection = getKnowledgeEntriesCollection();
 
-    const { config } = await import("../config/config.js");
+    const { config } = await import('../config/config.js');
     const embeddingDimensions = config.embedding.dimensions;
 
     // Check if vector index already exists
     const existingIndexes = await entriesCollection.indexes();
-    const vectorIndexExists = existingIndexes.some(
-      (idx: any) => idx.name === "vector_index",
-    );
+    const vectorIndexExists = existingIndexes.some((idx: any) => idx.name === 'vector_index');
 
     if (vectorIndexExists) {
-      logger.info("   ✓ Vector index already exists");
+      logger.info('   ✓ Vector index already exists');
       return;
     }
 
-    logger.info("   🔬 Creating vector search index...");
+    logger.info('   🔬 Creating vector search index...');
 
     // Create vector search index (MongoDB Atlas Search)
     await entriesCollection.createSearchIndex({
-      name: "vector_index",
+      name: 'vector_index',
       definition: {
-        analyzer: "lucene.standard",
-        searchAnalyzer: "lucene.standard",
+        analyzer: 'lucene.standard',
+        searchAnalyzer: 'lucene.standard',
         mappings: {
           dynamic: false,
           fields: {
             embedding: {
-              type: "knnVector",
+              type: 'knnVector',
               dimensions: embeddingDimensions,
-              similarity: "cosine",
+              similarity: 'cosine',
             },
           },
         },
       },
     });
 
-    logger.info("   ✓ Vector index created successfully");
+    logger.info('   ✓ Vector index created successfully');
     logger.info(`     - Dimensions: ${embeddingDimensions}`);
-    logger.info("     - Similarity: cosine");
-    logger.info("");
+    logger.info('     - Similarity: cosine');
+    logger.info('');
   } catch (error) {
     const err = error as any;
     // Ignore error if vector search is not available (e.g., M0 free tier limitations)
-    if (
-      err.message?.includes("atlas") ||
-      err.codeName === "AtlasSearchDisabled"
-    ) {
-      logger.warn("   ⚠️  Vector search not available on this tier");
-      logger.warn("     Upgrade to M10+ for vector search support");
+    if (err.message?.includes('atlas') || err.codeName === 'AtlasSearchDisabled') {
+      logger.warn('   ⚠️  Vector search not available on this tier');
+      logger.warn('     Upgrade to M10+ for vector search support');
     } else {
       logger.warn(`   ⚠️  Could not create vector index: ${err.message}`);
     }

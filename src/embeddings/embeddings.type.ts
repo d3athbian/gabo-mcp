@@ -1,6 +1,6 @@
 export type EmbedderConfig = {
   enabled: boolean;
-  provider: "ollama" | "openai";
+  provider: 'ollama' | 'openai';
   model: string;
   ollamaUrl: string;
   autoStart: boolean;

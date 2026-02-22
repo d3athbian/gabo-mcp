@@ -2,13 +2,9 @@
  * Types for Content Sanitization System
  */
 
-export type SecurityProfileName = "work" | "personal";
+export type SecurityProfileName = 'work' | 'personal';
 
-export type DetectionCategory =
-  | "credentials"
-  | "pii"
-  | "corporate"
-  | "env_vars";
+export type DetectionCategory = 'credentials' | 'pii' | 'corporate' | 'env_vars';
 
 export type DetectionResult = {
   detected: boolean;
@@ -17,10 +13,7 @@ export type DetectionResult = {
   message?: string;
 };
 
-export type DetectorFunction = (
-  content: string,
-  title: string,
-) => DetectionResult;
+export type DetectorFunction = (content: string, title: string) => DetectionResult;
 
 export type SecurityProfile = {
   name: SecurityProfileName;

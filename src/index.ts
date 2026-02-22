@@ -4,28 +4,27 @@
  * Connect via MCP Inspector for web UI: npx @modelcontextprotocol/inspector tsx src/index.ts
  */
 
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { logger } from "./utils/logger/index.js";
-import { connectToDatabase, closeDatabase } from "./db/client.js";
-import { startHealthMonitor, stopHealthMonitor } from "./db/health-monitor.js";
-import { initializeEmbeddingService } from "./embeddings/index.js";
-import { registerAllTools } from "./tools/index.js";
-import { ensureApiKeyExists } from "./middleware/auth/index.js";
-import { config } from "./config/config.js";
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { config } from './config/config.js';
+import { closeDatabase, connectToDatabase } from './db/client.js';
+import { startHealthMonitor, stopHealthMonitor } from './db/health-monitor.js';
+import { initializeEmbeddingService } from './embeddings/index.js';
+import { ensureApiKeyExists } from './middleware/auth/index.js';
+import { registerAllTools } from './tools/index.js';
+import { logger } from './utils/logger/index.js';
 
-process.title = "gabo-mcp-server";
+process.title = 'gabo-mcp-server';
 
 const isInspector =
-  process.env.MCP_INSPECTOR === "true" ||
-  process.argv.some((arg) => arg.includes("inspector"));
+  process.env.MCP_INSPECTOR === 'true' || process.argv.some((arg) => arg.includes('inspector'));
 
-import { registerResources } from "./resources/index.js";
-import { registerPrompts } from "./prompts/index.js";
+import { registerPrompts } from './prompts/index.js';
+import { registerResources } from './resources/index.js';
 
 const server = new McpServer({
-  name: "gabo-mcp-local",
-  version: "0.1.0",
+  name: 'gabo-mcp-local',
+  version: '0.1.0',
 });
 
 registerAllTools(server);
@@ -37,7 +36,7 @@ async function main() {
     try {
       logger.cleanup();
 
-      logger.info("Initializing embedding service...");
+      logger.info('Initializing embedding service...');
       const { status: embeddingStatus } = await initializeEmbeddingService({
         enabled: config.embedding.enabled,
         provider: config.embedding.provider,
@@ -63,18 +62,16 @@ async function main() {
           intervalMs: config.healthCheck.intervalMs,
           timeoutMs: config.healthCheck.timeoutMs,
         });
-        logger.info(
-          `Health check enabled: every ${config.healthCheck.intervalMs}ms`,
-        );
+        logger.info(`Health check enabled: every ${config.healthCheck.intervalMs}ms`);
       }
 
       const newKey = await ensureApiKeyExists();
       if (newKey) {
         logger.info(`First-time API key generated: ${newKey}`);
-        logger.warn("Add this key to your MCP config");
+        logger.warn('Add this key to your MCP config');
       }
     } catch (error) {
-      logger.error("Failed to start backend services", error);
+      logger.error('Failed to start backend services', error);
       process.exit(1);
     }
   };
@@ -83,12 +80,12 @@ async function main() {
     const transport = new StdioServerTransport();
 
     await server.connect(transport);
-    logger.info("Gabo MCP Server connected and ready! (Transport: stdio)");
+    logger.info('Gabo MCP Server connected and ready! (Transport: stdio)');
 
     await startBackend();
 
     if (isInspector) {
-      logger.info("MCP Inspector ready at http://localhost:5173");
+      logger.info('MCP Inspector ready at http://localhost:5173');
     }
 
     const shutdown = async (signal: string) => {
@@ -98,30 +95,30 @@ async function main() {
       process.exit(0);
     };
 
-    process.on("SIGINT", () => shutdown("SIGINT"));
-    process.on("SIGTERM", () => shutdown("SIGTERM"));
-    process.on("SIGQUIT", () => shutdown("SIGQUIT"));
+    process.on('SIGINT', () => shutdown('SIGINT'));
+    process.on('SIGTERM', () => shutdown('SIGTERM'));
+    process.on('SIGQUIT', () => shutdown('SIGQUIT'));
 
-    process.on("disconnect", async () => {
-      logger.info("Parent process disconnected, shutting down...");
+    process.on('disconnect', async () => {
+      logger.info('Parent process disconnected, shutting down...');
       await closeDatabase();
       process.exit(0);
     });
 
-    process.stdin.on("end", async () => {
-      logger.info("Input stream closed, shutting down...");
+    process.stdin.on('end', async () => {
+      logger.info('Input stream closed, shutting down...');
       await closeDatabase();
       process.exit(0);
     });
   } catch (error) {
-    logger.error("Failed to start server", error);
+    logger.error('Failed to start server', error);
     await closeDatabase();
     process.exit(1);
   }
 }
 
 main().catch(async (error) => {
-  logger.error("Unexpected error", error);
+  logger.error('Unexpected error', error);
   await closeDatabase();
   process.exit(1);
 });

@@ -3,14 +3,11 @@
  * Reusable error handling and response formatting for MCP tools
  */
 
-import { logger } from "../logger/index.js";
-import type { ContentBlock, ErrorResponse } from "../../base.type.js";
-import type {
-  ToolResponse,
-  HandleToolErrorOptions,
-} from "./tool-handler.type.js";
-import { recordAuditLog } from "../../db/audit-log.js";
-import type { AuditAction } from "../../db/audit-log.type.js";
+import type { ContentBlock, ErrorResponse } from '../../base.type.js';
+import { recordAuditLog } from '../../db/audit-log.js';
+import type { AuditAction } from '../../db/audit-log.type.js';
+import { logger } from '../logger/index.js';
+import type { HandleToolErrorOptions, ToolResponse } from './tool-handler.type.js';
 
 /**
  * Handles errors in tool catch blocks
@@ -19,14 +16,13 @@ import type { AuditAction } from "../../db/audit-log.type.js";
 export function handleToolError(
   error: unknown,
   operationName: string,
-  options?: HandleToolErrorOptions,
+  options?: HandleToolErrorOptions
 ): ToolResponse {
   const errorMessage =
-    options?.customMessage ??
-    (error instanceof Error ? error.message : String(error));
+    options?.customMessage ?? (error instanceof Error ? error.message : String(error));
 
   // Log based on level
-  if (options?.logLevel === "warn") {
+  if (options?.logLevel === 'warn') {
     logger.warn(`${operationName} failed: ${errorMessage}`);
   } else {
     logger.error(`${operationName} failed`, error);
@@ -39,7 +35,7 @@ export function handleToolError(
   };
 
   const contentBlock: ContentBlock = {
-    type: "text",
+    type: 'text',
     text: JSON.stringify(errorData, null, 2),
   };
 
@@ -52,16 +48,14 @@ export function handleToolError(
 /**
  * Creates a standardized success response
  */
-export function successResponse<T extends Record<string, unknown>>(
-  data: T,
-): ToolResponse {
+export function successResponse<T extends Record<string, unknown>>(data: T): ToolResponse {
   const successData = {
     success: true,
     ...data,
   };
 
   const contentBlock: ContentBlock = {
-    type: "text",
+    type: 'text',
     text: JSON.stringify(successData, null, 2),
   };
 
@@ -76,7 +70,7 @@ export function successResponse<T extends Record<string, unknown>>(
  */
 export function withErrorHandler(
   operationName: string,
-  handler: (args: any) => Promise<ToolResponse>,
+  handler: (args: any) => Promise<ToolResponse>
 ) {
   return async (args: any): Promise<ToolResponse> => {
     try {
@@ -94,7 +88,7 @@ export function withErrorHandler(
 export function withAudit(
   operationName: string,
   action: AuditAction,
-  handler: (args: any) => Promise<ToolResponse>,
+  handler: (args: any) => Promise<ToolResponse>
 ) {
   return async (args: any): Promise<ToolResponse> => {
     const response = await handler(args);
@@ -115,11 +109,11 @@ export function errorResponse(message: string, code?: string): ToolResponse {
   const errorData = {
     success: false,
     error: message,
-    code: code || "ERROR",
+    code: code || 'ERROR',
   };
 
   const contentBlock: ContentBlock = {
-    type: "text",
+    type: 'text',
     text: JSON.stringify(errorData, null, 2),
   };
 

@@ -9,9 +9,9 @@
  * This handles Atlas serverless "cold start" correctly.
  */
 
-import { getKnowledgeEntriesCollection } from "./client.js";
-import { logger } from "../utils/logger/index.js";
-import type { SearchResult } from "../types.ts";
+import type { SearchResult } from '../types.ts';
+import { logger } from '../utils/logger/index.js';
+import { getKnowledgeEntriesCollection } from './client.js';
 
 /**
  * Search knowledge entries using vector similarity
@@ -23,7 +23,7 @@ import type { SearchResult } from "../types.ts";
 export async function searchKnowledgeVector(
   queryVector: number[],
   limit = 10,
-  type?: string,
+  type?: string
 ): Promise<SearchResult[]> {
   const collection = getKnowledgeEntriesCollection();
 
@@ -31,8 +31,8 @@ export async function searchKnowledgeVector(
   const pipeline: any[] = [
     {
       $vectorSearch: {
-        index: "vector_index", // Name of the index in Atlas
-        path: "embedding",
+        index: 'vector_index', // Name of the index in Atlas
+        path: 'embedding',
         queryVector: queryVector,
         numCandidates: 100,
         limit: limit * 2, // Get more candidates for filtering
@@ -53,7 +53,7 @@ export async function searchKnowledgeVector(
         content: 1,
         type: 1,
         created_at: 1,
-        score: { $meta: "vectorSearchScore" },
+        score: { $meta: 'vectorSearchScore' },
       },
     },
   ];
@@ -71,11 +71,8 @@ export async function searchKnowledgeVector(
     }));
   } catch (error) {
     const err = error as any;
-    if (
-      err.codeName === "AtlasSearchDisabled" ||
-      err.message?.includes("atlas")
-    ) {
-      logger.debug("Vector search not available on this Atlas tier");
+    if (err.codeName === 'AtlasSearchDisabled' || err.message?.includes('atlas')) {
+      logger.debug('Vector search not available on this Atlas tier');
     } else {
       logger.debug(`Vector search error: ${err.message}`);
     }
@@ -92,7 +89,7 @@ export async function searchKnowledgeHybrid(
   queryVector: number[],
   limit = 10,
   type?: string,
-  vectorWeight = 0.7, // Weight for vector vs text results (0-1)
+  vectorWeight = 0.7 // Weight for vector vs text results (0-1)
 ): Promise<SearchResult[]> {
   // Run both searches in parallel
   const [vectorResults, textResults] = await Promise.all([
@@ -149,7 +146,7 @@ export async function searchKnowledgeHybrid(
 async function searchKnowledgeText(
   query: string,
   limit = 10,
-  type?: string,
+  type?: string
 ): Promise<SearchResult[]> {
   const collection = getKnowledgeEntriesCollection();
 
@@ -163,8 +160,8 @@ async function searchKnowledgeText(
 
   const results = await collection
     .find(filter)
-    .project({ score: { $meta: "textScore" } })
-    .sort({ score: { $meta: "textScore" } })
+    .project({ score: { $meta: 'textScore' } })
+    .sort({ score: { $meta: 'textScore' } })
     .limit(limit)
     .toArray();
 

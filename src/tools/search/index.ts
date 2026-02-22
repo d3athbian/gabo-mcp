@@ -1,21 +1,20 @@
-import { successResponse } from "../../utils/tool-handler/index.js";
-import { searchKnowledge } from "../../db/queries.js";
-import { searchKnowledgeVector } from "../../db/vector-search.js";
-import { isVectorSearchAvailable } from "../../db/vector-search.js";
-import { generateQueryEmbedding } from "../../embeddings/index.js";
-import { SearchSchema } from "./search.type.js";
-import type { ToolDefinition } from "../index.type.js";
-import type { SearchArgs } from "./search.type.js";
+import { searchKnowledge } from '../../db/queries.js';
+import { isVectorSearchAvailable, searchKnowledgeVector } from '../../db/vector-search.js';
+import { generateQueryEmbedding } from '../../embeddings/index.js';
+import { successResponse } from '../../utils/tool-handler/index.js';
+import type { ToolDefinition } from '../index.type.js';
+import type { SearchArgs } from './search.type.js';
+import { SearchSchema } from './search.type.js';
 
-const PITFALL_TYPES = ["PITFALL", "ERROR_CORRECTION"];
+const PITFALL_TYPES = ['PITFALL', 'ERROR_CORRECTION'];
 
 export const searchTool: ToolDefinition<SearchArgs> = {
-  name: "search",
-  title: "Search Knowledge",
+  name: 'search',
+  title: 'Search Knowledge',
   description:
-    "Search knowledge using text, semantic vectors, or hybrid mode. Supports filtering by type and including pitfalls/patterns in results.",
+    'Search knowledge using text, semantic vectors, or hybrid mode. Supports filtering by type and including pitfalls/patterns in results.',
   inputSchema: SearchSchema,
-  auditAction: "search_knowledge",
+  auditAction: 'search_knowledge',
   handler: async (args) => {
     const {
       query,
@@ -36,7 +35,7 @@ export const searchTool: ToolDefinition<SearchArgs> = {
 
     let queryVector = providedQueryVector;
 
-    if (!queryVector && (mode === "semantic" || mode === "hybrid")) {
+    if (!queryVector && (mode === 'semantic' || mode === 'hybrid')) {
       const embeddingResult = await generateQueryEmbedding(query);
       if (embeddingResult.warning) {
         warnings.push(embeddingResult.warning);
@@ -45,16 +44,12 @@ export const searchTool: ToolDefinition<SearchArgs> = {
       }
     }
 
-    if (mode === "semantic" || (mode === "hybrid" && queryVector)) {
-      const vectorResults = await searchKnowledgeVector(
-        queryVector!,
-        limit * 2,
-        type,
-      );
+    if (mode === 'semantic' || (mode === 'hybrid' && queryVector)) {
+      const vectorResults = await searchKnowledgeVector(queryVector!, limit * 2, type);
       results.push(...vectorResults);
     }
 
-    if (mode === "text" || mode === "hybrid") {
+    if (mode === 'text' || mode === 'hybrid') {
       const textResults = await searchKnowledge({
         query,
         type,
@@ -76,7 +71,7 @@ export const searchTool: ToolDefinition<SearchArgs> = {
         filterTypes.push(...PITFALL_TYPES);
       }
       if (include_patterns) {
-        filterTypes.push("PATTERN");
+        filterTypes.push('PATTERN');
       }
 
       for (const filterType of filterTypes) {
@@ -87,7 +82,7 @@ export const searchTool: ToolDefinition<SearchArgs> = {
           offset: 0,
         });
 
-        if (filterType === "PATTERN") {
+        if (filterType === 'PATTERN') {
           patterns.push(...filtered);
         } else {
           pitfalls.push(...filtered);

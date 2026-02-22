@@ -1,4 +1,4 @@
 export type OllamaClientConfig = {
-    baseUrl: string;
-    timeout: number;
+  baseUrl: string;
+  timeout: number;
 };

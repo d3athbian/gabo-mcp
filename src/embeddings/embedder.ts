@@ -1,9 +1,5 @@
-import { OllamaClient } from "./ollama-client.js";
-import type {
-  EmbedderConfig,
-  EmbeddingResult,
-  EmbeddingCacheEntry,
-} from "./embeddings.type.js";
+import type { EmbedderConfig, EmbeddingCacheEntry, EmbeddingResult } from './embeddings.type.js';
+import type { OllamaClient } from './ollama-client.js';
 
 export class Embedder {
   private client: OllamaClient;
@@ -16,7 +12,7 @@ export class Embedder {
   }
 
   private getCacheKey(text: string): string {
-    return Buffer.from(text).toString("base64");
+    return Buffer.from(text).toString('base64');
   }
 
   private getFromCache(text: string): number[] | null {

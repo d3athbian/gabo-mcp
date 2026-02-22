@@ -3,7 +3,7 @@
  * Extends base.type.ts for common patterns
  */
 
-import type { NodeEnvironment, LogLevel } from "../base.type.ts";
+import type { LogLevel, NodeEnvironment } from '../base.type.ts';
 
 export type DatabaseConfig = {
   url: string;
@@ -23,7 +23,7 @@ export type FeaturesConfig = {
 
 export type EmbeddingConfig = {
   enabled: boolean;
-  provider: "ollama" | "openai";
+  provider: 'ollama' | 'openai';
   model: string;
   dimensions: number;
   ollamaUrl: string;
