@@ -1,12 +1,13 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import type { LogErrorFn, LogFn } from '../../base.type.js';
+import { LOGGING } from '../../config/constants.js';
 import type { Logger } from './logger.type.js';
 
-const LOG_DIR = '/tmp';
-const LOG_FILE = 'gabo-mcp.log';
-const MAX_LOG_SIZE = 5 * 1024 * 1024;
-const MAX_LOG_AGE_DAYS = 3;
+const LOG_DIR = LOGGING.DIR;
+const LOG_FILE = LOGGING.FILE;
+const MAX_LOG_SIZE = LOGGING.MAX_SIZE_BYTES;
+const MAX_LOG_AGE_DAYS = LOGGING.MAX_AGE_DAYS;
 
 export function createLogger(): Logger {
   const getLogPath = () => path.join(LOG_DIR, LOG_FILE);

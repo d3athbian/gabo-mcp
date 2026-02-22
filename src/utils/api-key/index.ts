@@ -5,15 +5,13 @@
 
 import { randomBytes } from 'node:crypto';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { compare, hash } from 'bcryptjs';
+import { API_KEY, APP_PATHS } from '../../config/constants.js';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const ENV_PATH = join(__dirname, '../../../.env');
+const ENV_PATH = APP_PATHS.ENV_FILE;
 
-const KEY_PREFIX = 'gabo_';
-const BCRYPT_ROUNDS = 10;
+const KEY_PREFIX = API_KEY.PREFIX;
+const BCRYPT_ROUNDS = API_KEY.BCRYPT_ROUNDS;
 
 // ============================================================================
 // KEY GENERATION
@@ -51,7 +49,7 @@ export function getPepper(): string {
   if (!pepper) {
     throw new Error(
       'MCP_KEY_PEPPER is not set. The server cannot validate API keys without a pepper. ' +
-        'Delete your api_keys collection and MCP_API_KEY from .env to trigger a full bootstrap.'
+      'Delete your api_keys collection and MCP_API_KEY from .env to trigger a full bootstrap.'
     );
   }
   return pepper;

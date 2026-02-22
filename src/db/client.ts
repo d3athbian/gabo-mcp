@@ -7,26 +7,23 @@
 // Suppress dotenv output to prevent breaking MCP protocol on stdout
 process.env.DOTENV_CONFIG_QUIET = 'true';
 
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { config } from 'dotenv';
+import { APP_PATHS, DATABASE } from '../config/constants.js';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-config({ path: join(__dirname, '../../.env'), override: true }); // Load .env from project root and force override any existing vars
+config({ path: APP_PATHS.ENV_FILE, override: true }); // Load .env from project root and force override any existing vars
 
 import { type Db, MongoClient } from 'mongodb';
 import { logger } from '../utils/logger/index.js';
 
 const MONGODB_URI = process.env.MONGODB_URI;
-
-const MONGO_WAKE_RETRY = parseInt(process.env.MONGO_WAKE_RETRY || '3', 10);
-const MONGO_WAKE_DELAY = parseInt(process.env.MONGO_WAKE_DELAY || '5000', 10);
+const MONGO_WAKE_RETRY = DATABASE.MONGO.WAKE_RETRY;
+const MONGO_WAKE_DELAY = DATABASE.MONGO.WAKE_DELAY_MS;
 
 function validateMongoUri(): void {
   if (!MONGODB_URI) {
     throw new Error(
       'MONGODB_URI environment variable is required. ' +
-        'Get it from MongoDB Atlas: https://cloud.mongodb.com'
+      'Get it from MongoDB Atlas: https://cloud.mongodb.com'
     );
   }
 }
@@ -56,10 +53,10 @@ export async function connectToDatabase(): Promise<Db> {
       logger.info(`Connecting to MongoDB Atlas (attempt ${attempt}/${MONGO_WAKE_RETRY})...`);
 
       client = new MongoClient(MONGODB_URI!, {
-        maxPoolSize: 10,
-        serverSelectionTimeoutMS: 10000,
-        socketTimeoutMS: 45000,
-        connectTimeoutMS: 30000,
+        maxPoolSize: DATABASE.MONGO.POOL_SIZE,
+        serverSelectionTimeoutMS: DATABASE.MONGO.SERVER_SELECTION_TIMEOUT_MS,
+        socketTimeoutMS: DATABASE.MONGO.SOCKET_TIMEOUT_MS,
+        connectTimeoutMS: DATABASE.MONGO.CONNECT_TIMEOUT_MS,
       });
 
       await client.connect();
@@ -130,19 +127,19 @@ export async function closeDatabase(): Promise<void> {
  * These ensure we have type-safe access to collections
  */
 export function getKnowledgeEntriesCollection() {
-  return getDatabase().collection('knowledge_entries');
+  return getDatabase().collection(DATABASE.COLLECTIONS.KNOWLEDGE_ENTRIES);
 }
 
 export function getKnowledgeTagsCollection() {
-  return getDatabase().collection('knowledge_tags');
+  return getDatabase().collection(DATABASE.COLLECTIONS.KNOWLEDGE_TAGS);
 }
 
 export function getKnowledgeAuditLogCollection() {
-  return getDatabase().collection('knowledge_audit_log');
+  return getDatabase().collection(DATABASE.COLLECTIONS.KNOWLEDGE_AUDIT_LOG);
 }
 
 export function getApiKeysCollection() {
-  return getDatabase().collection('api_keys');
+  return getDatabase().collection(DATABASE.COLLECTIONS.API_KEYS);
 }
 
 /**

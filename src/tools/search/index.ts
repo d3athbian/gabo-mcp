@@ -1,12 +1,13 @@
 import { searchKnowledge } from '../../db/queries.js';
 import { isVectorSearchAvailable, searchKnowledgeVector } from '../../db/vector-search.js';
 import { generateQueryEmbedding } from '../../embeddings/index.js';
+import { SEARCH } from '../../config/constants.js';
 import { successResponse } from '../../utils/tool-handler/index.js';
 import type { ToolDefinition } from '../index.type.js';
 import type { SearchArgs } from './search.type.js';
 import { SearchSchema } from './search.type.js';
 
-const PITFALL_TYPES = ['PITFALL', 'ERROR_CORRECTION'];
+const PITFALL_TYPES = SEARCH.PITFALL_TYPES;
 
 export const searchTool: ToolDefinition<SearchArgs> = {
   name: 'search',

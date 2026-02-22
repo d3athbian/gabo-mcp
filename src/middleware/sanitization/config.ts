@@ -4,14 +4,11 @@
  */
 
 import * as fs from 'node:fs';
-import * as path from 'node:path';
-import { dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { logger } from '../../utils/logger/index.js';
+import { APP_PATHS } from '../../config/constants.js';
 import type { SanitizationConfig } from './sanitization.type.js';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const CONFIG_PATH = path.join(__dirname, '../../../sanitization.config.json');
+const CONFIG_PATH = APP_PATHS.SANITIZATION_CONFIG;
 
 let cachedConfig: SanitizationConfig | null = null;
 

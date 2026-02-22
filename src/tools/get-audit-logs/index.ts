@@ -1,13 +1,13 @@
 import { getKnowledgeAuditLogCollection } from '../../db/client.js';
 import { successResponse } from '../../utils/tool-handler/index.js';
-import { AuditToolNames } from '../audit.constants.js';
+import { AUDIT_TOOL_NAMES } from '../../config/constants.js';
 import type { ToolDefinition } from '../index.type.js';
 import type { GetAuditLogsArgs } from './get-audit-logs.type.ts';
 import { GetAuditLogsSchema } from './get-audit-logs.type.ts';
 
 export const getAuditLogsTool: ToolDefinition<GetAuditLogsArgs> = {
-  name: AuditToolNames.GET_AUDIT_LOGS,
-  title: AuditToolNames.GET_AUDIT_LOGS_TITLE,
+  name: AUDIT_TOOL_NAMES.GET_AUDIT_LOGS,
+  title: AUDIT_TOOL_NAMES.GET_AUDIT_LOGS_TITLE,
   description: 'Retrieve recent security audit logs.',
   inputSchema: GetAuditLogsSchema,
   handler: async (args) => {

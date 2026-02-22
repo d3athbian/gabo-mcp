@@ -1,11 +1,9 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { type McpServer, ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { APP_PATHS } from '../config/constants.js';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const DOCS_DIR = path.join(__dirname, '../../docs');
+const DOCS_DIR = APP_PATHS.DOCS_DIR;
 
 export function registerResources(server: McpServer) {
   // Expose docs/RULES.md as gabo://rules

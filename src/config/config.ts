@@ -1,15 +1,13 @@
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { config as loadDotenv } from 'dotenv';
-import type { Config } from './config.type';
+import { APP_PATHS } from './constants.js';
+import type { Config } from './config.type.js';
 
 // Suppress dotenv output to prevent breaking MCP protocol on stdout
 process.env.DOTENV_CONFIG_QUIET = 'true';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
 // Fallback: Load .env if MONGODB_URI is missing (for Node < 20.6 or if --env-file is omitted)
 if (!process.env.MONGODB_URI) {
-  loadDotenv({ path: join(__dirname, '../../.env') });
+  loadDotenv({ path: APP_PATHS.ENV_FILE });
 }
 
 const requiredVars = ['MONGODB_URI'];
@@ -60,7 +58,8 @@ export const config: Config = {
 
   debug: process.env.DEBUG === 'true',
   prettyLogs: process.env.PRETTY_LOGS === 'true',
-  isInspector: process.env.MCP_INSPECTOR === 'true' || process.argv.some((arg) => arg.includes('inspector')),
+  isInspector:
+    process.env.MCP_INSPECTOR === 'true' || process.argv.some((arg) => arg.includes('inspector')),
 };
 
 // Validate critical config

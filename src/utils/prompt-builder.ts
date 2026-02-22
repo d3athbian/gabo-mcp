@@ -5,18 +5,15 @@
 
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { logger } from './logger/index.js';
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
+import { APP_PATHS } from '../config/constants.js';
 
 // Cache loaded templates to avoid disk I/O on every request
 const templateCache = new Map<string, string>();
 
 // Try to resolve templates relative to src (dev) or dist (prod)
-const TEMPLATE_DIR_SRC = path.join(__dirname, '../../prompts/templates');
-const TEMPLATE_DIR_DIST = path.join(__dirname, '../../prompts/templates');
+const TEMPLATE_DIR_SRC = APP_PATHS.TEMPLATES_SRC;
+const TEMPLATE_DIR_DIST = APP_PATHS.TEMPLATES_DIST;
 
 export class PromptBuilder {
   private templateName: string;
