@@ -43,13 +43,14 @@ Decisiones arquitectónicas y técnicos que Tomé constructión Gabo MCP.
 
 ## Herramientas Disponibles
 
-| Herramienta | Propósito                                          |
-| ----------- | -------------------------------------------------- |
-| `save`      | Guardar conocimiento con validación + sanitización |
-| `search`    | Búsqueda text, semantic o hybrid                   |
-| `list`      | Listar entradas con paginación                     |
-| `get`       | Obtener detalle por ID                             |
-| `delete`    | Eliminar entrada                                   |
+| Herramienta      | Propósito                                          |
+| ---------------- | -------------------------------------------------- |
+| `save`           | Guardar conocimiento con validación + sanitización |
+| `search`         | Búsqueda text, semantic o hybrid                   |
+| `list`           | Listar entradas con paginación                     |
+| `get`            | Obtener detalle por ID                             |
+| `delete`         | Eliminar entrada                                   |
+| `get_audit_logs` | Ver logs de auditoría                              |
 
 ---
 
@@ -74,37 +75,9 @@ npm run build
 # Unit tests (180+ tests)
 npm run test
 
-# Integration tests (CRUD flow)
-npx vitest run test/integration/bootstrap.test.ts
-
 # Coverage
 npm run test:coverage
 ```
-
-### Cómo ejecutar tests de integración
-
-Los tests de integración requieren conexión a MongoDB Atlas y una API key válida.
-
-```bash
-# 1. Copiar configuración de ejemplo
-cp env.example .env
-
-# 2. Editar .env con tus credenciales
-#    - MONGODB_URI: Tu connection string de MongoDB Atlas
-#    - MCP_API_KEY: Genera una key con npm run generate:key
-
-# 3. Ejecutar tests de integración
-npx vitest run test/integration/bootstrap.test.ts
-```
-
-Los tests de integración cubren:
-
-- ✅ Bootstrapping de API key
-- ✅ Save (crear documentos)
-- ✅ List (listar con paginación)
-- ✅ Get (obtener por ID)
-- ✅ Search (búsqueda por texto)
-- ✅ Delete (eliminar documentos)
 
 ---
 
@@ -134,6 +107,27 @@ MCP_API_KEY=gabo_xxx  # Genera con: npm run generate:key
 }
 ```
 
+### VS Code
+
+```bash
+npm run dev:local
+```
+
+Presiona `Cmd+Shift+P` → "MCP Debugger" → Select `gabo-mcp-local`
+
+### Continue.dev
+
+Configuración en `~/.continue/config.yml`. Auto-detecta `gabo-mcp-local`.
+
+---
+
+## Logs
+
+Los logs se escriben en `/tmp/gabo-mcp.log`.
+
+- **Rotación**: Se rotan al superar 5MB
+- **Limpieza**: Se eliminan logs con más de 3 días
+
 ---
 
 ## Documentación
@@ -142,7 +136,7 @@ MCP_API_KEY=gabo_xxx  # Genera con: npm run generate:key
 - [FUNCIONALIDADES.md](docs/FUNCIONALIDADES.md) - Detalle de herramientas
 - [ARCHITECTURE.md](docs/ARCHITECTURE.md) - Arquitectura técnica
 - [SANITIZATION.md](docs/SANITIZATION.md) - Sistema de seguridad
-- [SETUP_GUIDE.md](docs/SETUP_GUIDE.md) - Guía de instalación
+- [BACKUP_PLAN.md](docs/BACKUP_PLAN.md) - Respaldo de base de datos
 
 ---
 

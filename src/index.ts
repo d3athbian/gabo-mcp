@@ -37,19 +37,23 @@ async function main() {
       logger.cleanup();
 
       // Fire-and-forget backup in background
-      import('node:child_process').then(({ spawn }) => {
-        const isTS = import.meta.url.endsWith('.ts');
-        const scriptPath = isTS
-          ? 'scripts/backup-db.ts'
-          : 'dist/scripts/backup-db.js';
+      import('node:child_process')
+        .then(({ spawn }) => {
+          const isTS = import.meta.url.endsWith('.ts');
+          const scriptPath = isTS ? 'scripts/backup-db.ts' : 'dist/scripts/backup-db.js';
 
-        const backupProcess = spawn(isTS ? 'npx' : 'node', [isTS ? 'tsx' : '', scriptPath].filter(Boolean), {
-          detached: true,
-          stdio: 'ignore',
-          cwd: process.cwd(),
-        });
-        backupProcess.unref();
-      }).catch(err => logger.error('Failed to spawn backup process', err));
+          const backupProcess = spawn(
+            isTS ? 'npx' : 'node',
+            [isTS ? 'tsx' : '', scriptPath].filter(Boolean),
+            {
+              detached: true,
+              stdio: 'ignore',
+              cwd: process.cwd(),
+            }
+          );
+          backupProcess.unref();
+        })
+        .catch((err) => logger.error('Failed to spawn backup process', err));
 
       logger.info('Initializing embedding service...');
       const { status: embeddingStatus } = await initializeEmbeddingService({
