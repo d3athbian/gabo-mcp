@@ -1,6 +1,6 @@
+import { AUDIT_TOOL_NAMES } from '../../config/constants.js';
 import { getKnowledgeAuditLogCollection } from '../../db/client.js';
 import { successResponse } from '../../utils/tool-handler/index.js';
-import { AUDIT_TOOL_NAMES } from '../../config/constants.js';
 import type { ToolDefinition } from '../index.type.js';
 import type { GetAuditLogsArgs } from './get-audit-logs.type.ts';
 import { GetAuditLogsSchema } from './get-audit-logs.type.ts';

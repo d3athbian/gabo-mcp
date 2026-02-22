@@ -1,6 +1,6 @@
 # Funcionalidades de Gabo MCP
 
-## 5 Herramientas Disponibles
+## 6 Herramientas Disponibles
 
 ### 1. save
 
@@ -180,6 +180,49 @@ Elimina una entrada de conocimiento.
 
 ```
 "Elimina la entrada 507f1f77bcf86cd799439011"
+```
+
+---
+
+### 6. get_audit_logs
+
+Obtiene los logs de auditoría de seguridad.
+
+**Input:**
+
+```typescript
+{
+  action?: string,
+  limit?: number,
+  offset?: number
+}
+```
+
+**Ejemplo de uso:**
+
+```
+"Muéstrame los últimos logs de auditoría"
+```
+
+```
+"Muéstrame solo las acciones de delete"
+```
+
+**Respuesta:**
+
+```json
+{
+  "success": true,
+  "logs": [
+    {
+      "id": "...",
+      "action": "delete",
+      "timestamp": "2024-01-15T10:00:00Z",
+      "details": {...}
+    }
+  ],
+  "total": 42
+}
 ```
 
 ---

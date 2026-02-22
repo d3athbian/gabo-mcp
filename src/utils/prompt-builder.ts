@@ -5,8 +5,8 @@
 
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { logger } from './logger/index.js';
 import { APP_PATHS } from '../config/constants.js';
+import { logger } from './logger/index.js';
 
 // Cache loaded templates to avoid disk I/O on every request
 const templateCache = new Map<string, string>();

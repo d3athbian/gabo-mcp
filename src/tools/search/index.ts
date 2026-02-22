@@ -1,7 +1,7 @@
+import { SEARCH } from '../../config/constants.js';
 import { searchKnowledge } from '../../db/queries.js';
 import { isVectorSearchAvailable, searchKnowledgeVector } from '../../db/vector-search.js';
 import { generateQueryEmbedding } from '../../embeddings/index.js';
-import { SEARCH } from '../../config/constants.js';
 import { successResponse } from '../../utils/tool-handler/index.js';
 import type { ToolDefinition } from '../index.type.js';
 import type { SearchArgs } from './search.type.js';

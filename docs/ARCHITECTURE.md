@@ -17,6 +17,7 @@ src/
 │   ├── list-knowledge/ # Listar entradas
 │   ├── get-knowledge/ # Obtener por ID
 │   ├── delete-knowledge/ # Eliminar
+│   ├── get-audit-logs/ # Logs de auditoría
 ├── utils/              # Utilidades transversales
 │   ├── logger/
 │   ├── api-key/
@@ -35,7 +36,7 @@ El proyecto cuenta con dos tipos de tests:
 - Ubicación: `src/__tests__/`
 - Configuración: `vitest.config.ts`
 - Cubren: sanitización, autenticación, queries, utils
-- **180+ tests** pasando
+- **121 tests** pasando
 
 ### Integration Tests
 

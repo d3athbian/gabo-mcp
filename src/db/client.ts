@@ -23,7 +23,7 @@ function validateMongoUri(): void {
   if (!MONGODB_URI) {
     throw new Error(
       'MONGODB_URI environment variable is required. ' +
-      'Get it from MongoDB Atlas: https://cloud.mongodb.com'
+        'Get it from MongoDB Atlas: https://cloud.mongodb.com'
     );
   }
 }

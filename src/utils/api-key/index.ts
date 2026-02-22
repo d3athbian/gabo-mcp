@@ -49,7 +49,7 @@ export function getPepper(): string {
   if (!pepper) {
     throw new Error(
       'MCP_KEY_PEPPER is not set. The server cannot validate API keys without a pepper. ' +
-      'Delete your api_keys collection and MCP_API_KEY from .env to trigger a full bootstrap.'
+        'Delete your api_keys collection and MCP_API_KEY from .env to trigger a full bootstrap.'
     );
   }
   return pepper;

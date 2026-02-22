@@ -63,6 +63,9 @@ npm run dev
 # Desarrollo local
 npm run dev:local
 
+# Inspector MCP (interfaz visual)
+npm run dev:inspector
+
 # Build
 npm run build
 ```
@@ -72,7 +75,7 @@ npm run build
 ## Tests
 
 ```bash
-# Unit tests (180+ tests)
+# Unit tests (121 tests)
 npm run test
 
 # Coverage

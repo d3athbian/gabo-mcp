@@ -4,8 +4,8 @@
  */
 
 import * as fs from 'node:fs';
-import { logger } from '../../utils/logger/index.js';
 import { APP_PATHS } from '../../config/constants.js';
+import { logger } from '../../utils/logger/index.js';
 import type { SanitizationConfig } from './sanitization.type.js';
 
 const CONFIG_PATH = APP_PATHS.SANITIZATION_CONFIG;

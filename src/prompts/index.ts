@@ -2,9 +2,9 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
+import { APP_PATHS } from '../config/constants.js';
 import { logger } from '../utils/logger/index.js';
 import { PromptBuilder } from '../utils/prompt-builder.js';
-import { APP_PATHS } from '../config/constants.js';
 
 const DOCS_DIR = APP_PATHS.DOCS_DIR;
 

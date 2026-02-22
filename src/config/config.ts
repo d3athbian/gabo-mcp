@@ -1,6 +1,6 @@
 import { config as loadDotenv } from 'dotenv';
-import { APP_PATHS } from './constants.js';
 import type { Config } from './config.type.js';
+import { APP_PATHS } from './constants.js';
 
 // Suppress dotenv output to prevent breaking MCP protocol on stdout
 process.env.DOTENV_CONFIG_QUIET = 'true';
