@@ -22,11 +22,13 @@ const MONGODB_URI = process.env.MONGODB_URI;
 const MONGO_WAKE_RETRY = parseInt(process.env.MONGO_WAKE_RETRY || '3', 10);
 const MONGO_WAKE_DELAY = parseInt(process.env.MONGO_WAKE_DELAY || '5000', 10);
 
-if (!MONGODB_URI) {
-  throw new Error(
-    'MONGODB_URI environment variable is required. ' +
-      'Get it from MongoDB Atlas: https://cloud.mongodb.com'
-  );
+function validateMongoUri(): void {
+  if (!MONGODB_URI) {
+    throw new Error(
+      'MONGODB_URI environment variable is required. ' +
+        'Get it from MongoDB Atlas: https://cloud.mongodb.com'
+    );
+  }
 }
 
 /**
@@ -41,6 +43,8 @@ let db: Db | null = null;
  * Serverless instances may need a "wake" ping to start
  */
 export async function connectToDatabase(): Promise<Db> {
+  validateMongoUri();
+
   if (db) {
     return db;
   }
