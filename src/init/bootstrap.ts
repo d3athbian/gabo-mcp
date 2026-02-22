@@ -1,4 +1,4 @@
-import { closeDatabase, connectToDatabase } from './db/client.js';
+import { closeDatabase, connectToDatabase } from '../db/client.js';
 
 const apiKey = process.env.MCP_API_KEY || process.env.API_KEY;
 

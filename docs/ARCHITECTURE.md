@@ -8,23 +8,24 @@ El proyecto sigue un patrón modular orientado a funcionalidades/dominios:
 
 ```
 src/
-├── db/                 # Capa de datos (MongoDB Atlas)
-├── middleware/         # Lógica de interceptación (Auth, Sanitization)
-├── schemas/            # Definiciones Zod (Fuente de Verdad)
-├── tools/              # Implementación de herramientas MCP
-│   ├── save/           # Guardar conocimiento
-│   ├── search/         # Buscar (texto, semántica, híbrido)
-│   ├── list-knowledge/ # Listar entradas
-│   ├── get-knowledge/ # Obtener por ID
-│   ├── delete-knowledge/ # Eliminar
-│   ├── get-audit-logs/ # Logs de auditoría
-├── utils/              # Utilidades transversales
-│   ├── logger/
-│   ├── api-key/
-│   └── tool-handler/
-├── base.type.ts        # Tipos base derivados de schemas
-├── index.ts            # Punto de entrada del servidor
-└── types.ts            # Tipos de dominio re-exportados
+├── init/                 # Inicialización del proyecto (bootstrapping)
+│   ├── bootstrap.ts      # Validación de API key y conexión a DB
+│   ├── bootstrap-infrastructure.ts # Inicialización de servicios (embeddings, DB, health check)
+│   ├── health-monitor.ts # Monitor de salud de la DB
+│   ├── backup-trigger.ts # Disparador de backups en background
+│   └── index.ts         # Exportador centralizado
+├── config/               # Configuración (Zod + constantes)
+├── db/                   # Capa de datos (MongoDB Atlas)
+├── middleware/           # Lógica de interceptación (Auth, Sanitization)
+├── schemas/              # Definiciones Zod (Fuente de Verdad)
+├── tools/                # Implementación de herramientas MCP
+├── utils/                # Utilidades transversales
+├── prompts/              # Plantillas de prompts MCP
+├── resources/            # Recursos MCP
+├── embeddings/           # Servicio de embeddings
+├── base.type.ts          # Tipos base derivados de schemas
+├── index.ts              # Punto de entrada del servidor
+└── types.ts              # Tipos de dominio re-exportados
 ```
 
 ## 🧪 Estrategia de Testing

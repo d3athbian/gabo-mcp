@@ -1,6 +1,6 @@
 import { SHUTDOWN_SIGNALS } from '../config/constants.js';
 import { closeDatabase } from '../db/client.js';
-import { stopHealthMonitor } from '../db/health-monitor.js';
+import { stopHealthMonitor } from '../init/health-monitor.js';
 import { logger } from './logger/index.js';
 
 /**

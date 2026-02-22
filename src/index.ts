@@ -7,14 +7,10 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { config } from './config/config.js';
 import { APP_CONSTANTS } from './config/constants.js';
-import { connectToDatabase } from './db/client.js';
-import { startHealthMonitor } from './db/health-monitor.js';
-import { initializeEmbeddingService } from './embeddings/index.js';
-import { ensureApiKeyExists } from './middleware/auth/index.js';
+import { bootstrapInfrastructure } from './init/bootstrap-infrastructure.js';
 import { registerPrompts } from './prompts/index.js';
 import { registerResources } from './resources/index.js';
 import { registerAllTools } from './tools/index.js';
-import { triggerBackgroundBackup } from './utils/backup-trigger.js';
 import { registerShutdownHandlers } from './utils/lifecycle.js';
 import { logger } from './utils/logger/index.js';
 
@@ -29,38 +25,6 @@ const server = new McpServer({
 registerAllTools(server);
 registerResources(server);
 registerPrompts(server);
-
-/**
- * Initialize all backend services and infrastructure
- */
-async function bootstrapInfrastructure() {
-  logger.cleanup();
-
-  // Background backup (Fire-and-forget)
-  triggerBackgroundBackup();
-
-  logger.info('Initializing embedding service...');
-  const { status: embeddingStatus } = await initializeEmbeddingService(config.embedding);
-
-  if (embeddingStatus.available) {
-    logger.info(`Embedding service ready: ${embeddingStatus.model}`);
-  } else {
-    logger.warn(`Embedding service: ${embeddingStatus.error}`);
-  }
-
-  await connectToDatabase();
-
-  if (config.healthCheck.enabled) {
-    startHealthMonitor(config.healthCheck);
-    logger.info(`Health check enabled: every ${config.healthCheck.intervalMs}ms`);
-  }
-
-  const newKey = await ensureApiKeyExists();
-  if (newKey) {
-    logger.info(`First-time API key generated: ${newKey}`);
-    logger.warn('Add this key to your MCP config');
-  }
-}
 
 /**
  * Main application entry point

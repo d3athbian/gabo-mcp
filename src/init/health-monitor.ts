@@ -1,4 +1,4 @@
-import { getDatabase } from './client.js';
+import { getDatabase } from '../db/client.js';
 import type { HealthCheckConfig } from './health-monitor.type.js';
 
 let healthCheckInterval: ReturnType<typeof setInterval> | null = null;
