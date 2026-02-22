@@ -1,0 +1,61 @@
+FEATURES NEXT YEAR - PLAN POR PASOS (VIABILIDAD)
+
+Paso 1: Seguridad y manejo de secretos
+- 1.1 Evaluar cifrado en reposo Field Level Encryption para datos sensibles en MongoDB
+  Viabilidad estimada: Alta; Dificultad: Media; Dependencias: presupuesto de cifrado y soporte de MongoDB.
+- 1.2 Politicas de rotacion de claves
+  Viabilidad estimada: Media; Dificultad: Media; Dependencias: mecanismo de rotacion y pipeline de deploy.
+- 1.3 Plan MFA para operaciones sensibles
+  Viabilidad estimada: Media; Dificultad: Alta; Dependencias: herramientas MFA y UX.
+- 1.4 Implementar rate limiting basico en endpoints criticos (auth, revoke, gestion de claves)
+  Viabilidad estimada: Alta; Dificultad: Media; Dependencias: framework de red (router) o proxys.
+- 1.5 Pruebas de seguridad basicas y revisiones de cumplimiento
+  Viabilidad estimada: Alta; Dificultad: Media; Dependencias: suite de pruebas existente y herramientas de seguridad.
+
+Paso 2: Observabilidad
+- 2.1 Crear logs estructurados (JSON opcional) y habilitar MCP_DEBUG; actualizar logger
+  Viabilidad estimada: Alta; Dificultad: Media; Dependencias: cambios ligeros en logger.
+- 2.2 Exponer metricas basicas (latencia embeddings, consultas) y endpoints health/readiness
+  Viabilidad estimada: Alta; Dificultad: Media; Dependencias: sistema de metrics o tiny infra.
+- 2.3 Ampliar auditoria de logs (validacion y TTL) y pruebas de auditoria
+  Viabilidad estimada: Alta; Dificultad: Media; Dependencias: TTL indexes y pruebas.
+
+Paso 3: Despliegue y reproducibilidad
+- 3.1 Añadir Dockerfile y docker-compose con MongoDB
+  Viabilidad estimada: Alta; Dificultad: Media; Dependencias: base de Docker y config de red.
+- 3.2 Script de configuracion y ejemplos de despliegue
+  Viabilidad estimada: Alta; Dificultad: Media; Dependencias: plantillas y scripts de environment.
+- 3.3 Pipeline CI/CD basico (lint, tests, type-check) y guia de despliegue
+  Viabilidad estimada: Alta; Dificultad: Media-alta; Dependencias: herramientas de CI (GitHub Actions, etc.).
+
+Paso 4: IA y rendimiento
+- 4.1 Asegurar indice vectorial y pruebas para fallback
+  Viabilidad estimada: Alta; Dificultad: Mediana; Dependencias: soporte de Atlas Search.
+- 4.2 Pruebas de rendimiento de consultas semanticas y de texto
+  Viabilidad estimada: Media; Dificultad: Media; Dependencias: infraestructura de pruebas de carga.
+- 4.3 Afinar dimensiones y embeddings; tuning de embeddings
+  Viabilidad estimada: Media; Dificultad: Alta; Dependencias: modelos y datasets.
+- 4.4 Pruebas de escalabilidad
+  Viabilidad estimada: Media; Dificultad: Alta; Dependencias: entornos de prueba reproducibles.
+
+Paso 5: Pruebas y Calidad
+- 5.1 Ampliar suite de pruebas (unitarias e integracion) para bootstrap, auth, audit-log, search
+  Viabilidad estimada: Alta; Dificultad: Media; Dependencias: framework de pruebas, mocks.
+- 5.2 Alcanzar cobertura 70-80%
+  Viabilidad estimada: Media; Dificultad: Alta; Dependencias: pruebas existentes y añadidas.
+- 5.3 Ejecutar lint y resolver issues; garantizar compatibilidad TS
+  Viabilidad estimada: Alta; Dificultad: Baja/Media; Dependencias: configs de linter.
+- 5.4 QA y verificacion de regresiones
+  Viabilidad estimada: Alta; Dificultad: Media; Dependencias: plan de pruebas.
+
+Paso 6: Documentacion y Onboarding
+- 6.1 Actualizar README con despliegue, seguridad y arquitectura
+  Viabilidad estimada: Alta; Dificultad: Baja/Media; Dependencias: redactar contenido.
+- 6.2 CONTRIBUTING.md y plantillas PR
+  Viabilidad estimada: Alta; Dificultad: Baja; Dependencias: formato de repo.
+- 6.3 Roadmap de mantenimiento a 90 dias
+  Viabilidad estimada: Alta; Dificultad: Baja; Dependencias: estrategia de mantenimiento.
+
+Notas
+- Este plan esta orientado a viabilidad; puedes adaptar priorizaciones segun ritmo y recursos.
+- Si quieres, puedo convertir cada paso en issues/PRs detallados con criterios de aceptacion y estimaciones de esfuerzo.

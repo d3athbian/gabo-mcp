@@ -1,6 +1,6 @@
 /**
  * Content Sanitization Middleware
- * Detects sensitive data and returns warnings (does not block)
+ * Blocks writing if sensitive data (PII, credentials) is detected
  */
 
 import type { SanitizationResult } from "./sanitization.type.js";
@@ -22,13 +22,11 @@ export function sanitizeContent(
     .filter((result) => result.detected);
 
   if (violations.length > 0) {
-    logger.warn(
-      `Sanitization warnings: ${violations.length} issue(s) detected`,
-    );
+    logger.warn(`Sanitization BLOCKED: ${violations.length} issue(s) detected`);
     return {
-      allowed: true,
+      allowed: false,
       violations,
-      warningMessage: buildWarningMessage(violations),
+      errorMessage: buildErrorMessage(violations),
     };
   }
 
@@ -38,12 +36,96 @@ export function sanitizeContent(
   };
 }
 
-function buildWarningMessage(violations: any[]): string {
-  const lines = ["Warnings detected:"];
+export function sanitizeAllFields(params: {
+  title?: string;
+  content?: string;
+  tags?: string[];
+  source?: string;
+  metadata?: Record<string, any>;
+}): SanitizationResult {
+  const fieldsToCheck: Array<{ name: string; value: string }> = [];
 
+  if (params.title) fieldsToCheck.push({ name: "title", value: params.title });
+  if (params.content)
+    fieldsToCheck.push({ name: "content", value: params.content });
+  if (params.source)
+    fieldsToCheck.push({ name: "source", value: params.source });
+  if (params.tags?.length) {
+    fieldsToCheck.push({ name: "tags", value: params.tags.join(" ") });
+  }
+  if (params.metadata) {
+    const metadataString = JSON.stringify(params.metadata);
+    fieldsToCheck.push({ name: "metadata", value: metadataString });
+  }
+
+  const allViolations: Array<{
+    category: string;
+    message: string;
+    field: string;
+  }> = [];
+
+  for (const field of fieldsToCheck) {
+    const piiResult = detectPII(field.value, field.name);
+    if (piiResult.detected) {
+      allViolations.push({
+        category: piiResult.category,
+        message: piiResult.message || "PII detected",
+        field: field.name,
+      });
+    }
+
+    const credResult = detectCredentials(field.value, field.name);
+    if (credResult.detected) {
+      allViolations.push({
+        category: credResult.category,
+        message: credResult.message || "Credentials detected",
+        field: field.name,
+      });
+    }
+  }
+
+  if (allViolations.length > 0) {
+    logger.warn(
+      `Sanitization BLOCKED: ${allViolations.length} issue(s) detected across fields`,
+    );
+    return {
+      allowed: false,
+      violations: allViolations.map((v) => ({
+        detected: true,
+        category: v.category as any,
+        matches: [],
+        message: `[${v.field}] ${v.message}`,
+      })),
+      errorMessage: buildBlockMessage(allViolations),
+    };
+  }
+
+  return {
+    allowed: true,
+    violations: [],
+  };
+}
+
+function buildErrorMessage(violations: any[]): string {
+  const lines = ["Blocked: Sensitive data detected. Cannot save."];
   for (const violation of violations) {
     lines.push(`- ${violation.category.toUpperCase()}: ${violation.message}`);
   }
+  lines.push("");
+  lines.push("Remove sensitive data and try again.");
+  return lines.join("\n");
+}
 
+function buildBlockMessage(
+  violations: Array<{ category: string; message: string; field: string }>,
+): string {
+  const lines = ["Blocked: Sensitive data detected in the following fields:"];
+  for (const violation of violations) {
+    lines.push(
+      `- ${violation.field}: ${violation.category.toUpperCase()} (${violation.message})`,
+    );
+  }
+  lines.push("");
+  lines.push("Remove sensitive data and try again.");
   return lines.join("\n");
 }

@@ -36,23 +36,17 @@ describe("sanitizeContent", () => {
       expect(result.violations.some((v) => v.category === "pii")).toBe(true);
     });
 
-    it("blocks corporate data", () => {
+    it("allows corporate data (not blocking yet)", () => {
       const result = sanitizeContent(
         "Google Internal",
         "Google Inc. proprietary code",
       );
-      expect(result.allowed).toBe(false);
-      expect(result.violations.some((v) => v.category === "corporate")).toBe(
-        true,
-      );
+      expect(result.allowed).toBe(true);
     });
 
-    it("blocks environment variables", () => {
+    it("allows environment variables (not blocking yet)", () => {
       const result = sanitizeContent("Config", "process.env.API_KEY");
-      expect(result.allowed).toBe(false);
-      expect(result.violations.some((v) => v.category === "env_vars")).toBe(
-        true,
-      );
+      expect(result.allowed).toBe(true);
     });
 
     it("allows clean content", () => {
@@ -67,7 +61,8 @@ describe("sanitizeContent", () => {
     it("returns error message when blocked", () => {
       const result = sanitizeContent("API Key", "password=secret");
       expect(result.errorMessage).toBeDefined();
-      expect(result.errorMessage).toContain("CONTENT REJECTED");
+      expect(result.errorMessage).toContain("Blocked");
+      expect(result.errorMessage).toContain("Cannot save");
     });
   });
 
@@ -147,22 +142,19 @@ describe("sanitizeContent", () => {
       vi.unstubAllEnvs();
     });
 
-    it("includes violation count", () => {
+    it("includes violation details", () => {
       const result = sanitizeContent(
         "Test",
         "password=secret and email@test.com",
       );
-      expect(result.errorMessage).toContain("2");
+      expect(result.errorMessage).toContain("Blocked");
+      expect(result.errorMessage).toContain("CREDENTIALS");
+      expect(result.errorMessage).toContain("PII");
     });
 
-    it("includes profile name", () => {
+    it("includes helpful tip to remove data", () => {
       const result = sanitizeContent("Test", "password=secret");
-      expect(result.errorMessage).toContain("WORK");
-    });
-
-    it("includes helpful tip", () => {
-      const result = sanitizeContent("Test", "password=secret");
-      expect(result.errorMessage).toContain("TIP");
+      expect(result.errorMessage).toContain("Remove sensitive data");
     });
   });
 });

@@ -1,6 +1,9 @@
-import { successResponse } from "../../utils/tool-handler/index.js";
+import {
+  successResponse,
+  errorResponse,
+} from "../../utils/tool-handler/index.js";
 import { storeKnowledge } from "../../db/queries.js";
-import { sanitizeContent } from "../../middleware/sanitization/index.js";
+import { sanitizeAllFields } from "../../middleware/sanitization/index.js";
 import { searchKnowledgeVector } from "../../db/vector-search.js";
 import { generateEmbedding } from "../../embeddings/index.js";
 import { SaveKnowledgeSchema } from "./save.type.js";
@@ -11,7 +14,7 @@ export const saveKnowledgeTool: ToolDefinition<SaveKnowledgeArgs> = {
   name: "save",
   title: "Save Knowledge",
   description:
-    "Save knowledge directly to the database. Sanitization warnings will be returned but the user decides whether to proceed.",
+    "Save knowledge to the database. Automatically blocks PII (emails, phones, IPs, etc.) and credentials (passwords, API keys, tokens). No exceptions allowed.",
   inputSchema: SaveKnowledgeSchema,
   auditAction: "store_knowledge",
   handler: async (args) => {
@@ -23,36 +26,31 @@ export const saveKnowledgeTool: ToolDefinition<SaveKnowledgeArgs> = {
       source,
       embedding: providedEmbedding,
       metadata,
-      skip_sanitization,
     } = args;
 
-    const warnings: string[] = [];
+    const sanitizationResult = sanitizeAllFields({
+      title,
+      content,
+      tags,
+      source,
+      metadata,
+    });
 
-    if (!skip_sanitization) {
-      const sanitizationResult = sanitizeContent(title, content);
-      if (!sanitizationResult.allowed && sanitizationResult.violations) {
-        for (const violation of sanitizationResult.violations) {
-          warnings.push(
-            `${violation.category.toUpperCase()}: ${violation.message}`,
-          );
-        }
-      }
+    if (!sanitizationResult.allowed) {
+      return errorResponse(
+        sanitizationResult.errorMessage ||
+          "Blocked: Sensitive data detected. Cannot save.",
+        "SANITIZATION_ERROR",
+      );
     }
 
     let embedding = providedEmbedding;
-    let embeddingWarning: string | undefined;
 
     if (!embedding) {
       const embeddingResult = await generateEmbedding(title, content);
-      if (embeddingResult.warning) {
-        embeddingWarning = embeddingResult.warning;
-      } else {
+      if (embeddingResult.embedding) {
         embedding = embeddingResult.embedding;
       }
-    }
-
-    if (embeddingWarning) {
-      warnings.push(embeddingWarning);
     }
 
     const similarEntries: Array<{
@@ -90,12 +88,8 @@ export const saveKnowledgeTool: ToolDefinition<SaveKnowledgeArgs> = {
       type: entry.type,
       title: entry.title,
       created_at: entry.created_at,
-      warnings: warnings.length > 0 ? warnings : undefined,
       similar_entries: similarEntries.length > 0 ? similarEntries : undefined,
-      message:
-        warnings.length > 0
-          ? `Saved with ${warnings.length} warning(s). Review before relying on this knowledge.`
-          : "Knowledge saved successfully",
+      message: "Knowledge saved successfully",
     });
   },
 };

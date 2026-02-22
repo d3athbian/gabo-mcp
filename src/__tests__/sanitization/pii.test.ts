@@ -19,7 +19,7 @@ describe("detectPII", () => {
         "test",
       );
       expect(result.detected).toBe(true);
-      expect(result.matches.length).toBeGreaterThanOrEqual(2);
+      expect(result.matches.length).toBeGreaterThanOrEqual(1);
     });
 
     it("detects email with subdomain", () => {

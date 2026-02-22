@@ -34,10 +34,6 @@ export const SaveKnowledgeSchema = z.object({
     .optional()
     .describe("Vector embedding for semantic search"),
   metadata: z.record(z.any()).optional().describe("Additional metadata"),
-  skip_sanitization: z
-    .boolean()
-    .optional()
-    .describe("Skip sanitization check (use with caution)"),
 });
 
 export type SaveKnowledgeArgs = z.infer<typeof SaveKnowledgeSchema>;
