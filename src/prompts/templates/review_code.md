@@ -5,7 +5,6 @@ CODE:
 
 ----
 SECURITY CONTEXT:
-Profile: {{PROFILE_NAME}}
 Using 'gabo-mcp-local' knowledge base.
 
 CHECKLIST:

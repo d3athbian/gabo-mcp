@@ -19,7 +19,6 @@ export type MCPConfig = {
 export type FeaturesConfig = {
   enableCache: boolean;
   enableAuditLog: boolean;
-  securityProfile: 'work' | 'personal';
 };
 
 export type EmbeddingConfig = {

@@ -44,8 +44,6 @@ export type AuditLogEntry = {
 // SANITIZATION TYPES
 // ============================================================================
 
-export type SecurityProfileName = 'work' | 'personal';
-
 export type DetectionCategory = 'credentials' | 'pii' | 'corporate' | 'env_vars';
 
 export type DetectionResult = {

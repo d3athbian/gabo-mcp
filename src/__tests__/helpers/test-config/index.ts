@@ -31,7 +31,6 @@ type EnvVarName =
   | 'HEALTH_CHECK_TIMEOUT_MS'
   | 'ENABLE_CACHE'
   | 'ENABLE_AUDIT_LOG'
-  | 'SECURITY_PROFILE'
   | 'DEBUG'
   | 'PRETTY_LOGS'
   | 'MCP_INSPECTOR'
@@ -62,7 +61,6 @@ const ALL_ENV_VARS: EnvVarName[] = [
   'HEALTH_CHECK_TIMEOUT_MS',
   'ENABLE_CACHE',
   'ENABLE_AUDIT_LOG',
-  'SECURITY_PROFILE',
   'DEBUG',
   'PRETTY_LOGS',
   'MCP_INSPECTOR',
@@ -122,7 +120,6 @@ export function setTestConfig(overrides: {
   healthCheckTimeoutMs?: number;
   enableCache?: boolean;
   enableAuditLog?: boolean;
-  securityProfile?: 'work' | 'personal';
   debug?: boolean;
   prettyLogs?: boolean;
   auditRetentionDays?: number;
@@ -147,7 +144,6 @@ export function setTestConfig(overrides: {
   setNumericEnv('HEALTH_CHECK_TIMEOUT_MS', overrides.healthCheckTimeoutMs);
   setBooleanEnv('ENABLE_CACHE', overrides.enableCache);
   setBooleanEnv('ENABLE_AUDIT_LOG', overrides.enableAuditLog);
-  setEnv('SECURITY_PROFILE', overrides.securityProfile);
   setBooleanEnv('DEBUG', overrides.debug);
   setBooleanEnv('PRETTY_LOGS', overrides.prettyLogs);
   setNumericEnv('MCP_AUDIT_RETENTION_DAYS', overrides.auditRetentionDays);

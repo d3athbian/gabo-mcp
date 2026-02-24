@@ -30,12 +30,6 @@ export function registerPrompts(server: McpServer) {
         .setVariables({
           TASK: task,
           RULES_CONTENT: rulesContent,
-          PROFILE_NAME: 'STRICT',
-          PROFILE_DESC: 'All sensitive data is blocked without exception',
-          CREDENTIALS_BLOCKED: 'YES',
-          PII_BLOCKED: 'YES',
-          CORPORATE_BLOCKED: 'NO',
-          ENV_VARS_BLOCKED: 'NO',
         })
         .build();
 

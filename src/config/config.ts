@@ -45,7 +45,6 @@ export const config: Config = {
   features: {
     enableCache: process.env.ENABLE_CACHE !== 'false',
     enableAuditLog: process.env.ENABLE_AUDIT_LOG !== 'false',
-    securityProfile: (process.env.SECURITY_PROFILE || 'personal') as 'work' | 'personal',
   },
 
   embedding: {
@@ -102,9 +101,6 @@ export function reloadConfig(): void {
   config.mcp.apiKey = process.env.MCP_API_KEY || process.env.API_KEY;
   config.features.enableCache = process.env.ENABLE_CACHE !== 'false';
   config.features.enableAuditLog = process.env.ENABLE_AUDIT_LOG !== 'false';
-  config.features.securityProfile = (process.env.SECURITY_PROFILE || 'personal') as
-    | 'work'
-    | 'personal';
   config.embedding.enabled = process.env.EMBED_ENABLED !== 'false';
   config.embedding.provider = (process.env.EMBED_PROVIDER || 'ollama') as 'ollama' | 'openai';
   config.embedding.model = process.env.EMBED_MODEL || EMBEDDING.DEFAULT_MODEL;
