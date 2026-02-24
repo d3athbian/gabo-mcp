@@ -1,4 +1,5 @@
 import { spawn } from 'node:child_process';
+import { logger } from '../utils/logger/index.js';
 import type { LauncherConfig } from './launcher.type.js';
 import { OllamaClient } from './ollama-client.js';
 
@@ -53,7 +54,7 @@ export async function ensureOllamaRunning(
         };
       }
     } catch (error) {
-      console.error(`Ollama start attempt ${attempt} failed:`, error);
+      logger.error(`Ollama start attempt ${attempt} failed`, error);
     }
   }
 

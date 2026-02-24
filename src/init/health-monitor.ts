@@ -1,4 +1,5 @@
 import { getDatabase } from '../db/client.js';
+import { logger } from '../utils/logger/index.js';
 import type { HealthCheckConfig } from './health-monitor.type.js';
 
 let healthCheckInterval: ReturnType<typeof setInterval> | null = null;
@@ -20,7 +21,7 @@ export function startHealthMonitor(config: HealthCheckConfig): void {
       const db = getDatabase();
       await db.command({ ping: 1 });
     } catch (error) {
-      console.error('Health check failed:', error);
+      logger.error('Health check failed', error);
     }
   };
 

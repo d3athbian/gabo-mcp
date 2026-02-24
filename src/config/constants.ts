@@ -27,8 +27,8 @@ export const API_KEY = {
 export const DATABASE = {
   MONGO: {
     DEFAULT_URI: 'mongodb://localhost:27017',
-    WAKE_RETRY: parseInt(process.env.MONGO_WAKE_RETRY || '3', 10),
-    WAKE_DELAY_MS: parseInt(process.env.MONGO_WAKE_DELAY || '5000', 10),
+    WAKE_RETRY: 3,
+    WAKE_DELAY_MS: 5000,
     POOL_SIZE: 10,
     SERVER_SELECTION_TIMEOUT_MS: 10000,
     SOCKET_TIMEOUT_MS: 45000,
@@ -40,6 +40,25 @@ export const DATABASE = {
     KNOWLEDGE_AUDIT_LOG: 'knowledge_audit_log',
     API_KEYS: 'api_keys',
   },
+} as const;
+
+export const MCP = {
+  DEFAULT_PORT: 3000,
+  DEFAULT_TIMEOUT_MS: 30000,
+  DEFAULT_MAX_CONTEXT_LENGTH: 2048,
+} as const;
+
+export const EMBEDDING = {
+  DEFAULT_MODEL: 'nomic-embed-text',
+  DEFAULT_DIMENSIONS: 768,
+  DEFAULT_URL: 'http://localhost:11434',
+  DEFAULT_TIMEOUT_MS: 30000,
+  DEFAULT_CACHE_TTL: 3600,
+} as const;
+
+export const HEALTH_CHECK = {
+  DEFAULT_INTERVAL_MS: 900000,
+  DEFAULT_TIMEOUT_MS: 5000,
 } as const;
 
 export const LOGGING = {
