@@ -3,7 +3,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { reloadConfig } from '../../middleware/sanitization/config.js';
+import { reloadConfig } from '../../config/config.js';
 import { sanitizeContent } from '../../middleware/sanitization/index.js';
 import {
   getActiveProfile,

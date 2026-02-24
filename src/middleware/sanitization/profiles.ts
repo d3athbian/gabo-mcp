@@ -3,6 +3,7 @@
  * Defines what types of content are blocked for each profile
  */
 
+import { config } from '../../config/config.js';
 import { logger } from '../../utils/logger/index.js';
 import type { SecurityProfile, SecurityProfileName } from './sanitization.type.js';
 
@@ -31,14 +32,16 @@ const PROFILES: Record<SecurityProfileName, SecurityProfile> = {
 };
 
 /**
- * Get the active security profile from environment variable
- * Defaults to 'personal' for safety
+ * Get the active security profile
+ * Uses config.features.securityProfile, defaults to 'personal'
  */
-export function getActiveProfile(): SecurityProfile {
-  const profileName = (process.env.SECURITY_PROFILE || 'personal') as SecurityProfileName;
+export function getActiveProfile(overrides?: {
+  securityProfile?: 'work' | 'personal';
+}): SecurityProfile {
+  const profileName = overrides?.securityProfile ?? config.features.securityProfile;
 
   if (!PROFILES[profileName]) {
-    logger.warn(`Invalid SECURITY_PROFILE: ${profileName}, defaulting to 'personal'`);
+    logger.warn(`Invalid security profile: ${profileName}, defaulting to 'personal'`);
     return PROFILES.personal;
   }
 

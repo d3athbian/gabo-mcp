@@ -10,6 +10,7 @@ import type {
   SearchKnowledgeInput,
   SearchResult,
 } from '../types.js';
+import { AppError } from '../utils/errors/Error.js';
 import { getKnowledgeEntriesCollection } from './client.js';
 
 /**
@@ -19,7 +20,7 @@ function toObjectId(id: string): ObjectId {
   try {
     return new ObjectId(id);
   } catch {
-    throw new Error(`Invalid ObjectId: ${id}`);
+    throw new AppError(`Invalid ObjectId: ${id}`, 'INVALID_ID', 400, { id });
   }
 }
 
@@ -104,7 +105,9 @@ export async function getKnowledge(entryId: string): Promise<KnowledgeEntry> {
   });
 
   if (!doc) {
-    throw new Error('Knowledge entry not found');
+    throw new AppError('Knowledge entry not found', 'ENTRY_NOT_FOUND', 404, {
+      entryId,
+    });
   }
 
   return {
@@ -185,7 +188,9 @@ export async function updateKnowledge(
   );
 
   if (!result) {
-    throw new Error('Knowledge entry not found');
+    throw new AppError('Knowledge entry not found', 'ENTRY_NOT_FOUND', 404, {
+      entryId,
+    });
   }
 
   return {
@@ -213,7 +218,9 @@ export async function deleteKnowledge(entryId: string): Promise<void> {
   });
 
   if (result.deletedCount === 0) {
-    throw new Error('Knowledge entry not found');
+    throw new AppError('Knowledge entry not found', 'ENTRY_NOT_FOUND', 404, {
+      entryId,
+    });
   }
 }
 

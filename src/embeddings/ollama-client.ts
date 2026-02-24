@@ -1,3 +1,4 @@
+import { AppError } from '../utils/errors/Error.js';
 import type { EmbeddingResult } from './embeddings.type.js';
 import type { OllamaClientConfig } from './ollama-client.type.js';
 
@@ -47,7 +48,12 @@ export class OllamaClient {
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`Ollama API error: ${response.status} - ${errorText}`);
+        throw new AppError(
+          `Ollama API error: ${response.status} - ${errorText}`,
+          'OLLAMA_API_ERROR',
+          response.status,
+          { model, status: response.status }
+        );
       }
 
       const data = (await response.json()) as { embedding: number[] };
@@ -58,7 +64,12 @@ export class OllamaClient {
       };
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') {
-        throw new Error(`Ollama request timeout after ${this.timeout}ms`);
+        throw new AppError(
+          `Ollama request timeout after ${this.timeout}ms`,
+          'OLLAMA_TIMEOUT',
+          408,
+          { timeout: this.timeout }
+        );
       }
       throw error;
     }

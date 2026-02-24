@@ -19,6 +19,7 @@ export type MCPConfig = {
 export type FeaturesConfig = {
   enableCache: boolean;
   enableAuditLog: boolean;
+  securityProfile: 'work' | 'personal';
 };
 
 export type EmbeddingConfig = {
@@ -40,14 +41,17 @@ export type HealthCheckConfig = {
 };
 
 export type Config = {
-  readonly nodeEnv: NodeEnvironment;
-  readonly logLevel: LogLevel;
-  readonly database: DatabaseConfig;
-  readonly mcp: MCPConfig;
-  readonly features: FeaturesConfig;
-  readonly embedding: EmbeddingConfig;
-  readonly healthCheck: HealthCheckConfig;
-  readonly debug: boolean;
-  readonly prettyLogs: boolean;
-  readonly isInspector: boolean;
+  nodeEnv: NodeEnvironment;
+  logLevel: LogLevel;
+  database: DatabaseConfig;
+  mcp: MCPConfig;
+  features: FeaturesConfig;
+  embedding: EmbeddingConfig;
+  healthCheck: HealthCheckConfig;
+  debug: boolean;
+  prettyLogs: boolean;
+  isInspector: boolean;
+  mcpKeyPepper: string | undefined;
+  mcpDebug: boolean;
+  auditRetentionDays: number;
 };

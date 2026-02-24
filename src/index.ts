@@ -3,6 +3,9 @@
  * Run locally: npm run dev:local
  */
 
+// Initialize config first - MUST be imported before anything else
+import './config/initialize.js';
+
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { config } from './config/config.js';

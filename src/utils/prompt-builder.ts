@@ -6,6 +6,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { APP_PATHS } from '../config/constants.js';
+import { AppError } from './errors/Error.js';
 import { logger } from './logger/index.js';
 
 // Cache loaded templates to avoid disk I/O on every request
@@ -105,6 +106,9 @@ export class PromptBuilder {
 
     const errorMsg = `Failed to load prompt template: ${filename}. Checked paths: ${pathsToTry.join(', ')}`;
     logger.error(errorMsg);
-    throw new Error(errorMsg);
+    throw new AppError(errorMsg, 'TEMPLATE_NOT_FOUND', 500, {
+      filename,
+      pathsChecked: pathsToTry,
+    });
   }
 }

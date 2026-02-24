@@ -8,6 +8,7 @@
  *  - MongoDB stores ONLY the bcrypt hash of (key + pepper)
  */
 
+import { config } from '../../config/config.js';
 import { createApiKey, findApiKeyByKey, hasAnyApiKeys } from '../../db/api-keys.js';
 import { recordAuditLog } from '../../db/audit-log.js';
 import type { AuthResult } from '../../types.js';
@@ -103,29 +104,25 @@ export async function validateApiKey(apiKey: string): Promise<AuthResult> {
  * Returns the plain-text key if one was just created, empty string otherwise.
  */
 export async function ensureApiKeyExists(): Promise<string> {
-  // Step 1: Bootstrap the pepper first — must exist before any hashing
-  const isNewPepper = !process.env.MCP_KEY_PEPPER;
+  const isNewPepper = !config.mcpKeyPepper;
   ensurePepperExists();
 
   if (isNewPepper) {
     logger.info('First-time setup: MCP_KEY_PEPPER generated and saved to .env');
   }
 
-  // Step 2: Check if we already have a key in DB
   const hasExistingKey = await hasAnyApiKeys();
   if (hasExistingKey) {
     return '';
   }
 
-  // Step 3: Generate key, hash it, store hash in DB, write plain key to .env
   const key = generateApiKey();
   const keyHash = await hashApiKey(key);
 
   await createApiKey(keyHash);
 
   writeEnvVariable('MCP_API_KEY', key);
-  // Make it immediately available in this process
-  process.env.MCP_API_KEY = key;
+  config.mcp.apiKey = key;
 
   logger.info(`First-time API key created and saved to .env`);
   logger.info(`  Key preview: ...${key.slice(-8)}`);
@@ -170,7 +167,7 @@ export function withAuth(
   handler: (args: unknown, auth: { keyId: string }) => Promise<ToolResponse>
 ) {
   return async (args: unknown): Promise<ToolResponse> => {
-    const apiKey = process.env.MCP_API_KEY;
+    const apiKey = config.mcp.apiKey;
 
     if (!apiKey) {
       logger.error('MCP_API_KEY environment variable not set');

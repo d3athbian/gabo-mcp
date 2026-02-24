@@ -3,9 +3,10 @@
  * Reusable error handling and response formatting for MCP tools
  */
 
-import type { ContentBlock, ErrorResponse } from '../../base.type.js';
+import type { ContentBlock } from '../../base.type.js';
 import { recordAuditLog } from '../../db/audit-log.js';
 import type { AuditAction } from '../../types.js';
+import { parseError } from '../errors/parseError.js';
 import { logger } from '../logger/index.js';
 import type { HandleToolErrorOptions, ToolResponse } from './tool-handler.type.js';
 
@@ -18,31 +19,18 @@ export function handleToolError(
   operationName: string,
   options?: HandleToolErrorOptions
 ): ToolResponse {
-  const errorMessage =
-    options?.customMessage ?? (error instanceof Error ? error.message : String(error));
+  const appError = parseError(error);
+
+  const errorMessage = options?.customMessage ?? appError.message;
 
   // Log based on level
   if (options?.logLevel === 'warn') {
     logger.warn(`${operationName} failed: ${errorMessage}`);
   } else {
-    logger.error(`${operationName} failed`, error);
+    logger.error(`${operationName} failed`, appError);
   }
 
-  // Create error response following ErrorResponse pattern
-  const errorData: ErrorResponse = {
-    success: false,
-    error: errorMessage,
-  };
-
-  const contentBlock: ContentBlock = {
-    type: 'text',
-    text: JSON.stringify(errorData, null, 2),
-  };
-
-  return {
-    content: [contentBlock],
-    isError: true,
-  };
+  return errorResponse(errorMessage, appError.code);
 }
 
 /**

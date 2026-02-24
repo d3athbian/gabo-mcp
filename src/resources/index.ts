@@ -2,6 +2,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { type McpServer, ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { APP_PATHS } from '../config/constants.js';
+import { AppError } from '../utils/errors/Error.js';
 
 const DOCS_DIR = APP_PATHS.DOCS_DIR;
 
@@ -20,7 +21,9 @@ export function registerResources(server: McpServer) {
         ],
       };
     } catch (error) {
-      throw new Error(`Failed to read rules: ${error}`);
+      throw new AppError(`Failed to read rules: ${error}`, 'FILE_READ_ERROR', 500, {
+        path: rulesPath,
+      });
     }
   });
 
@@ -44,7 +47,9 @@ export function registerResources(server: McpServer) {
           ],
         };
       } catch (error) {
-        throw new Error(`Failed to read doc ${safeFilename}: ${error}`);
+        throw new AppError(`Failed to read doc ${safeFilename}: ${error}`, 'FILE_READ_ERROR', 500, {
+          filename: safeFilename,
+        });
       }
     }
   );

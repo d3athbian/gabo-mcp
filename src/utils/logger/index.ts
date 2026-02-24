@@ -1,6 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import type { LogErrorFn, LogFn, Logger } from '../../base.type.js';
+import { config } from '../../config/config.js';
 import { LOGGING } from '../../config/constants.js';
 
 const LOG_DIR = LOGGING.DIR;
@@ -56,7 +57,7 @@ export function createLogger(): Logger {
   };
 
   const debug: LogFn = (msg: string) => {
-    if (process.env.MCP_DEBUG === 'true') {
+    if (config.mcpDebug) {
       writeLog(formatMessage(`DEBUG: ${msg}`));
     }
   };

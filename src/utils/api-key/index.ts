@@ -6,7 +6,9 @@
 import { randomBytes } from 'node:crypto';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { compare, hash } from 'bcryptjs';
+import { config } from '../../config/config.js';
 import { API_KEY, APP_PATHS } from '../../config/constants.js';
+import { AppError } from '../errors/Error.js';
 
 const ENV_PATH = APP_PATHS.ENV_FILE;
 
@@ -45,11 +47,13 @@ export function generatePepper(): string {
  * Throws explicitly if not set — the MCP should not run without it.
  */
 export function getPepper(): string {
-  const pepper = process.env.MCP_KEY_PEPPER;
+  const pepper = config.mcpKeyPepper;
   if (!pepper) {
-    throw new Error(
+    throw new AppError(
       'MCP_KEY_PEPPER is not set. The server cannot validate API keys without a pepper. ' +
-        'Delete your api_keys collection and MCP_API_KEY from .env to trigger a full bootstrap.'
+        'Delete your api_keys collection and MCP_API_KEY from .env to trigger a full bootstrap.',
+      'MISSING_PEPPER',
+      500
     );
   }
   return pepper;
@@ -130,7 +134,7 @@ export function removeEnvVariable(key: string): void {
  * Returns the pepper value (whether new or existing).
  */
 export function ensurePepperExists(): string {
-  const existing = process.env.MCP_KEY_PEPPER;
+  const existing = config.mcpKeyPepper;
   if (existing) {
     return existing;
   }
@@ -138,7 +142,7 @@ export function ensurePepperExists(): string {
   const newPepper = generatePepper();
   writeEnvVariable('MCP_KEY_PEPPER', newPepper);
 
-  // Make it available immediately in the current process
+  config.mcpKeyPepper = newPepper;
   process.env.MCP_KEY_PEPPER = newPepper;
 
   return newPepper;

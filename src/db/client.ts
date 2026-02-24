@@ -4,26 +4,21 @@
  * Uses M0 Free Tier with Vector Search
  */
 
-// Suppress dotenv output to prevent breaking MCP protocol on stdout
-process.env.DOTENV_CONFIG_QUIET = 'true';
-
-import { config } from 'dotenv';
-import { APP_PATHS, DATABASE } from '../config/constants.js';
-
-config({ path: APP_PATHS.ENV_FILE, override: true }); // Load .env from project root and force override any existing vars
-
 import { type Db, MongoClient } from 'mongodb';
+import { config } from '../config/config.js';
+import { DATABASE } from '../config/constants.js';
+import { AppError } from '../utils/errors/Error.js';
 import { logger } from '../utils/logger/index.js';
 
-const MONGODB_URI = process.env.MONGODB_URI;
 const MONGO_WAKE_RETRY = DATABASE.MONGO.WAKE_RETRY;
 const MONGO_WAKE_DELAY = DATABASE.MONGO.WAKE_DELAY_MS;
 
 function validateMongoUri(): void {
-  if (!MONGODB_URI) {
-    throw new Error(
-      'MONGODB_URI environment variable is required. ' +
-        'Get it from MongoDB Atlas: https://cloud.mongodb.com'
+  if (!config.database.url) {
+    throw new AppError(
+      'MONGODB_URI environment variable is required. Get it from MongoDB Atlas: https://cloud.mongodb.com',
+      'MISSING_MONGODB_URI',
+      500
     );
   }
 }
@@ -52,7 +47,7 @@ export async function connectToDatabase(): Promise<Db> {
     try {
       logger.info(`Connecting to MongoDB Atlas (attempt ${attempt}/${MONGO_WAKE_RETRY})...`);
 
-      client = new MongoClient(MONGODB_URI!, {
+      client = new MongoClient(config.database.url, {
         maxPoolSize: DATABASE.MONGO.POOL_SIZE,
         serverSelectionTimeoutMS: DATABASE.MONGO.SERVER_SELECTION_TIMEOUT_MS,
         socketTimeoutMS: DATABASE.MONGO.SOCKET_TIMEOUT_MS,
@@ -93,8 +88,11 @@ export async function connectToDatabase(): Promise<Db> {
   }
 
   logger.error(`Failed to connect to MongoDB after ${MONGO_WAKE_RETRY} attempts`, lastError);
-  throw new Error(
-    `MongoDB connection failed after ${MONGO_WAKE_RETRY} attempts: ${lastError?.message}`
+  throw new AppError(
+    `MongoDB connection failed after ${MONGO_WAKE_RETRY} attempts: ${lastError?.message}`,
+    'DB_CONNECTION_FAILED',
+    500,
+    { attempts: MONGO_WAKE_RETRY }
   );
 }
 
@@ -104,7 +102,11 @@ export async function connectToDatabase(): Promise<Db> {
  */
 export function getDatabase(): Db {
   if (!db) {
-    throw new Error('Database not connected. Call connectToDatabase() first.');
+    throw new AppError(
+      'Database not connected. Call connectToDatabase() first.',
+      'DB_NOT_CONNECTED',
+      500
+    );
   }
   return db;
 }
@@ -188,7 +190,7 @@ export async function setupIndexes(): Promise<void> {
 
     // Audit Log setup
     const { setupAuditLogIndex } = await import('./audit-log.js');
-    const retentionDays = parseInt(process.env.MCP_AUDIT_RETENTION_DAYS || '90', 10);
+    const retentionDays = config.auditRetentionDays;
     await setupAuditLogIndex(retentionDays);
 
     logger.info('✅ All indexes created successfully');
