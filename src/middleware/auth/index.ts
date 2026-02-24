@@ -166,8 +166,10 @@ export function createAuthErrorResponse(error: string): ToolResponse {
   };
 }
 
-export function withAuth<T>(handler: (args: T, auth: { keyId: string }) => Promise<ToolResponse>) {
-  return async (args: T): Promise<ToolResponse> => {
+export function withAuth(
+  handler: (args: unknown, auth: { keyId: string }) => Promise<ToolResponse>
+) {
+  return async (args: unknown): Promise<ToolResponse> => {
     const apiKey = process.env.MCP_API_KEY;
 
     if (!apiKey) {

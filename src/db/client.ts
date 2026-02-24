@@ -213,7 +213,9 @@ async function setupVectorIndex(): Promise<void> {
 
     // Check if vector index already exists
     const existingIndexes = await entriesCollection.indexes();
-    const vectorIndexExists = existingIndexes.some((idx: any) => idx.name === 'vector_index');
+    const vectorIndexExists = existingIndexes.some(
+      (idx: { name?: string }) => idx.name === 'vector_index'
+    );
 
     if (vectorIndexExists) {
       logger.info('   ✓ Vector index already exists');

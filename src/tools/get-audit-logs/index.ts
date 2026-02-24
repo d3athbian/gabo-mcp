@@ -1,5 +1,6 @@
 import { AUDIT_TOOL_NAMES } from '../../config/constants.js';
 import { getKnowledgeAuditLogCollection } from '../../db/client.js';
+import type { MongoFilter } from '../../schemas/index.schema.js';
 import { successResponse } from '../../utils/tool-handler/index.js';
 import type { ToolDefinition } from '../index.type.js';
 import type { GetAuditLogsArgs } from './get-audit-logs.type.ts';
@@ -14,7 +15,7 @@ export const getAuditLogsTool: ToolDefinition<GetAuditLogsArgs> = {
     const { limit, offset, action } = args;
     const collection = getKnowledgeAuditLogCollection();
 
-    const query: any = {};
+    const query: MongoFilter = {};
     if (action) {
       query.action = action;
     }

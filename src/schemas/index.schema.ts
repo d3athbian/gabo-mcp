@@ -166,3 +166,15 @@ export const ApiKeySchema = z
   .merge(TimestampsSchema.pick({ created_at: true }));
 
 export type ApiKey = z.infer<typeof ApiKeySchema>;
+
+// ============================================================================
+// VECTOR SEARCH TYPES
+// ============================================================================
+
+export const VectorSearchPipelineSchema = z.array(z.record(z.unknown()));
+
+export type VectorSearchPipeline = z.infer<typeof VectorSearchPipelineSchema>;
+
+export const MongoFilterSchema = z.record(z.unknown());
+
+export type MongoFilter = z.infer<typeof MongoFilterSchema>;

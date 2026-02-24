@@ -6,6 +6,7 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { withAuth } from '../middleware/auth/index.js';
 import { withAudit, withErrorHandler } from '../utils/tool-handler/index.js';
+import type { ToolResponse } from '../utils/tool-handler/tool-handler.type.js';
 import { deleteKnowledgeTool } from './delete-knowledge/index.js';
 import { getAuditLogsTool } from './get-audit-logs/index.js';
 import { getKnowledgeTool } from './get-knowledge/index.js';
@@ -32,7 +33,9 @@ export function registerAllTools(server: McpServer): void {
   ];
 
   for (const tool of tools) {
-    let finalHandler: any = tool.handler;
+    let finalHandler: (args: unknown) => Promise<ToolResponse> = tool.handler as (
+      args: unknown
+    ) => Promise<ToolResponse>;
 
     if (!tool.skipAuth) {
       finalHandler = withAuth(finalHandler);
@@ -44,14 +47,21 @@ export function registerAllTools(server: McpServer): void {
 
     finalHandler = withErrorHandler(tool.name, finalHandler);
 
+    const handlerWrapper = (args: unknown): Promise<ToolResponse> => {
+      return finalHandler(args);
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const schema = tool.inputSchema as any;
+
     server.registerTool(
       tool.name,
       {
         title: tool.title,
         description: tool.description,
-        inputSchema: tool.inputSchema as any,
+        inputSchema: schema,
       },
-      async (args: any) => finalHandler(args)
+      handlerWrapper
     );
   }
 }

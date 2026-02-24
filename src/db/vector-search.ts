@@ -9,7 +9,7 @@
  * This handles Atlas serverless "cold start" correctly.
  */
 
-import type { SearchResult } from '../types.ts';
+import type { MongoFilter, SearchResult, VectorSearchPipeline } from '../schemas/index.schema.js';
 import { logger } from '../utils/logger/index.js';
 import { getKnowledgeEntriesCollection } from './client.js';
 
@@ -28,7 +28,7 @@ export async function searchKnowledgeVector(
   const collection = getKnowledgeEntriesCollection();
 
   // Build Atlas Vector Search pipeline
-  const pipeline: any[] = [
+  const pipeline: VectorSearchPipeline = [
     {
       $vectorSearch: {
         index: 'vector_index', // Name of the index in Atlas
@@ -70,7 +70,7 @@ export async function searchKnowledgeVector(
       embedding_score: doc.score,
     }));
   } catch (error) {
-    const err = error as any;
+    const err = error as { codeName?: string; message?: string };
     if (err.codeName === 'AtlasSearchDisabled' || err.message?.includes('atlas')) {
       logger.debug('Vector search not available on this Atlas tier');
     } else {
@@ -150,7 +150,7 @@ async function searchKnowledgeText(
 ): Promise<SearchResult[]> {
   const collection = getKnowledgeEntriesCollection();
 
-  const filter: any = {
+  const filter: MongoFilter = {
     $text: { $search: query },
   };
 

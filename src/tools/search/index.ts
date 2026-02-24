@@ -2,6 +2,7 @@ import { SEARCH } from '../../config/constants.js';
 import { searchKnowledge } from '../../db/queries.js';
 import { isVectorSearchAvailable, searchKnowledgeVector } from '../../db/vector-search.js';
 import { generateQueryEmbedding } from '../../embeddings/index.js';
+import type { KnowledgeType, SearchResult } from '../../schemas/index.schema.js';
 import { successResponse } from '../../utils/tool-handler/index.js';
 import type { ToolDefinition } from '../index.type.js';
 import type { SearchArgs } from './search.type.js';
@@ -27,9 +28,9 @@ export const searchTool: ToolDefinition<SearchArgs> = {
       limit,
     } = args;
 
-    const results: any[] = [];
-    const pitfalls: any[] = [];
-    const patterns: any[] = [];
+    const results: SearchResult[] = [];
+    const pitfalls: SearchResult[] = [];
+    const patterns: SearchResult[] = [];
     const warnings: string[] = [];
 
     const vectorAvailable = await isVectorSearchAvailable();
@@ -78,7 +79,7 @@ export const searchTool: ToolDefinition<SearchArgs> = {
       for (const filterType of filterTypes) {
         const filtered = await searchKnowledge({
           query,
-          type: filterType as any,
+          type: filterType as KnowledgeType,
           limit: 5,
           offset: 0,
         });

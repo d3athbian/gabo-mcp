@@ -70,9 +70,9 @@ export function successResponse<T extends Record<string, unknown>>(data: T): Too
  */
 export function withErrorHandler(
   operationName: string,
-  handler: (args: any) => Promise<ToolResponse>
+  handler: (args: unknown) => Promise<ToolResponse>
 ) {
-  return async (args: any): Promise<ToolResponse> => {
+  return async (args: unknown): Promise<ToolResponse> => {
     try {
       return await handler(args);
     } catch (error) {
@@ -88,9 +88,9 @@ export function withErrorHandler(
 export function withAudit(
   operationName: string,
   action: AuditAction,
-  handler: (args: any) => Promise<ToolResponse>
+  handler: (args: unknown) => Promise<ToolResponse>
 ) {
-  return async (args: any): Promise<ToolResponse> => {
+  return async (args: unknown): Promise<ToolResponse> => {
     const response = await handler(args);
 
     await recordAuditLog({

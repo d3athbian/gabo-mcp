@@ -5,15 +5,25 @@
 import { ObjectId } from 'mongodb';
 import { vi } from 'vitest';
 
+type EmbeddingResult = { embedding?: number[]; warning?: string };
+
 export const mockStoreKnowledge = vi.fn();
 export const mockSearchKnowledge = vi.fn();
 export const mockGetKnowledge = vi.fn();
 export const mockListKnowledge = vi.fn();
 export const mockDeleteKnowledge = vi.fn();
 export const mockSearchKnowledgeVector = vi.fn();
-export const mockGenerateEmbedding = vi.fn();
-export const mockGenerateQueryEmbedding = vi.fn();
-export const mockSanitizeAllFields = vi.fn();
+export const mockGenerateEmbedding =
+  vi.fn<(_title: string, _content: string) => Promise<EmbeddingResult>>();
+export const mockGenerateQueryEmbedding = vi.fn<(_query: string) => Promise<EmbeddingResult>>();
+export const mockSanitizeAllFields =
+  vi.fn<
+    (_params?: unknown) => {
+      allowed: boolean;
+      violations: Array<{ category: string }>;
+      errorMessage?: string;
+    }
+  >();
 
 export const testEntry = {
   id: '507f1f77bcf86cd799439011',
@@ -68,17 +78,17 @@ export function setupMocks() {
   }));
 
   vi.mock('../../db/queries.js', () => ({
-    storeKnowledge: (...args: any[]) => mockStoreKnowledge(...args),
-    searchKnowledge: (...args: any[]) => mockSearchKnowledge(...args),
-    getKnowledge: (...args: any[]) => mockGetKnowledge(...args),
-    listKnowledge: (...args: any[]) => mockListKnowledge(...args),
+    storeKnowledge: (...args: [unknown]) => mockStoreKnowledge(...args),
+    searchKnowledge: (...args: [unknown]) => mockSearchKnowledge(...args),
+    getKnowledge: (...args: [unknown]) => mockGetKnowledge(...args),
+    listKnowledge: (...args: [unknown]) => mockListKnowledge(...args),
     updateKnowledge: vi.fn(),
-    deleteKnowledge: (...args: any[]) => mockDeleteKnowledge(...args),
+    deleteKnowledge: (...args: [unknown]) => mockDeleteKnowledge(...args),
     getUserTags: vi.fn().mockResolvedValue([]),
   }));
 
   vi.mock('../../db/vector-search.js', () => ({
-    searchKnowledgeVector: (...args: any[]) => mockSearchKnowledgeVector(...args),
+    searchKnowledgeVector: (...args: [unknown]) => mockSearchKnowledgeVector(...args),
     isVectorSearchAvailable: vi.fn().mockResolvedValue(false),
   }));
 
@@ -90,8 +100,8 @@ export function setupMocks() {
         error: 'Embedding service disabled in tests',
       },
     }),
-    generateEmbedding: (...args: any[]) => mockGenerateEmbedding(...args),
-    generateQueryEmbedding: (...args: any[]) => mockGenerateQueryEmbedding(...args),
+    generateEmbedding: (...args: [string, string]) => mockGenerateEmbedding(...args),
+    generateQueryEmbedding: (...args: [string]) => mockGenerateQueryEmbedding(...args),
     getEmbeddingStatus: vi.fn().mockResolvedValue({ available: false }),
     isEmbeddingEnabled: vi.fn().mockReturnValue(false),
   }));
@@ -126,7 +136,7 @@ export function setupMocks() {
   }));
 
   vi.mock('../../middleware/sanitization/index.js', () => ({
-    sanitizeAllFields: (...args: any[]) => mockSanitizeAllFields(...args),
+    sanitizeAllFields: () => mockSanitizeAllFields(),
   }));
 }
 
@@ -141,6 +151,10 @@ export function setupTestEnv() {
   });
 }
 
-export function parseResult(result: any) {
-  return JSON.parse(result.content[0].text);
+export function parseResult(result: unknown) {
+  if (!result || typeof result !== 'object') {
+    throw new Error('Invalid result');
+  }
+  const r = result as { content: Array<{ text: string }> };
+  return JSON.parse(r.content[0].text);
 }

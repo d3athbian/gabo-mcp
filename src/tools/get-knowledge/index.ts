@@ -1,10 +1,11 @@
 import { getKnowledge } from '../../db/queries.js';
+import type { KnowledgeEntry } from '../../schemas/index.schema.js';
 import { createTool } from '../../utils/tool-factory.js';
 import { successResponse } from '../../utils/tool-handler/index.js';
 import type { GetKnowledgeArgs } from './get-knowledge.type.js';
 import { GetKnowledgeSchema } from './get-knowledge.type.js';
 
-function formatAsMarkdown(entry: any): string {
+function formatAsMarkdown(entry: KnowledgeEntry): string {
   const tags =
     entry.tags?.length > 0 ? entry.tags.map((t: string) => `\`${t}\``).join(' ') : '_None_';
   const typeBadge = `\`${entry.type}\``;

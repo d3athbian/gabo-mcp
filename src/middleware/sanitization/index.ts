@@ -6,7 +6,11 @@
 import { logger } from '../../utils/logger/index.js';
 import { detectCredentials } from './detectors/credentials.js';
 import { detectPII } from './detectors/pii/index.js';
-import type { SanitizationResult } from './sanitization.type.js';
+import type {
+  DetectionCategory,
+  DetectionResult,
+  SanitizationResult,
+} from './sanitization.type.js';
 
 export function sanitizeContent(title: string, content: string): SanitizationResult {
   const detectors = [
@@ -85,7 +89,7 @@ export function sanitizeAllFields(params: {
       allowed: false,
       violations: allViolations.map((v) => ({
         detected: true,
-        category: v.category as any,
+        category: v.category as DetectionCategory,
         matches: [],
         message: `[${v.field}] ${v.message}`,
       })),
@@ -99,7 +103,7 @@ export function sanitizeAllFields(params: {
   };
 }
 
-function buildErrorMessage(violations: any[]): string {
+function buildErrorMessage(violations: DetectionResult[]): string {
   const lines = ['Blocked: Sensitive data detected. Cannot save.'];
   for (const violation of violations) {
     lines.push(`- ${violation.category.toUpperCase()}: ${violation.message}`);

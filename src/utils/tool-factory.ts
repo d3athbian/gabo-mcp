@@ -6,7 +6,8 @@
 import type { ZodTypeAny } from 'zod';
 import type { ToolDefinition } from '../tools/index.type.js';
 import type { AuditAction } from '../types.js';
-import { type successResponse, withAudit, withErrorHandler } from './tool-handler/index.js';
+import { withAudit } from './tool-handler/index.js';
+import type { ToolResponse } from './tool-handler/tool-handler.type.js';
 
 export interface ToolConfig {
   name: string;
@@ -17,14 +18,17 @@ export interface ToolConfig {
   skipAuth?: boolean;
 }
 
-type SimpleHandler = (args: any) => Promise<ReturnType<typeof successResponse>>;
-
 /**
  * Factory for creating MCP tools with standardized configuration
  * Applies error handling and audit logging automatically
  */
-export function createTool(config: ToolConfig, handler: SimpleHandler): ToolDefinition<any> {
-  const wrappedHandler = withErrorHandler(config.name, handler);
+export function createTool<T extends Record<string, unknown>>(
+  config: ToolConfig,
+  handler: (args: T) => Promise<ToolResponse>
+): ToolDefinition<T> {
+  const wrappedHandler = async (args: unknown): Promise<ToolResponse> => {
+    return handler(args as T);
+  };
 
   const finalHandler = config.auditAction
     ? withAudit(config.name, config.auditAction, wrappedHandler)
