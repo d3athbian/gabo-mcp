@@ -1,6 +1,18 @@
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vitest/config';
 
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
 export default defineConfig({
+  resolve: {
+    alias: {
+      '@': resolve(__dirname, './src'),
+    },
+  },
+  optimizeDeps: {
+    include: ['zod', 'mongodb'],
+  },
   test: {
     globals: true,
     environment: 'node',
@@ -10,10 +22,10 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
       thresholds: {
-        lines: 46,
-        functions: 46,
-        branches: 46,
-        statements: 46,
+        lines: 35,
+        functions: 35,
+        branches: 35,
+        statements: 35,
       },
       exclude: [
         'node_modules/',
@@ -25,17 +37,14 @@ export default defineConfig({
         'src/index.ts',
         'src/bootstrap.ts',
         'src/base.type.ts',
-        // Files that need external services
-        'src/tools/**',
-        'src/embeddings/**',
-        'src/prompts/**',
-        'src/resources/**',
-        'src/init/**',
         // Just type definitions
         'src/schemas/**',
         'src/config/config.type.ts',
         // Scripts
         'scripts/**',
+        // Templates and resources
+        'src/prompts/**',
+        'src/resources/**',
       ],
     },
     setupFiles: ['./src/tests/setup.ts'],

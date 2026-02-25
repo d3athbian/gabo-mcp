@@ -93,6 +93,7 @@ import type { SomeType } from "../types.js";
 ### Error Handling
 
 - Use Zod for input validation
+- Use `AppError` class from `src/utils/errors/Error.ts` for structured errors
 - Always wrap async operations in try/catch for logging
 - Return typed error responses (never throw in MCP handlers)
 - Log errors with context before returning
@@ -116,11 +117,11 @@ src/
 ├── config/           # Configuration (constants.ts, config.ts)
 ├── db/               # Database client, queries, operations
 ├── embeddings/       # Ollama/OpenAI embedding services
-├── init/            # App initialization (health monitor, etc.)
+├── init/            # App initialization (bootstrap, health monitor, backup)
 ├── middleware/       # Auth, sanitization
 ├── schemas/         # Zod schemas (source of truth)
 ├── tools/           # MCP tools (save, search, list, etc.)
-├── utils/           # Logger, API keys, helpers
+├── utils/           # Logger, API keys, helpers, tool-factory, errors
 ├── types.ts         # Centralized domain types
 └── index.ts         # Entry point
 ```
@@ -186,7 +187,10 @@ npm run test        # Must pass
 - `src/types.ts` - Centralized type exports
 - `src/db/client.ts` - MongoDB connection & indexes
 - `src/middleware/sanitization/` - Security & data sanitization
+- `src/utils/errors/Error.ts` - Structured error handling with AppError
+- `src/utils/tool-factory.ts` - Factory for standardized tool creation
 - `src/tools/` - MCP tool implementations
+- `src/init/` - App bootstrap, health monitor, backup triggers
 
 ---
 
