@@ -1,0 +1,23 @@
+name: Generate Release
+
+on:
+  push:
+    tags:
+      - 'v*' # Se activa cuando subes un tag que empiece con 'v', ej: v1.0.2
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Permiso crucial para que el bot pueda crear la release
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true # GitHub generará la lista de cambios automáticamente
+          draft: false
+          prerelease: false
