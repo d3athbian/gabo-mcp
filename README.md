@@ -66,7 +66,7 @@ Si has trabajado con IA sabe que cada nuevo proyecto requiere repetir las mismas
 
 ## Decisiones Técnicas
 
-Decisiones arquitectónicas y técnicos que Tomé constructión Gabo MCP.
+Decisiones arquitectónicas y técnicas que Tomé al construir Gabo MCP.
 
 → Ver [docs/DECISIONES.md](docs/DECISIONES.md)
 
@@ -146,7 +146,7 @@ MCP_API_KEY=gabo_xxx  # Genera con: npm run generate:key
   "mcpServers": {
     "gabo-mcp": {
       "command": "npx",
-      "args": ["-y", "tsx", "/path/to/gabo-mcp/src/index.ts"],
+      "args": ["-y", "tsx", "/path/to/gabo-mcp/src/index.ts"]
     }
   }
 }
