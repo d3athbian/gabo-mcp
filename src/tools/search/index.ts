@@ -1,23 +1,25 @@
 import { SEARCH } from '../../config/constants.js';
-import { searchKnowledge } from '../../db/queries.js';
-import { isVectorSearchAvailable, searchKnowledgeVector } from '../../db/vector-search.js';
-import { generateQueryEmbedding } from '../../embeddings/index.js';
 import type { KnowledgeType, SearchResult } from '../../schemas/index.schema.js';
+import { createTool } from '../../utils/tool-factory.js';
 import { successResponse } from '../../utils/tool-handler/index.js';
-import type { ToolDefinition } from '../index.type.js';
 import type { SearchArgs } from './search.type.js';
 import { SearchSchema } from './search.type.js';
 
 const PITFALL_TYPES = SEARCH.PITFALL_TYPES;
 
-export const searchTool: ToolDefinition<SearchArgs> = {
-  name: 'search',
-  title: 'Search Knowledge',
-  description:
-    'Search knowledge using text, semantic vectors, or hybrid mode. Supports filtering by type and including pitfalls/patterns in results.',
-  inputSchema: SearchSchema,
-  auditAction: 'search_knowledge',
-  handler: async (args) => {
+export const searchTool = createTool(
+  {
+    name: 'search',
+    title: 'Search Knowledge',
+    description:
+      'Search knowledge using text, semantic vectors, or hybrid mode. Supports filtering by type and including pitfalls/patterns in results.',
+    inputSchema: SearchSchema,
+    auditAction: 'search_knowledge',
+  },
+  async (args, _auth, context) => {
+    const ctx = context!;
+    const searchArgs = args as SearchArgs;
+
     const {
       query,
       type,
@@ -26,19 +28,19 @@ export const searchTool: ToolDefinition<SearchArgs> = {
       include_pitfalls,
       include_patterns,
       limit,
-    } = args;
+    } = searchArgs;
 
     const results: SearchResult[] = [];
     const pitfalls: SearchResult[] = [];
     const patterns: SearchResult[] = [];
     const warnings: string[] = [];
 
-    const vectorAvailable = await isVectorSearchAvailable();
+    const vectorAvailable = await ctx.isVectorSearchAvailable!();
 
     let queryVector = providedQueryVector;
 
     if (!queryVector && (mode === 'semantic' || mode === 'hybrid')) {
-      const embeddingResult = await generateQueryEmbedding(query);
+      const embeddingResult = await ctx.generateQueryEmbedding!(query);
       if (embeddingResult.warning) {
         warnings.push(embeddingResult.warning);
       } else {
@@ -47,12 +49,12 @@ export const searchTool: ToolDefinition<SearchArgs> = {
     }
 
     if (mode === 'semantic' || (mode === 'hybrid' && queryVector)) {
-      const vectorResults = await searchKnowledgeVector(queryVector!, limit * 2, type);
+      const vectorResults = await ctx.searchKnowledgeVector!(queryVector!, limit * 2, type);
       results.push(...vectorResults);
     }
 
     if (mode === 'text' || mode === 'hybrid') {
-      const textResults = await searchKnowledge({
+      const textResults = await ctx.searchKnowledge!({
         query,
         type,
         limit: limit * 2,
@@ -77,7 +79,7 @@ export const searchTool: ToolDefinition<SearchArgs> = {
       }
 
       for (const filterType of filterTypes) {
-        const filtered = await searchKnowledge({
+        const filtered = await ctx.searchKnowledge!({
           query,
           type: filterType as KnowledgeType,
           limit: 5,
@@ -104,5 +106,5 @@ export const searchTool: ToolDefinition<SearchArgs> = {
       patterns: include_patterns ? patterns : undefined,
       vector_available: vectorAvailable,
     });
-  },
-};
+  }
+);

@@ -4,10 +4,13 @@ import type { LogErrorFn, LogFn, Logger } from '../../base.type.js';
 import { config } from '../../config/config.js';
 import { LOGGING } from '../../config/constants.js';
 
-const LOG_DIR = LOGGING.DIR;
-const LOG_FILE = LOGGING.FILE;
-const MAX_LOG_SIZE = LOGGING.MAX_SIZE_BYTES;
-const MAX_LOG_AGE_DAYS = LOGGING.MAX_AGE_DAYS;
+// Prefer destructuring for clarity and maintainability
+const {
+  DIR: LOG_DIR,
+  FILE: LOG_FILE,
+  MAX_SIZE_BYTES: MAX_LOG_SIZE,
+  MAX_AGE_DAYS: MAX_LOG_AGE_DAYS,
+} = LOGGING;
 
 export function createLogger(): Logger {
   const getLogPath = () => path.join(LOG_DIR, LOG_FILE);

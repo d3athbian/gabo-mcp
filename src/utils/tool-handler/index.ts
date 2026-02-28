@@ -58,11 +58,15 @@ export function successResponse<T extends Record<string, unknown>>(data: T): Too
  */
 export function withErrorHandler(
   operationName: string,
-  handler: (args: unknown) => Promise<ToolResponse>
+  handler: (args: unknown, auth?: { keyId: string }, context?: unknown) => Promise<ToolResponse>
 ) {
-  return async (args: unknown): Promise<ToolResponse> => {
+  return async (
+    args: unknown,
+    auth?: { keyId: string },
+    context?: unknown
+  ): Promise<ToolResponse> => {
     try {
-      return await handler(args);
+      return await handler(args, auth, context);
     } catch (error) {
       return handleToolError(error, operationName);
     }
@@ -76,10 +80,14 @@ export function withErrorHandler(
 export function withAudit(
   operationName: string,
   action: AuditAction,
-  handler: (args: unknown) => Promise<ToolResponse>
+  handler: (args: unknown, auth?: { keyId: string }, context?: unknown) => Promise<ToolResponse>
 ) {
-  return async (args: unknown): Promise<ToolResponse> => {
-    const response = await handler(args);
+  return async (
+    args: unknown,
+    auth?: { keyId: string },
+    context?: unknown
+  ): Promise<ToolResponse> => {
+    const response = await handler(args, auth, context);
 
     await recordAuditLog({
       action,

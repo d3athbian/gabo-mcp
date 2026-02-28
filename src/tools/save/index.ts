@@ -1,9 +1,5 @@
-import { storeKnowledge } from '../../db/queries.js';
-import { searchKnowledgeVector } from '../../db/vector-search.js';
-import { generateEmbedding } from '../../embeddings/index.js';
-import { sanitizeAllFields } from '../../middleware/sanitization/index.js';
 import { errorResponse, successResponse } from '../../utils/tool-handler/index.js';
-import type { ToolDefinition } from '../index.type.js';
+import type { ToolContext, ToolDefinition } from '../index.type.js';
 import type { SaveKnowledgeArgs } from './save.type.js';
 import { SaveKnowledgeSchema } from './save.type.js';
 
@@ -14,10 +10,12 @@ export const saveKnowledgeTool: ToolDefinition<SaveKnowledgeArgs> = {
     'Save knowledge to the database. Automatically blocks PII (emails, phones, IPs, etc.) and credentials (passwords, API keys, tokens). No exceptions allowed.',
   inputSchema: SaveKnowledgeSchema,
   auditAction: 'store_knowledge',
-  handler: async (args) => {
+  handler: async (args, _auth, context?: Partial<ToolContext>) => {
+    const ctx = context!;
+
     const { type, title, content, tags, source, embedding: providedEmbedding, metadata } = args;
 
-    const sanitizationResult = sanitizeAllFields({
+    const sanitizationResult = ctx.sanitizeAllFields!({
       title,
       content,
       tags,
@@ -35,7 +33,7 @@ export const saveKnowledgeTool: ToolDefinition<SaveKnowledgeArgs> = {
     let embedding = providedEmbedding;
 
     if (!embedding) {
-      const embeddingResult = await generateEmbedding(title, content);
+      const embeddingResult = await ctx.generateEmbedding!(title, content);
       if (embeddingResult.embedding) {
         embedding = embeddingResult.embedding;
       }
@@ -48,7 +46,7 @@ export const saveKnowledgeTool: ToolDefinition<SaveKnowledgeArgs> = {
       similarity: number;
     }> = [];
     if (embedding && embedding.length > 0) {
-      const similar = await searchKnowledgeVector(embedding, 3, type);
+      const similar = await ctx.searchKnowledgeVector!(embedding, 3, type);
       for (const entry of similar) {
         if (entry.embedding_score && entry.embedding_score > 0.85) {
           similarEntries.push({
@@ -61,7 +59,7 @@ export const saveKnowledgeTool: ToolDefinition<SaveKnowledgeArgs> = {
       }
     }
 
-    const entry = await storeKnowledge({
+    const entry = await ctx.storeKnowledge!({
       type,
       title,
       content,

@@ -1,4 +1,3 @@
-import { getKnowledge } from '../../db/queries.js';
 import type { KnowledgeEntry } from '../../schemas/index.schema.js';
 import { createTool } from '../../utils/tool-factory.js';
 import { successResponse } from '../../utils/tool-handler/index.js';
@@ -60,9 +59,10 @@ export const getKnowledgeTool = createTool(
     inputSchema: GetKnowledgeSchema,
     auditAction: 'get_knowledge',
   },
-  async (args) => {
+  async (args, _auth, context) => {
+    const ctx = context!;
     const { id, format } = args as GetKnowledgeArgs;
-    const entry = await getKnowledge(id);
+    const entry = await ctx.getKnowledge!(id);
 
     if (format === 'markdown') {
       const markdown = formatAsMarkdown(entry);

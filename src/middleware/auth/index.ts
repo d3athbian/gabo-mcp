@@ -164,9 +164,13 @@ export function createAuthErrorResponse(error: string): ToolResponse {
 }
 
 export function withAuth(
-  handler: (args: unknown, auth: { keyId: string }) => Promise<ToolResponse>
+  handler: (args: unknown, auth: { keyId: string }, context?: unknown) => Promise<ToolResponse>
 ) {
-  return async (args: unknown): Promise<ToolResponse> => {
+  return async (
+    args: unknown,
+    _auth?: { keyId: string },
+    context?: unknown
+  ): Promise<ToolResponse> => {
     const apiKey = config.mcp.apiKey;
 
     if (!apiKey) {
@@ -182,8 +186,12 @@ export function withAuth(
       return createAuthErrorResponse(authResult.error);
     }
 
-    return await handler(args, {
-      keyId: authResult.keyId,
-    });
+    return await handler(
+      args,
+      {
+        keyId: authResult.keyId,
+      },
+      context
+    );
   };
 }

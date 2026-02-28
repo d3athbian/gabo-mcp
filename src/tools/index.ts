@@ -7,6 +7,7 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { withAuth } from '../middleware/auth/index.js';
 import { withAudit, withErrorHandler } from '../utils/tool-handler/index.js';
 import type { ToolResponse } from '../utils/tool-handler/tool-handler.type.js';
+import { defaultToolContext } from './default-context.js';
 import { deleteKnowledgeTool } from './delete-knowledge/index.js';
 import { getAuditLogsTool } from './get-audit-logs/index.js';
 import { getKnowledgeTool } from './get-knowledge/index.js';
@@ -18,6 +19,7 @@ export { saveKnowledgeTool, searchTool, listKnowledgeTool, getKnowledgeTool, del
 
 export type {
   BaseToolHandler,
+  ToolContext,
   ToolDefinition,
   ToolRegistrar,
 } from './index.type.js';
@@ -33,9 +35,8 @@ export function registerAllTools(server: McpServer): void {
   ];
 
   for (const tool of tools) {
-    let finalHandler: (args: unknown) => Promise<ToolResponse> = tool.handler as (
-      args: unknown
-    ) => Promise<ToolResponse>;
+    let finalHandler: (args: unknown) => Promise<ToolResponse> = (args) =>
+      tool.handler(args as any, { keyId: 'system' }, defaultToolContext);
 
     if (!tool.skipAuth) {
       finalHandler = withAuth(finalHandler);
