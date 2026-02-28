@@ -1,8 +1,54 @@
 # Gabo MCP
 
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.6+-3178c6?style=flat&logo=typescript)](https://www.typescriptlang.org/)
+[![Tests](https://img.shields.io/badge/Tests-132-6c9fcc?style=flat)](https://vitest.dev/)
+[![Vitest](https://img.shields.io/badge/Vitest-2.1+-6c9fcc?style=flat&logo=vitest)](https://vitest.dev/)
+[![Biome](https://img.shields.io/badge/Biome-2.4.4-60a5fa?style=flat)](https://biomejs.dev/)
+[![Coverage](https://img.shields.io/badge/Coverage-94.36%25-22c55e?style=flat)](https://vitest.dev/guide/coverage)
+[![Node.js](https://img.shields.io/badge/Node.js-24+-339933?style=flat&logo=node.js)](https://nodejs.org/)
+[![License](https://img.shields.io/badge/License-MIT-green?style=flat)](LICENSE)
+
 > Tu memoria técnica personal impulsada por IA.
 
 Servidor MCP (Model Context Protocol) que actúa como **memoria técnica personal**. Cada decisión de diseño, patrón, error corregido y snippet queda registrado y disponible para cualquier agente de IA que trabaje contigo.
+
+---
+
+## Tabla de Contenidos
+
+- [¿Por qué existe?](#por-qué-existe)
+- [Quick Start](#quick-start)
+- [Tecnologías](#tecnologías)
+- [Herramientas Disponibles](#herramientas-disponibles)
+- [Uso](#uso)
+- [Tests](#tests)
+- [Variables requeridas](#variables-requeridas)
+- [Configuración MCP](#configuración-mcp)
+- [Logs](#logs)
+- [Documentación](#documentación)
+- [Estructura](#estructura)
+
+---
+
+## Quick Start (30 segundos)
+
+```bash
+# 1. Clonar y entrar
+git clone https://github.com/gabo-mcp/gabo-mcp.git
+cd gabo-mcp
+
+# 2. Instalar dependencias
+npm install
+
+# 3. Configurar MongoDB (requerido)
+# Crea una cuenta gratuita en MongoDB Atlas y obten tu URI
+export MONGODB_URI="mongodb+srv://tu-uri"
+
+# 4. Ejecutar (la API key se genera automáticamente)
+npm run dev:local
+```
+
+¡Listo! El servidor está corriendo en `mcp://localhost:3000`. La primera ejecución genera tu `MCP_API_KEY` automáticamente.
 
 ---
 
@@ -101,10 +147,6 @@ MCP_API_KEY=gabo_xxx  # Genera con: npm run generate:key
     "gabo-mcp": {
       "command": "npx",
       "args": ["-y", "tsx", "/path/to/gabo-mcp/src/index.ts"],
-      "env": {
-        "MONGODB_URI": "mongodb+srv://...",
-        "MCP_API_KEY": "gabo_xxx"
-      }
     }
   }
 }
@@ -141,6 +183,7 @@ Los logs se escriben en `/tmp/gabo-mcp.log`.
 - [SANITIZATION.md](docs/SANITIZATION.md) - Sistema de seguridad
 - [BACKUP_PLAN.md](docs/BACKUP_PLAN.md) - Respaldo de base de datos
 - [PROFILE.md](PROFILE.md) - Perfil para reclutadores/IA
+- [AGENTS.md](AGENTS.md) - Guías para agentes de IA
 
 ---
 

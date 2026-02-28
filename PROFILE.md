@@ -78,4 +78,3 @@ Cache de imágenes para web, LG webOS, Tizen, WebViews.
 
 **Keywords**: Node.js, TypeScript, MongoDB, Vector Search, MCP, Testing, Zod, CI/CD, API Design
 
-**Disponibilidad**: Currently employed at Mercado Libre (Frontend), open to backend opportunities

@@ -78,14 +78,6 @@ Una forma de guardar, una forma de buscar, una forma de listar. El usuario decid
 | `INFRASTRUCTURE`    | Docker, Cloud, CI/CD                            |
 | `TESTING`           | Estrategias y patrones de testing               |
 
-## Contribución
-
-1. Fork del repositorio
-2. Crear branch feature
-3. Agregar tests
-4. Asegurar coverage > 80%
-5. Submit PR
-
 ## Licencia
 
 MIT - Feel free to use, modify, distribute.
