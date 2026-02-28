@@ -75,7 +75,7 @@ npm run build
 ## Tests
 
 ```bash
-# Unit tests (121 tests)
+# Unit tests (132 tests)
 npm run test
 
 # Coverage

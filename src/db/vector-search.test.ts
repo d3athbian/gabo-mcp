@@ -63,14 +63,16 @@ describe('Vector Search', () => {
     it('should combine vector and text search results', async () => {
       // Mock vector search returning one doc
       mockCollection.aggregate.mockReturnValue({
-        toArray: vi.fn().mockResolvedValue([
-          { _id: '1', title: 'VectorDoc', content: 'C', type: 'NOTE', score: 0.8 }
-        ])
+        toArray: vi
+          .fn()
+          .mockResolvedValue([
+            { _id: '1', title: 'VectorDoc', content: 'C', type: 'NOTE', score: 0.8 },
+          ]),
       });
       // Mock text search returning two docs, one overlapping
       mockCollection.toArray.mockResolvedValue([
         { _id: '1', title: 'VectorDoc', content: 'C', type: 'NOTE', score: 0.5 },
-        { _id: '2', title: 'TextDoc', content: 'C', type: 'NOTE', score: 0.6 }
+        { _id: '2', title: 'TextDoc', content: 'C', type: 'NOTE', score: 0.6 },
       ]);
 
       const results = await searchKnowledgeHybrid('query', [0.1], 10, 'NOTE');
@@ -82,10 +84,10 @@ describe('Vector Search', () => {
 
     it('should handle vector search failures gracefully', async () => {
       mockCollection.aggregate.mockReturnValue({
-        toArray: vi.fn().mockRejectedValue(new Error('Atlas disabled'))
+        toArray: vi.fn().mockRejectedValue(new Error('Atlas disabled')),
       });
       mockCollection.toArray.mockResolvedValue([
-        { _id: '2', title: 'TextDoc', content: 'C', type: 'NOTE', score: 0.6 }
+        { _id: '2', title: 'TextDoc', content: 'C', type: 'NOTE', score: 0.6 },
       ]);
 
       const results = await searchKnowledgeHybrid('query', [0.1], 10);

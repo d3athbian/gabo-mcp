@@ -43,7 +43,7 @@ Servidor MCP para memoria técnica personal.
 
 - **Features**: save, search, list, get, delete, audit logs
 - **Arquitectura**: Modular (db, middleware, tools, embeddings)
-- **Calidad**: 121 tests, type-check, lint en CI
+- **Calidad**: 132 tests, type-check, lint en CI
 
 ### Próximo: image-cache-advanced
 
@@ -65,8 +65,8 @@ Cache de imágenes para web, LG webOS, Tizen, WebViews.
 
 | Métrica           | Valor           |
 | ----------------- | --------------- |
-| Tests unitarios   | 121             |
-| Coverage          | ~29%            |
+| Tests unitarios   | 132             |
+| Coverage          | 94.36%          |
 | Lenguaje          | TypeScript 100% |
 | Dependencias_prod | 5               |
 

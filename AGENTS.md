@@ -1,24 +1,27 @@
-# Agent Guidelines for gabo-mcp
+# AGENTS.md - Guidelines for AI Agents
 
-This file provides guidelines for AI agents working on this codebase.
+This file provides guidelines and conventions for AI agents working in this codebase.
 
 ---
 
-## 1. Build, Lint, and Test Commands
+## Build, Lint & Test Commands
 
 ### Development
 
 ```bash
 npm run dev              # Watch mode with tsx
-npm run dev:local       # Run locally with NODE_ENV=development
-npm run dev:inspector   # Run with MCP Inspector UI
+npm run dev:local        # Local development with NODE_ENV=development
+npm run dev:inspector   # Run with MCP Inspector (visual debugging)
+npm run build           # Build to dist/ (TypeScript + copy prompts)
+npm run start           # Run production build from dist/
 ```
 
-### Building
+### Quality Checks
 
 ```bash
-npm run build           # Compile TypeScript
-npm run start           # Run compiled version
+npm run type-check      # TypeScript type checking (tsc --noEmit)
+npm run lint            # Biome linter with auto-fix (biome check --write src)
+npm run lint -- --src   # Lint specific directory
 ```
 
 ### Testing
@@ -27,171 +30,178 @@ npm run start           # Run compiled version
 npm run test            # Run all unit tests (vitest run)
 npm run test:watch      # Watch mode (vitest)
 npm run test:coverage   # Run tests with coverage report
-```
 
-### Running a Single Test
-
-```bash
 # Run tests matching a pattern
 npx vitest run --testNamePattern "sanitization"
 
 # Run a specific test file
 npx vitest run src/__tests__/sanitization/credentials.test.ts
-```
 
-### Code Quality
-
-```bash
-npm run type-check      # TypeScript type checking (tsc --noEmit)
-npm run lint            # Biome linter (biome check --write src)
+# Run tests in watch mode for a specific file
+npx vitest run src/db/api-keys.test.ts --watch
 ```
 
 ---
 
-## 2. Code Style Guidelines
+## Code Style Guidelines
 
-### Formatting & Linting
+### Formatting (Biome)
 
-- **Formatter**: Biome is configured. Run `npm run lint` before committing.
-- **Indentation**: 2 spaces
-- **Line width**: 100 characters max
-- **Quotes**: Single quotes for JavaScript/TypeScript
+- **Indent**: 2 spaces
+- **Line width**: 100 characters
+- **Quotes**: Single quotes (`'`)
 - **Trailing commas**: ES5 style
+- **Import extensions**: Use `.js` for local imports (TypeScript resolves to JS)
 
-### Import Conventions
+### TypeScript Conventions
 
-- Use explicit file extensions: `import { foo } from './foo.js'`
-- Order imports: external → internal → types
-- Use `import type` for type-only imports ( Biome rule enabled)
-- Group: 1) external libs, 2) relative imports, 3) type imports
-
-Example:
-
-```typescript
-import { z } from "zod";
-import { ObjectId } from "mongodb";
-
-import { config } from "../config/config.js";
-import type { SomeType } from "../types.js";
-```
-
-### Type Conventions
-
-- **Use Zod** for runtime validation and type inference
-- Prefer `type` over `interface` unless extension needed
-- Avoid `any` - use `unknown` or explicit types
-- Export types from central `src/types.ts` for shared domain types
+1. **Use `type` over `interface`** unless extending or merging is needed
+2. **Use `z.infer<typeof Schema>`** to derive types from Zod schemas
+3. **Avoid `any`** - use `unknown` or specific types
+4. **Use `import type`** for type-only imports
+5. **Never use `as any`** - use proper typing or type guards
 
 ### Naming Conventions
 
-- **Files**: kebab-case (e.g., `tool-handler.ts`, `api-keys.ts`)
-- **Functions**: camelCase
-- **Constants**: UPPER_SNAKE_CASE for runtime constants, PascalCase for Zod schemas
-- **Types**: PascalCase
-- **Tests**: `{module}.test.ts` (e.g., `api-keys.test.ts`)
+| Element          | Convention                 | Example                              |
+| ---------------- | -------------------------- | ------------------------------------ |
+| Files            | kebab-case                 | `api-keys.ts`, `prompt-builder.ts`   |
+| Directories      | kebab-case                 | `sanitization/detectors/pii/`        |
+| Types/Interfaces | PascalCase                 | `ApiKey`, `SanitizationResult`       |
+| Functions        | camelCase                  | `findApiKeyByKey`, `sanitizeContent` |
+| Variables        | camelCase                  | `keyDoc`, `activeDocs`               |
+| Constants        | SCREAMING_SNAKE_CASE       | `LOGGING`, `MAX_LOG_SIZE`            |
+| Database fields  | snake_case                 | `key_hash`, `created_at`             |
+| Zod schemas      | PascalCase + Schema suffix | `ApiKeySchema`                       |
+
+### Import Order
+
+```typescript
+// 1. Node.js built-ins
+import * as fs from "node:fs";
+
+// 2. External packages (alphabetical)
+import { config } from "../../config/config.js";
+import { z } from "zod";
+
+// 3. Internal packages - relative imports with .js extension
+import { recordAuditLog } from "../../db/audit-log.js";
+import { logger } from "../../utils/logger/index.js";
+
+// 4. Types (can be interleaved using 'type' keyword)
+import type { AuthResult } from "../../types.js";
+```
 
 ### Error Handling
 
-- Use Zod for input validation
-- Use `AppError` class from `src/utils/errors/Error.ts` for structured errors
-- Always wrap async operations in try/catch for logging
-- Return typed error responses (never throw in MCP handlers)
-- Log errors with context before returning
+1. **Use the `AppError` class** for domain errors:
 
-Example:
+   ```typescript
+   throw new AppError("Message", "ERROR_CODE", 400);
+   ```
 
-```typescript
-try {
-  const result = await someOperation();
-  return successResponse(result);
-} catch (error) {
-  logger.error("Operation failed", error);
-  return errorResponse("Failed to complete operation");
-}
-```
+2. **Use try-catch with proper error logging**:
+
+   ```typescript
+   try {
+     // operation
+   } catch (error) {
+     logger.error("Operation failed", error);
+     throw error;
+   }
+   ```
+
+3. **Unused catch variables** should use underscore prefix:
+
+   ```typescript
+   } catch (_e) { /* ignore */ }
+   ```
+
+4. **Never expose internal errors** to external callers - wrap in user-friendly messages
+
+### Logging
+
+- Use `logger.info()`, `logger.warn()`, `logger.error()`, `logger.debug()`
+- Log meaningful context but avoid PII
+- Errors should include the error object: `logger.error('msg', error)`
 
 ### Project Structure
 
 ```
 src/
-├── config/           # Configuration (constants.ts, config.ts)
-├── db/               # Database client, queries, operations
-├── embeddings/       # Ollama/OpenAI embedding services
-├── init/            # App initialization (bootstrap, health monitor, backup)
+├── config/           # Configuration (Zod + constants)
+├── db/               # Database layer (MongoDB)
+├── embeddings/       # Embeddings service
+├── init/             # Bootstrap & initialization
 ├── middleware/       # Auth, sanitization
-├── schemas/         # Zod schemas (source of truth)
-├── tools/           # MCP tools (save, search, list, etc.)
-├── utils/           # Logger, API keys, helpers, tool-factory, errors
-├── types.ts         # Centralized domain types
-└── index.ts         # Entry point
+├── prompts/          # Prompt templates
+├── schemas/          # Zod schemas (source of truth)
+├── tools/            # MCP tool implementations
+└── utils/            # Utilities (errors, logger, api-key, etc.)
 ```
 
-### Testing Guidelines
+### Testing Conventions
 
-- Tests go in `src/__tests__/` mirroring source structure
-- Use Vitest with mocks for external dependencies (MongoDB, etc.)
-- Unit tests should NOT require external services
-- Mock `src/db/client.js` for database tests
-- Run `npm run lint` before committing changes
+1. **Test files**: `{module}.test.ts` co-located or in `src/__tests__/`
+2. **Use Vitest** with mocks for external dependencies
+3. **Unit tests should NOT require external services** (mock MongoDB, etc.)
+4. **Mock pattern**: Use shared mocks in `mocks.ts` for integration tests
 
-### Constants & Configuration
+### Zod as Source of Truth
 
-- All hardcoded constants should be in `src/config/constants.ts`
-- Environment variables with defaults belong in `src/config/config.ts`
-- Import constants from `src/config/constants.js` not relative paths
-
-### Database
-
-- Use MongoDB driver directly (not an ORM)
-- Always use `toObjectId()` helper for \_id fields
-- Index creation in `src/db/client.ts` via `setupIndexes()`
-- Audit logs for all operations in `src/db/audit-log.ts`
-
-### Security
-
-- NEVER log secrets, API keys, or credentials
-- Use bcrypt for password/key hashing
-- API keys use `gabo_` prefix
-- Sanitize all user input (see `src/middleware/sanitization/`)
+- All input validation uses Zod schemas
+- Derive TypeScript types using `z.infer`
+- Never duplicate validation logic outside schemas
 
 ---
 
-## 3. Before Committing
+## Environment Variables
 
-Run these commands:
+Required:
 
-```bash
-npm run type-check   # Must pass
-npm run lint        # Auto-fixes issues
-npm run test        # Must pass
+- `MONGODB_URI` - MongoDB connection string
+- `MCP_API_KEY` - API key for authentication (auto-generated on first boot)
+
+Optional:
+
+- `MCP_KEY_PEPPER` - Pepper for bcrypt (auto-generated)
+- `NODE_ENV` - Set to `development` for debug logs
+
+---
+
+## Common Patterns
+
+### Tool Handler Pattern
+
+```typescript
+export const tool = {
+  name: "tool_name",
+  description: "...",
+  inputSchema: zodSchema,
+  handler: withAuth(async (args, auth) => {
+    // implementation
+  }),
+};
 ```
 
----
+### Database Queries
 
-## 4. Tech Stack
+```typescript
+export async function getSomething(): Promise<Something | null> {
+  const collection = getCollection();
+  const doc = await collection.findOne({
+    /* query */
+  });
+  return doc ? transform(doc) : null;
+}
+```
 
-- **Runtime**: Node.js 24+
-- **Language**: TypeScript 5.6+
-- **Protocol**: MCP SDK
-- **Database**: MongoDB Atlas
-- **Validation**: Zod
-- **Testing**: Vitest
-- **Linting**: Biome
-- **Embeddings**: Ollama (local)
+### Middleware Composition
 
----
-
-## 5. Key Files
-
-- `src/config/constants.ts` - All application constants
-- `src/types.ts` - Centralized type exports
-- `src/db/client.ts` - MongoDB connection & indexes
-- `src/middleware/sanitization/` - Security & data sanitization
-- `src/utils/errors/Error.ts` - Structured error handling with AppError
-- `src/utils/tool-factory.ts` - Factory for standardized tool creation
-- `src/tools/` - MCP tool implementations
-- `src/init/` - App bootstrap, health monitor, backup triggers
-
----
-
-For questions about architecture decisions, see `docs/DECISIONES.md`.
+```typescript
+// Auth wrapper
+const withAuth = (handler) => async (args, auth, context) => {
+  // auth logic
+  return handler(args, auth, context);
+};
+```

@@ -37,7 +37,7 @@ El proyecto cuenta con dos tipos de tests:
 - Ubicación: `src/__tests__/`
 - Configuración: `vitest.config.ts`
 - Cubren: sanitización, autenticación, queries, utils
-- **121 tests** pasando
+- **132 tests** pasando
 
 ### Integration Tests
 
