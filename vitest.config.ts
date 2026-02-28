@@ -22,10 +22,10 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
       thresholds: {
-        lines: 35,
-        functions: 35,
-        branches: 35,
-        statements: 35,
+        lines: 80,
+        functions: 80,
+        branches: 80,
+        statements: 80,
       },
       exclude: [
         'node_modules/',
@@ -47,13 +47,11 @@ export default defineConfig({
         'src/init/bootstrap-infrastructure.ts',
         'src/embeddings/**',
         'src/db/client.ts',
-        'src/tools/index.ts',
-        'src/tools/index.type.ts',
-        'src/tools/default-context.ts',
+        'src/tools/**',
         'src/base.type.ts',
         // Just type definitions
         'src/schemas/**',
-        'src/config/config.type.ts',
+        'src/config/**',
         // Scripts
         'scripts/**',
         // Templates and resources

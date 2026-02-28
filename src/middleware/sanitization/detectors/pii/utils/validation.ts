@@ -54,7 +54,7 @@ export function isLikelyFalsePositive(match: string, context: string): boolean {
     }
   }
 
-  const programmingTerms = ['null', 'undefined', 'true', 'false', 'NaN', 'Infinity'];
+  const programmingTerms = ['null', 'undefined', 'true', 'false', 'nan', 'infinity'];
   if (programmingTerms.includes(lowerMatch)) return true;
 
   return false;
