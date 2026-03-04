@@ -25,10 +25,10 @@ describe('Audit Log Database Operations', () => {
   describe('recordAuditLog', () => {
     it('should insert an audit log entry with timestamp', async () => {
       mockCollection.insertOne.mockResolvedValue({});
-      await recordAuditLog({ action: 'test_action', success: true });
+      await recordAuditLog({ action: 'get_knowledge', success: true });
       expect(mockCollection.insertOne).toHaveBeenCalledWith(
         expect.objectContaining({
-          action: 'test_action',
+          action: 'get_knowledge',
           success: true,
           timestamp: expect.any(Date),
         })
@@ -38,7 +38,9 @@ describe('Audit Log Database Operations', () => {
     it('should handle insert errors', async () => {
       mockCollection.insertOne.mockRejectedValue(new Error('DB Error'));
       // Should not throw, should just log error
-      await expect(recordAuditLog({ action: 'err', success: false })).resolves.not.toThrow();
+      await expect(
+        recordAuditLog({ action: 'get_knowledge', success: false })
+      ).resolves.not.toThrow();
     });
   });
 

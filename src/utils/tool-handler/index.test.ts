@@ -92,7 +92,7 @@ describe('Tool Handler', () => {
   describe('withAudit', () => {
     it('should record audit log and return result', async () => {
       const handler = async () => ({ content: [], isError: false });
-      const wrapped = withAudit('Op', 'save_knowledge', handler);
+      const wrapped = withAudit('Op', 'store_knowledge', handler);
       const res = await wrapped({});
 
       expect(recordAuditLog).toHaveBeenCalledWith(
