@@ -97,7 +97,7 @@ describe('Tool Handler', () => {
 
       expect(recordAuditLog).toHaveBeenCalledWith(
         expect.objectContaining({
-          action: 'save_knowledge',
+          action: 'store_knowledge',
           success: true,
         })
       );
