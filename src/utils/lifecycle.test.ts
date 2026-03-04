@@ -56,10 +56,10 @@ describe('Lifecycle Utils', () => {
     let stdinOnSpy: any;
 
     beforeEach(() => {
-      onSpy = vi.spyOn(process, 'on').mockImplementation((event, handler) => {
+      onSpy = vi.spyOn(process, 'on').mockImplementation((_event, _handler) => {
         return process;
       });
-      stdinOnSpy = vi.spyOn(process.stdin, 'on').mockImplementation((event, handler) => {
+      stdinOnSpy = vi.spyOn(process.stdin, 'on').mockImplementation((_event, _handler) => {
         return process.stdin;
       });
     });

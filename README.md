@@ -175,14 +175,9 @@ Los logs se escriben en `/tmp/gabo-mcp.log`.
 
 ---
 
-## Documentación
+## Documentación (minimal)
 
-- [DECISIONES.md](docs/DECISIONES.md) - Por qué tomé estas decisiones
-- [FUNCIONALIDADES.md](docs/FUNCIONALIDADES.md) - Detalle de herramientas
-- [ARCHITECTURE.md](docs/ARCHITECTURE.md) - Arquitectura técnica
-- [SANITIZATION.md](docs/SANITIZATION.md) - Sistema de seguridad
-- [BACKUP_PLAN.md](docs/BACKUP_PLAN.md) - Respaldo de base de datos
-- [PROFILE.md](PROFILE.md) - Perfil para reclutadores/IA
+- Public overview: [docs/PUBLIC_OVERVIEW.md](docs/PUBLIC_OVERVIEW.md)
 - [AGENTS.md](AGENTS.md) - Guías para agentes de IA
 
 ---

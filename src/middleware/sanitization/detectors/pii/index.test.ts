@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { detectPII } from './index.js';
 
 describe('PII Detector Main Entry', () => {
@@ -19,7 +19,7 @@ describe('PII Detector Main Entry', () => {
 
   it('should strip fake SSNs', () => {
     // If it looks like SSN but is invalid, it gets removed
-    const result = detectPII('Here is 000-00-0000', 'Info');
+    detectPII('Here is 000-00-0000', 'Info');
     // This relies on the utils checking if it's strictly invalid (like all zeros)
     // Check what passes through
   });

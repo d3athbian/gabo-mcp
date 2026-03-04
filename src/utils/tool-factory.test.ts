@@ -30,7 +30,7 @@ describe('Tool Factory', () => {
     expect(tool.name).toBe('t1');
     expect(tool.auditAction).toBeUndefined();
 
-    await (tool.handler as Function)({}, { keyId: 'k1' });
+    await (tool.handler as (...args: any[]) => any)({}, { keyId: 'k1' });
     expect(handler).toHaveBeenCalledWith({}, { keyId: 'k1' }, undefined);
     expect(recordAuditLog).not.toHaveBeenCalled();
   });
@@ -48,7 +48,7 @@ describe('Tool Factory', () => {
       handler
     );
 
-    await (tool.handler as Function)({}, { keyId: 'k1' });
+    await (tool.handler as (...args: any[]) => any)({}, { keyId: 'k1' });
     expect(handler).toHaveBeenCalledWith({}, { keyId: 'k1' }, undefined);
     expect(recordAuditLog).toHaveBeenCalled();
   });
@@ -65,7 +65,7 @@ describe('Tool Factory', () => {
       handler
     );
 
-    await (tool.handler as Function)({});
+    await (tool.handler as (...args: any[]) => any)({});
     expect(handler).toHaveBeenCalledWith({}, { keyId: 'default' }, undefined);
   });
 });
