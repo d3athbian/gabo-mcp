@@ -1,23 +1,48 @@
-name: Generate Release
+name: Release Please
 
 on:
   push:
-    tags:
-      - 'v*' # Se activa cuando subes un tag que empiece con 'v', ej: v1.0.2
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
 
 jobs:
-  build:
+  release-please:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write # Permiso crucial para que el bot pueda crear la release
+    name: Release Please
+    steps:
+      - uses: googleapis/release-please-action@v4
+        id: release
+        with:
+          release-type: node
+
+  publish:
+    runs-on: ubuntu-latest
+    name: Build Release
+    needs: release-please
+    if: ${{ needs.release-please.outputs.release_created }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          generate_release_notes: true # GitHub generará la lista de cambios automáticamente
-          draft: false
-          prerelease: false
+          node-version: "24"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Verify build
+        run: |
+          if [ ! -f "dist/index.js" ]; then
+            echo "Build failed: dist/index.js not found"
+            exit 1
+          fi
