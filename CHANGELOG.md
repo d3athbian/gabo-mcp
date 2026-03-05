@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.4.0](https://github.com/d3athbian/gabo-mcp/compare/v1.3.0...v1.4.0) (2026-03-05)
+
+
+### Features
+
+* add automated backport PR from master to main after release ([04dab89](https://github.com/d3athbian/gabo-mcp/commit/04dab890065c0ce56bca9a7e2e67d3a4637f07af))
+
+## [1.3.0](https://github.com/d3athbian/gabo-mcp/compare/v1.2.0...v1.3.0) (2026-03-05)
+
+
+### Features
+
+* change release target to master branch ([a752f0b](https://github.com/d3athbian/gabo-mcp/commit/a752f0b2178bee29f0ee9907ad7914fce03b9443))
+
 ## [1.2.0](https://github.com/d3athbian/gabo-mcp/compare/v1.1.0...v1.2.0) (2026-03-05)
 
 
