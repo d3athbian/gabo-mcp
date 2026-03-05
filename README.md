@@ -100,36 +100,6 @@ Decisiones arquitectónicas y técnicas que Tomé al construir Gabo MCP.
 
 ---
 
-## Uso
-
-```bash
-# Desarrollo con watch
-npm run dev
-
-# Desarrollo local
-npm run dev:local
-
-# Inspector MCP (interfaz visual)
-npm run dev:inspector
-
-# Build
-npm run build
-```
-
----
-
-## Tests
-
-```bash
-# Unit tests (132 tests)
-npm run test
-
-# Coverage
-npm run test:coverage
-```
-
----
-
 ## Variables requeridas
 
 ```bash
@@ -151,20 +121,6 @@ MCP_API_KEY=gabo_xxx  # Genera con: npm run generate:key
   }
 }
 ```
-
-### VS Code
-
-```bash
-npm run dev:local
-```
-
-Presiona `Cmd+Shift+P` → "MCP Debugger" → Select `gabo-mcp-local`
-
-### Continue.dev
-
-Configuración en `~/.continue/config.yml`. Auto-detecta `gabo-mcp-local`.
-
----
 
 ## Logs
 
