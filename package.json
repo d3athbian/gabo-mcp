@@ -1,6 +1,6 @@
 {
   "name": "gabo-mcp",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Personal MCP server for capturing, structuring, and reusing technical knowledge",
   "main": "dist/index.js",
   "type": "module",
