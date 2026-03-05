@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.2.0](https://github.com/d3athbian/gabo-mcp/compare/v1.1.0...v1.2.0) (2026-03-05)
+
+
+### Features
+
+* explicitly target main branch for releases ([365b81b](https://github.com/d3athbian/gabo-mcp/commit/365b81b7bda008264735e8ae3f048f68836e802e))
+* force release please to version 1.2.0 ([8c0c356](https://github.com/d3athbian/gabo-mcp/commit/8c0c356d1ec8a985c13acca1ae08035d88000a5d))
+* prueba de trigger del bot ([878e1fa](https://github.com/d3athbian/gabo-mcp/commit/878e1fa8cc385c95e431cd2731daae377ab1c75f))
+* update readme ([#5](https://github.com/d3athbian/gabo-mcp/issues/5)) ([9e1dda9](https://github.com/d3athbian/gabo-mcp/commit/9e1dda9e9d30269a3d1dc39e212d60df219196b3))
+
+
+### Bug Fixes
+
+* update @hono/node-server to fix high security vulnerability ([cea028a](https://github.com/d3athbian/gabo-mcp/commit/cea028ac50cb8d5029de8da840c704064b58e7e6))
+
 ## [1.1.0](https://github.com/d3athbian/gabo-mcp/compare/1.0.0...v1.1.0) (2026-03-04)
 
 
