@@ -2,7 +2,7 @@ name: Release Please
 
 on:
   push:
-    branches: [main]
+    branches: [master]
 
 permissions:
   contents: write
@@ -19,7 +19,7 @@ jobs:
         id: release
         with:
           release-type: node
-          target-branch: main
+          target-branch: master
 
   publish:
     runs-on: ubuntu-latest
